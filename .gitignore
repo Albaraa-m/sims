@@ -2,3 +2,5 @@
 *.local.*
 AGENTS.md
 CLAUDE.md
+.env
+__pycache__/
