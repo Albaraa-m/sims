@@ -55,7 +55,7 @@ Authentication, multiple tenants, Kubernetes, a large scenario library, polished
 
 | | # | Milestone | Done when |
 |---|---|---|---|
-| [ ] | M0 | A basic LiveKit voice agent | You talk to it in console mode and it answers |
+| [x] | M0 | A basic LiveKit voice agent | You talk to it in console mode and it answers |
 | [ ] | M1 | Restaurant prompt and knowledge base | It answers questions about hours and the menu correctly |
 | [ ] | M2 | Booking tools with a fake store | It checks availability and creates a booking |
 | [ ] | M3 | Two prompt versions, v1 and v2 | v1 books without confirming, v2 confirms first |
