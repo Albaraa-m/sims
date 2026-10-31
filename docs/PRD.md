@@ -16,9 +16,10 @@ A restaurant booking agent with a knowledge base (hours, menu, policies) and two
 
 | Entity | Meaning |
 |---|---|
+| SourceConversation | A recorded or pasted conversation that exposed a failure. |
 | AgentVersion | A prompt and tools. Immutable. |
 | Test | Caller goal, facts, fixed and varying parts, expected behavior. Editing creates a new version. |
-| Run | One test version × one agent version. Retries never erase earlier results. |
+| Simulation | One call: test version × agent version. Retries never erase earlier results. |
 | Evaluation | Checks with evidence and an outcome. |
 
 **Outcomes:** `pass`, `behavioral_fail`, `execution_fail`, `inconclusive`. Missing evidence or an evaluator error is never a pass.
@@ -67,9 +68,9 @@ Authentication, multiple tenants, Kubernetes, a large scenario library, polished
 | | # | Milestone | Done when |
 |---|---|---|---|
 | [ ] | M6 | Transcript → test | A pasted transcript becomes a saved test |
-| [ ] | M7 | Run a test against v1 and v2 | Both runs are stored, linked to the test |
+| [ ] | M7 | Run a test against v1 and v2 | Both simulations are stored, linked to the test |
 | [ ] | M8 | Website: tests | You can create, edit and run a test in the browser |
-| [ ] | M9 | Benchmark: conversion fidelity | Score on ~6 failure transcripts against a rubric written beforehand, plus the share where v1 fails and v2 passes |
+| [ ] | M9 | Benchmark: conversion fidelity | Score on ~6 failure transcripts against a rubric written beforehand |
 
 ### Task 2: Evaluation and dashboards
 
