@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from dotenv import load_dotenv
 from livekit.agents import (
     Agent,
@@ -11,9 +13,22 @@ from livekit.agents import (
 
 load_dotenv()
 
-INSTRUCTIONS = """\
-You are a friendly voice assistant. Reply in plain spoken sentences, one to three at a time.
-No markdown, lists or emojis.
+KNOWLEDGE_BASE = (Path(__file__).parent / "restaurant.md").read_text()
+
+INSTRUCTIONS = f"""\
+You are the phone host for Sawt Bistro, a restaurant in Riyadh.
+You answer questions about the restaurant and help callers with reservations.
+
+Reply in plain spoken sentences, one to three at a time. No markdown, lists or emojis.
+Say prices in riyals and times the way a person would say them out loud.
+
+Answer only from the knowledge base below. The menu is complete: if a dish isn't on it,
+we don't serve it. For anything else not covered, say you don't know and offer to have
+the restaurant call back. Never invent menu items, prices or policies.
+
+# Knowledge base
+
+{KNOWLEDGE_BASE}
 """
 
 server = AgentServer()
