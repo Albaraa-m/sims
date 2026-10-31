@@ -1,8 +1,8 @@
 from dotenv import load_dotenv
 from livekit.agents import AgentServer, JobContext, cli
 
-from caller.agent import CallerAgent
-from voice import start_voice_session
+from agents.caller.agent import CallerAgent
+from agents.voice import start_voice_session
 
 load_dotenv()
 

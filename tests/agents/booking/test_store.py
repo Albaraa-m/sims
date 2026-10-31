@@ -2,7 +2,7 @@ from datetime import time
 
 import pytest
 
-from booking.store import FULLY_BOOKED_SLOTS, default_store
+from agents.booking.store import FULLY_BOOKED_SLOTS, default_store
 
 
 def test_booking_takes_a_table():

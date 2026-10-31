@@ -3,7 +3,7 @@ from pathlib import Path
 
 from livekit.agents import Agent, RunContext, ToolError, function_tool
 
-from booking.store import FIRST_SLOT, LAST_SLOT, ReservationStore
+from agents.booking.store import FIRST_SLOT, LAST_SLOT, ReservationStore
 
 KNOWLEDGE_BASE = (Path(__file__).parent / "restaurant.md").read_text()
 

@@ -1,28 +1,25 @@
-import argparse
 import asyncio
 import json
 import time
 
-from dotenv import load_dotenv
 from livekit import api
-from sqlmodel import Session
 
-from booking.server import DISPATCH_NAME as BOOKING_AGENT
-from caller.server import DISPATCH_NAME as CALLER_AGENT
-from db import Simulation, SimulationStatus, engine, now, update_simulation
+from agents.booking.server import DISPATCH_NAME as BOOKING_AGENT
+from agents.caller.server import DISPATCH_NAME as CALLER_AGENT
+from config import evidence_dir, now
+from simulations.models import (
+    Simulation,
+    SimulationStatus,
+    create_simulation,
+    update_simulation,
+)
 
 CALL_TIMEOUT_SECONDS = 180
-REPORT_WAIT_SECONDS = 20
-
-load_dotenv()
+EVIDENCE_WAIT_SECONDS = 20
 
 
 async def run_simulation(agent_version: str) -> Simulation:
-    with Session(engine) as session:
-        simulation = Simulation(agent_version=agent_version)
-        session.add(simulation)
-        session.commit()
-        session.refresh(simulation)
+    simulation = create_simulation(agent_version)
     room = simulation.room_name
 
     async with api.LiveKitAPI() as lkapi:
@@ -55,16 +52,7 @@ async def run_simulation(agent_version: str) -> Simulation:
                 ended_at=now(),
             )
 
-    if not await report_saved(simulation.id):
-        return update_simulation(
-            simulation.id,
-            status=SimulationStatus.FAILED,
-            error="call ended but the booking agent saved no session report",
-            ended_at=now(),
-        )
-    return update_simulation(
-        simulation.id, status=SimulationStatus.DONE, ended_at=now()
-    )
+    return await store_evidence(simulation.id)
 
 
 async def room_closed(lkapi: api.LiveKitAPI, room: str, timeout: float) -> bool:
@@ -77,21 +65,25 @@ async def room_closed(lkapi: api.LiveKitAPI, room: str, timeout: float) -> bool:
     return False
 
 
-async def report_saved(simulation_id: str) -> bool:
-    deadline = time.monotonic() + REPORT_WAIT_SECONDS
-    while time.monotonic() < deadline:
-        with Session(engine) as session:
-            if session.get_one(Simulation, simulation_id).report is not None:
-                return True
+async def store_evidence(simulation_id: str) -> Simulation:
+    directory = evidence_dir(simulation_id)
+    report_file = directory / "report.json"
+    deadline = time.monotonic() + EVIDENCE_WAIT_SECONDS
+    while not report_file.exists() and time.monotonic() < deadline:
         await asyncio.sleep(1)
-    return False
 
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Run one simulated call between the caller and the booking agent."
+    if not report_file.exists():
+        return update_simulation(
+            simulation_id,
+            status=SimulationStatus.FAILED,
+            error="call ended but the booking agent saved no session report",
+            ended_at=now(),
+        )
+    recording = directory / "audio.ogg"
+    return update_simulation(
+        simulation_id,
+        status=SimulationStatus.DONE,
+        report=json.loads(report_file.read_text()),
+        recording_path=str(recording) if recording.exists() else None,
+        ended_at=now(),
     )
-    parser.add_argument("--version", choices=["v1", "v2"], default="v2")
-    simulation = asyncio.run(run_simulation(parser.parse_args().version))
-    print(f"simulation {simulation.id} {simulation.status}", end="")
-    print(f": {simulation.error}" if simulation.error else "")

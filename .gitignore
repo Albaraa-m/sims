@@ -4,6 +4,7 @@ AGENTS.md
 CLAUDE.md
 .env
 __pycache__/
-recordings/
+evidence/
 logs/
 sims.db*
+recordings/
