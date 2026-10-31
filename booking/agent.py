@@ -7,7 +7,7 @@ from booking.store import FIRST_SLOT, LAST_SLOT, ReservationStore
 
 KNOWLEDGE_BASE = (Path(__file__).parent / "restaurant.md").read_text()
 
-INSTRUCTIONS = f"""\
+BASE_INSTRUCTIONS = f"""\
 You are the phone host for Sawt Bistro, a restaurant in Riyadh.
 You answer questions about the restaurant and help callers with reservations.
 
@@ -26,10 +26,22 @@ Always check availability before booking.
 {KNOWLEDGE_BASE}
 """
 
+CONFIRMATION_POLICY = """
+# Booking confirmation
+
+Before calling create_booking, read back the name, time and party size, and ask the caller
+to confirm. Only book after they say yes. If they correct something, read it back again.
+"""
+
+INSTRUCTIONS_BY_VERSION = {
+    "v1": BASE_INSTRUCTIONS,
+    "v2": BASE_INSTRUCTIONS + CONFIRMATION_POLICY,
+}
+
 
 class BookingAgent(Agent):
-    def __init__(self, store: ReservationStore) -> None:
-        super().__init__(instructions=INSTRUCTIONS)
+    def __init__(self, store: ReservationStore, version: str) -> None:
+        super().__init__(instructions=INSTRUCTIONS_BY_VERSION[version])
         self.store = store
 
     @function_tool()

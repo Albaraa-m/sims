@@ -1,3 +1,5 @@
+import os
+
 from dotenv import load_dotenv
 from livekit.agents import (
     AgentServer,
@@ -26,7 +28,10 @@ async def entrypoint(ctx: JobContext):
         ),
         turn_handling=TurnHandlingOptions(turn_detection=inference.TurnDetector()),
     )
-    await session.start(agent=BookingAgent(default_store()), room=ctx.room)
+    await session.start(
+        agent=BookingAgent(default_store(), os.getenv("AGENT_VERSION", "v2")),
+        room=ctx.room,
+    )
     await ctx.connect()
     await session.generate_reply(instructions="Greet the user and offer your help.")
 
