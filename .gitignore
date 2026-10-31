@@ -4,3 +4,5 @@ AGENTS.md
 CLAUDE.md
 .env
 __pycache__/
+recordings/
+logs/

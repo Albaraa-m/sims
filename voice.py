@@ -23,7 +23,7 @@ LISTEN_TO_PEOPLE_AND_AGENTS = room_io.RoomOptions(
 
 
 async def start_voice_session(
-    ctx: JobContext, agent: Agent, voice: str
+    ctx: JobContext, agent: Agent, voice: str, record: bool = False
 ) -> AgentSession:
     session = AgentSession(
         stt=inference.STT(model="assemblyai/universal-3-6-pro", language="en"),
@@ -36,6 +36,7 @@ async def start_voice_session(
         agent=agent,
         room=ctx.room,
         room_options=LISTEN_TO_PEOPLE_AND_AGENTS,
+        record=record,
     )
     await ctx.connect()
     return session
