@@ -8,6 +8,7 @@ from livekit.agents import AgentServer, JobContext, cli
 
 from booking.agent import BookingAgent
 from booking.store import default_store
+from db import update_simulation
 from voice import start_voice_session
 
 load_dotenv()
@@ -19,14 +20,26 @@ RECORDINGS_DIR = Path(__file__).parent.parent / "recordings"
 server = AgentServer()
 
 
-async def save_recording(ctx: JobContext) -> None:
-    recording = ctx.make_session_report().audio_recording_path
-    if recording and recording.exists():
+async def save_evidence(ctx: JobContext) -> None:
+    simulation_id = json.loads(ctx.job.metadata or "{}").get("simulation_id")
+    if not simulation_id:
+        return
+
+    report = ctx.make_session_report()
+    recording_path = None
+    if report.audio_recording_path and report.audio_recording_path.exists():
         RECORDINGS_DIR.mkdir(exist_ok=True)
-        shutil.copy(recording, RECORDINGS_DIR / f"{ctx.room.name}.ogg")
+        recording_path = RECORDINGS_DIR / f"{simulation_id}.ogg"
+        shutil.copy(report.audio_recording_path, recording_path)
+
+    update_simulation(
+        simulation_id,
+        report=report.to_dict(),
+        recording_path=str(recording_path) if recording_path else None,
+    )
 
 
-@server.rtc_session(agent_name=DISPATCH_NAME, on_session_end=save_recording)
+@server.rtc_session(agent_name=DISPATCH_NAME, on_session_end=save_evidence)
 async def entrypoint(ctx: JobContext):
     settings = json.loads(ctx.job.metadata or "{}")
     version = settings.get("version", os.getenv("AGENT_VERSION", "v2"))

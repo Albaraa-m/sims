@@ -5,6 +5,7 @@ requires-python = ">=3.14"
 dependencies = [
     "livekit-agents~=1.8",
     "python-dotenv>=1.2.4",
+    "sqlmodel>=0.0.48",
 ]
 
 [dependency-groups]

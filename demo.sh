@@ -22,23 +22,16 @@ until grep -q "registered worker" logs/booking.log && grep -q "registered worker
   sleep 1
 done
 
-ROOM=$(uv run call.py --version "$VERSION" | tee /dev/stderr | grep -o 'call-[0-9a-f]*' | head -1)
-
-OPUS_RECORDING="recordings/$ROOM.ogg"
-for _ in $(seq 1 20); do
-  [ -f "$OPUS_RECORDING" ] && break
-  sleep 1
-done
-# VS Code's audio preview can't play Opus, so keep a WAV copy instead.
-RECORDING="recordings/$ROOM.wav"
-ffmpeg -loglevel error -y -i "$OPUS_RECORDING" "$RECORDING" && rm "$OPUS_RECORDING"
+SIMULATION=$(uv run call.py --version "$VERSION" | tee /dev/stderr | grep -o 'started simulation [0-9a-f]*' | awk '{print $3}')
 
 stop_servers
 
 echo
-grep -h " call - " logs/booking.log logs/caller.log | grep "$ROOM" \
-  | sed -E 's/\x1b\[[0-9;]*m//g; s/^[0-9-]+ ([0-9:,]+) .* call - /\1  /; s/ \{"pid.*$//' | sort | cut -c1-200
+uv run show.py "$SIMULATION"
 
-echo
-echo "Recording: $RECORDING"
-ffplay -autoexit -nodisp -loglevel error "$RECORDING"
+# VS Code's audio preview can't play Opus, so keep a WAV copy next to the recording.
+RECORDING="recordings/$SIMULATION.ogg"
+if [ -f "$RECORDING" ]; then
+  ffmpeg -loglevel error -y -i "$RECORDING" "${RECORDING%.ogg}.wav"
+  ffplay -autoexit -nodisp -loglevel error "${RECORDING%.ogg}.wav"
+fi
