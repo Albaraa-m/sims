@@ -19,6 +19,7 @@
 - No pork and no alcohol are served.
 
 ## Reservation policies
+- Reservations are for the same day only.
 - Tables are for 1 to 8 guests. Parties of more than 8 must be referred to the events team at events@sawtbistro.example.
 - Reservations are held for 15 minutes after the booked time.
 - Cancellations are free up to 2 hours before the booking.

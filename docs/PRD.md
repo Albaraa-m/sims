@@ -57,7 +57,7 @@ Authentication, multiple tenants, Kubernetes, a large scenario library, polished
 |---|---|---|---|
 | [x] | M0 | A basic LiveKit voice agent | You talk to it in console mode and it answers |
 | [x] | M1 | Restaurant prompt and knowledge base | It answers questions about hours and the menu correctly |
-| [ ] | M2 | Booking tools with a fake store | It checks availability and creates a booking |
+| [x] | M2 | Booking tools with a fake store | It checks availability and creates a booking |
 | [ ] | M3 | Two prompt versions, v1 and v2 | v1 books without confirming, v2 confirms first |
 | [ ] | M4 | Caller agent | Two agents complete a booking call by voice |
 | [ ] | M5 | Save each call | Transcript and tool calls are stored in SQLite |
