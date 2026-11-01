@@ -8,11 +8,10 @@ from pathlib import Path
 from agents.servers import running_agent_servers
 from core.config import LOGS_DIR
 from core.db import create_tables
-from regression_tests.convert import convert_source_conversation_to_test
+from regression_tests.convert import convert_transcript_to_test
 from regression_tests.crud import (
     get_source_conversation,
     get_test,
-    save_transcript_as_source_conversation,
 )
 from regression_tests.models import Test
 from simulations.crud import get_simulation
@@ -69,17 +68,14 @@ def main() -> None:
     )
     export.add_argument("simulation_id")
 
-    add_transcript = commands.add_parser(
-        "add-transcript", help="Save a transcript file as a source conversation."
+    create_test = commands.add_parser(
+        "create-test", help="Turn a failed call's transcript into a draft test."
     )
-    add_transcript.add_argument("transcript_file", type=Path)
-    add_transcript.add_argument("--issue", help="What the reviewer says went wrong.")
-    add_transcript.add_argument("--agent-version", choices=["v1", "v2"])
-
-    convert_to_test = commands.add_parser(
-        "convert-to-test", help="Convert a source conversation into a draft test."
+    create_test.add_argument("transcript_file", type=Path)
+    create_test.add_argument("--issue", help="What the reviewer says went wrong.")
+    create_test.add_argument(
+        "--agent-version", choices=["v1", "v2"], help="Version that made the call."
     )
-    convert_to_test.add_argument("source_conversation_id")
 
     show_test = commands.add_parser("show-test", help="Print a stored test.")
     show_test.add_argument("test_id")
@@ -103,14 +99,11 @@ def main() -> None:
             print_simulation(get_simulation(args.simulation_id))
         case "export-transcript":
             print("\n".join(spoken_lines(get_simulation(args.simulation_id))))
-        case "add-transcript":
-            source_conversation = save_transcript_as_source_conversation(
-                args.transcript_file.read_text(), args.issue, args.agent_version
-            )
-            print(f"source conversation {source_conversation.id}")
-        case "convert-to-test":
+        case "create-test":
             outcome = asyncio.run(
-                convert_source_conversation_to_test(args.source_conversation_id)
+                convert_transcript_to_test(
+                    args.transcript_file.read_text(), args.issue, args.agent_version
+                )
             )
             if outcome.test is None:
                 print(f"no violation found: {outcome.reason}")

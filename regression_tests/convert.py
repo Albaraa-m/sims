@@ -5,7 +5,11 @@ from pydantic import BaseModel
 
 from agents.booking.agent import INSTRUCTIONS_BY_VERSION
 from core import llm
-from regression_tests.crud import create_test_from_spec, get_source_conversation
+from regression_tests.crud import (
+    create_test_from_spec,
+    get_source_conversation,
+    save_transcript_as_source_conversation,
+)
 from regression_tests.models import SourceConversation, Test, TestSpec
 
 # The latest version's prompt holds every rule the agent is meant to follow.
@@ -88,3 +92,13 @@ async def convert_source_conversation_to_test(
         return ConversionOutcome(test=None, reason=reply.reason)
     test = create_test_from_spec(source_conversation, reply.spec)
     return ConversionOutcome(test=test, reason=reply.reason)
+
+
+async def convert_transcript_to_test(
+    transcript: str, reported_issue: str | None = None, agent_version: str | None = None
+) -> ConversionOutcome:
+    """Saves the transcript as the test's source, then converts it."""
+    source_conversation = save_transcript_as_source_conversation(
+        transcript, reported_issue, agent_version
+    )
+    return await convert_source_conversation_to_test(source_conversation.id)

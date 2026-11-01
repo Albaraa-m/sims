@@ -7,7 +7,9 @@ from core import llm
 from regression_tests.convert import (
     ConversionError,
     convert_source_conversation_to_test,
+    convert_transcript_to_test,
 )
+from regression_tests.crud import get_source_conversation
 
 
 @pytest.fixture
@@ -62,3 +64,14 @@ def test_two_invalid_replies_raise(llm_replies, source_conversation):
 
     with pytest.raises(ConversionError):
         convert_to_test(source_conversation)
+
+
+def test_transcript_is_saved_as_the_tests_source(llm_replies, spec):
+    llm_replies.append(reply_with_spec(spec))
+
+    outcome = asyncio.run(convert_transcript_to_test("Agent: Hi", "no confirmation"))
+
+    assert outcome.test is not None
+    source = get_source_conversation(outcome.test.source_conversation_id)
+    assert source.transcript == "Agent: Hi"
+    assert source.reported_issue == "no confirmation"
