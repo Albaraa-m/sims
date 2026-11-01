@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { readTest } from '@/api'
+import { listTestVersions, readTest } from '@/api'
 import EditTestDialog from '@/components/EditTestDialog'
 import SpecField from '@/components/SpecField'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import type { TestDetail } from '@/types'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import type { TestDetail, TestRow } from '@/types'
 
 function FactsList({ facts }: { facts: Record<string, string> }) {
   const entries = Object.entries(facts)
@@ -26,18 +27,22 @@ function FactsList({ facts }: { facts: Record<string, string> }) {
 export default function TestPage() {
   const { testId } = useParams()
   const [test, setTest] = useState<TestDetail | null>(null)
+  const [versions, setVersions] = useState<TestRow[]>([])
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
-    if (testId) readTest(testId).then(setTest, (error: Error) => setLoadError(error.message))
+    if (!testId) return
+    readTest(testId).then(setTest, (error: Error) => setLoadError(error.message))
+    listTestVersions(testId).then(setVersions, (error: Error) => setLoadError(error.message))
   }, [testId])
 
   if (loadError) return <p className="text-sm text-destructive">Couldn't load the test: {loadError}</p>
   if (!test) return null
 
   const { spec, inferred } = test
+  const latestVersion = versions.at(-1)
   return (
     <section className="space-y-6">
       <div className="space-y-2">
@@ -51,9 +56,31 @@ export default function TestPage() {
             Edit
           </Button>
         </div>
-        <p className="font-mono text-sm text-muted-foreground">
-          {test.id} · v{test.version}
-        </p>
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <Select value={test.id} onValueChange={(versionId) => navigate(`/tests/${versionId}`)}>
+            <SelectTrigger size="sm" aria-label="Version">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {versions.map((version) => (
+                <SelectItem key={version.id} value={version.id}>
+                  v{version.version}
+                  {version.id === latestVersion?.id ? ' (latest)' : ''}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span className="font-mono">{test.id}</span>
+        </div>
+        {latestVersion && latestVersion.id !== test.id && (
+          <p className="text-sm text-muted-foreground">
+            This is v{test.version}, kept for its runs. The latest is{' '}
+            <Link to={`/tests/${latestVersion.id}`} className="underline">
+              v{latestVersion.version}
+            </Link>
+            .
+          </p>
+        )}
       </div>
 
       {isEditing && (

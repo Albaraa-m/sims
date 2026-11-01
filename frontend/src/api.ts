@@ -19,6 +19,10 @@ export function readTest(testId: string): Promise<TestDetail> {
   return requestJson(`/api/tests/${testId}`)
 }
 
+export function listTestVersions(testId: string): Promise<TestRow[]> {
+  return requestJson(`/api/tests/${testId}/versions`)
+}
+
 export function inferTest(transcript: string, reportedIssue: string | null): Promise<InferredTest> {
   return requestJson('/api/tests/infer', {
     method: 'POST',
