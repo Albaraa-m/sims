@@ -1,7 +1,14 @@
 from sqlmodel import Session, SQLModel
 
 import db
-from simulations.models import Simulation, SourceConversation
+from simulations.models import (
+    Simulation,
+    SourceConversation,
+    Test,
+    TestSpec,
+    TestStatus,
+    new_id,
+)
 
 
 def save[Row: SQLModel](row: Row) -> Row:
@@ -42,3 +49,39 @@ def save_transcript_as_source_conversation(
             agent_version=agent_version,
         )
     )
+
+
+def create_test_from_spec(
+    source_conversation: SourceConversation, spec: TestSpec
+) -> Test:
+    test_id = new_id()
+    return save(
+        Test(
+            id=test_id,
+            lineage_id=test_id,
+            source_conversation_id=source_conversation.id,
+            spec=spec.model_dump(),
+            inferred=spec.model_dump(),
+        )
+    )
+
+
+def edit_test(test_id: str, **changes) -> Test:
+    """Saves the edit as a new draft version; earlier versions stay unchanged."""
+    current = get(Test, test_id)
+    spec = TestSpec.model_validate({**current.spec, **changes})
+    return save(
+        Test(
+            lineage_id=current.lineage_id,
+            version=current.version + 1,
+            source_conversation_id=current.source_conversation_id,
+            spec=spec.model_dump(),
+            inferred=current.inferred,
+        )
+    )
+
+
+def mark_ready(test_id: str) -> Test:
+    test = get(Test, test_id)
+    test.status = TestStatus.READY
+    return save(test)

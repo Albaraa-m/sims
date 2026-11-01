@@ -1,10 +1,12 @@
 import argparse
 import asyncio
+import json
 from pathlib import Path
 
 from db import create_tables
-from simulations.crud import get_simulation, save_transcript_as_source_conversation
-from simulations.models import Simulation
+from simulations.convert import convert_source_conversation_to_test
+from simulations.crud import get, get_simulation, save_transcript_as_source_conversation
+from simulations.models import Simulation, SourceConversation, Test
 from simulations.runner import run_simulation
 
 SPEAKERS = {"assistant": "agent ", "user": "caller"}
@@ -38,6 +40,15 @@ def print_simulation(simulation: Simulation) -> None:
     print(f"recording: {simulation.recording_path}")
 
 
+def print_test(test: Test) -> None:
+    source = get(SourceConversation, test.source_conversation_id)
+    print(f"test {test.id}  v{test.version}  {test.status}  source {source.id}")
+    print(f"reported issue: {source.reported_issue or '-'}")
+    for field, value in test.spec.items():
+        edited = "" if test.inferred.get(field) == value else "  (edited)"
+        print(f"{field}{edited}: {json.dumps(value)}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="simulations")
     commands = parser.add_subparsers(dest="command", required=True)
@@ -60,6 +71,14 @@ def main() -> None:
     add_transcript.add_argument("--issue", help="What the reviewer says went wrong.")
     add_transcript.add_argument("--agent-version", choices=["v1", "v2"])
 
+    convert_to_test = commands.add_parser(
+        "convert-to-test", help="Convert a source conversation into a draft test."
+    )
+    convert_to_test.add_argument("source_conversation_id")
+
+    show_test = commands.add_parser("show-test", help="Print a stored test.")
+    show_test.add_argument("test_id")
+
     args = parser.parse_args()
     create_tables()
     match args.command:
@@ -76,6 +95,16 @@ def main() -> None:
                 args.transcript_file.read_text(), args.issue, args.agent_version
             )
             print(f"source conversation {source_conversation.id}")
+        case "convert-to-test":
+            outcome = asyncio.run(
+                convert_source_conversation_to_test(args.source_conversation_id)
+            )
+            if outcome.test is None:
+                print(f"no violation found: {outcome.reason}")
+            else:
+                print_test(outcome.test)
+        case "show-test":
+            print_test(get(Test, args.test_id))
 
 
 if __name__ == "__main__":
