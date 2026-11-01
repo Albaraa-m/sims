@@ -26,3 +26,13 @@ def test_mark_ready(source_conversation, spec):
     test = create_test_from_spec(source_conversation, spec)
 
     assert mark_ready(test.id).status == TestStatus.READY
+
+
+def test_editing_an_older_version_still_creates_the_latest(source_conversation, spec):
+    original = create_test_from_spec(source_conversation, spec)
+    edit_test(original.id, goal="Book a table for 5")
+
+    edited_again = edit_test(original.id, goal="Book a table for 6")
+
+    assert edited_again.version == 3
+

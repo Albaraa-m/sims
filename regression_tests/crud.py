@@ -1,3 +1,6 @@
+from sqlmodel import Session, func, select
+
+from core import db
 from core.db import get_row, save
 from core.ids import new_id
 from regression_tests.models import SourceConversation, Test, TestSpec, TestStatus
@@ -38,6 +41,12 @@ def create_test_from_spec(
     )
 
 
+def latest_version(lineage_id: str) -> int:
+    with Session(db.engine) as session:
+        query = select(func.max(Test.version)).where(Test.lineage_id == lineage_id)
+        return session.exec(query).one() or 0
+
+
 def edit_test(test_id: str, **changes) -> Test:
     """Saves the edit as a new draft version; earlier versions stay unchanged."""
     current = get_test(test_id)
@@ -45,7 +54,8 @@ def edit_test(test_id: str, **changes) -> Test:
     return save(
         Test(
             lineage_id=current.lineage_id,
-            version=current.version + 1,
+            # Editing an older version still yields a new, unique latest version.
+            version=latest_version(current.lineage_id) + 1,
             source_conversation_id=current.source_conversation_id,
             spec=spec.model_dump(),
             inferred=current.inferred,
