@@ -4,6 +4,7 @@ from typing import Literal, NamedTuple
 
 from pydantic import BaseModel
 
+from core import llm
 from evaluations.models import Outcome
 from regression_tests.models import TestSpec
 from simulations.conversation import SpokenLine, ToolCall
@@ -82,6 +83,14 @@ def build_judge_prompt(
             f"[{number}] {format_turn(turn)}"
             for number, turn in enumerate(conversation)
         ),
+    )
+
+
+async def ask_judge_to_grade(
+    spec: TestSpec, conversation: list[SpokenLine | ToolCall]
+) -> JudgeReply:
+    return await llm.generate_structured(
+        build_judge_prompt(spec, conversation), JudgeReply, JUDGE_MODEL
     )
 
 

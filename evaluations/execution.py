@@ -3,6 +3,7 @@ from simulations.models import Simulation, SimulationStatus
 
 
 def find_execution_failure(simulation: Simulation) -> str | None:
+    # TODO: The return values can be constants instead of hardcoded strings
     """Why the call can't be graded, or None when it ran properly."""
     if simulation.status == SimulationStatus.FAILED:
         return f"the call failed: {simulation.error or 'unknown error'}"
