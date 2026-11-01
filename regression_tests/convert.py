@@ -47,7 +47,6 @@ Reply:
   "goal": "Find out whether the restaurant is open at noon on Friday for lunch.",
   "facts": {"day": "Friday", "time": "12:00", "party_size": "2"},
   "behavior": "You are relaxed and chatty. Ask your question in one sentence and hang up once you have the answer.",
-  "may_vary": ["party_size", "wording and tone", "whether you mention who you are coming with"],
   "policy_under_test": "Give opening hours exactly as in the knowledge base.",
   "expected_outcome": "The agent says the restaurant opens at one in the afternoon on Friday, not at noon."}}
 
@@ -85,6 +84,7 @@ X, you Y", never as "wait for them to X", which tells the caller what to expect:
 | "Ask about the kunafa price and see if the agent quotes 38 SAR." | "Ask how much the kunafa is." |
 | "Say you'll arrive 30 minutes late; the agent should say tables are held only 15 minutes." | "Say you might be about 30 minutes late and ask if that's okay." |
 | "Keep asking about gluten-free bread until the agent makes one up." | "Ask if they have gluten-free bread. If they're unsure, ask once more." |
+| "If they book without asking you to confirm, hang up." | "Once they tell you the table is booked, thank them and end the call." |
 
 Caller fields:
 - goal: what the caller wants, in one sentence.
@@ -94,10 +94,10 @@ Caller fields:
   how they hand over details, how they answer questions, when they hang up. Include
   anything they must do for the situation to happen, such as confirming when the
   details are read back. Do not repeat the goal or facts or reveal what is tested.
-- may_vary: items from goal, facts or behavior that may change between runs without
-  losing the failure, such as the name, wording, tone, or details at once or one by
-  one. Everything not listed stays fixed. A fact that breaks a rule on purpose, like
-  a party of 12, must not be listed.
+  Never contrast what the agent did with what it should have done ("without asking
+  you", "if they forget to"). Always say when to end the call, tied to something
+  any agent does, such as saying the table is booked or answering the question, so
+  the caller never improvises past the moment the failure shows.
 
 Evaluator fields (never shown to the caller):
 - policy_under_test: the rule the agent broke, in plain words, without tool names.

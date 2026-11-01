@@ -50,11 +50,11 @@
 - `room_name` isn't stored; it's derived from the id as `sim-<id>`.
 - `reported_issue` is the reviewer's note on what went wrong; it anchors the conversion on that failure.
 
-**TestSpec** (Pydantic): `goal`, `facts`, `behavior`, `may_vary` (caller fields), `policy_under_test`, `expected_outcome` (evaluator fields).
+**TestSpec** (Pydantic): `goal`, `facts`, `behavior` (caller fields), `policy_under_test`, `expected_outcome` (evaluator fields).
 
 - `goal` is what the caller wants, `facts` the details they give, `behavior` only how they act (style, how they hand over details, when they hang up). Each piece lives in one field.
 - Caller fields describe only what a caller wants, says and does: no restaurant rules or tool names. `facts` come from the transcript, normalized (`19:00`, `4`). `behavior` includes must-dos, such as confirming a read-back.
-- Everything is fixed except what `may_vary` lists (e.g. name, wording, details at once or one by one). A fact that breaks a rule on purpose, like a party of 12, is never listed.
+- Goal, facts and behavior are fixed; only the caller's wording varies between runs. Each test runs several times to show the result holds; deliberate variation is a separate test.
 - The caller gets only the caller fields; `policy_under_test` and `expected_outcome` are withheld so it can't steer the agent.
 - The converter prompt has two worked examples (one failure, one clean), chosen to differ from the benchmark cases.
 
@@ -127,7 +127,7 @@
 | Facts kept | All key facts present |
 | Situation kept | Caller still creates the conditions that expose the failure |
 | Policy right | `policy_under_test` names the broken rule |
-| May-vary safe | Nothing the failure depends on is listed in `may_vary` |
+| Leak-free | Caller fields don't reveal what is tested |
 
 **Limits:** small sample, self-written transcripts, LLM judge bias, scores the spec only (not whether the live caller acts it out), no automated v1-fails / v2-passes check (Task 2).
 
