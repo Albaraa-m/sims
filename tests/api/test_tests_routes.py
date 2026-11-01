@@ -94,3 +94,24 @@ def test_list_returns_created_tests(client, spec):
     assert [(row["name"], row["version"], row["status"]) for row in rows] == [
         ("Unconfirmed", 1, "draft")
     ]
+
+
+def test_read_returns_the_spec_and_what_was_inferred(client, spec):
+    created = client.post(
+        "/api/tests",
+        json={
+            "transcript": "Agent: Hi",
+            "name": "Unconfirmed",
+            "spec": {**spec.model_dump(), "goal": "Edited goal"},
+            "inferred_spec": spec.model_dump(),
+        },
+    ).json()
+
+    test = client.get(f"/api/tests/{created['id']}").json()
+
+    assert test["spec"]["goal"] == "Edited goal"
+    assert test["inferred"] == spec.model_dump()
+
+
+def test_read_unknown_test_is_404(client):
+    assert client.get("/api/tests/missing").status_code == 404

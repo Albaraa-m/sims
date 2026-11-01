@@ -37,3 +37,9 @@ class TestRow(BaseModel):
     def mark_as_utc(cls, created_at: datetime) -> datetime:
         # SQLite drops the timezone; every stored time is UTC.
         return created_at.replace(tzinfo=UTC)
+
+
+class TestDetail(TestRow):
+    spec: TestSpec
+    # What the model suggested; None if it found no broken rule.
+    inferred: TestSpec | None

@@ -1,8 +1,19 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
+from sqlalchemy.exc import NoResultFound
 
-from api.schemas import CreateTestRequest, InferTestRequest, InferTestResponse, TestRow
+from api.schemas import (
+    CreateTestRequest,
+    InferTestRequest,
+    InferTestResponse,
+    TestDetail,
+    TestRow,
+)
 from regression_tests.convert import infer_test_spec_from_transcript
-from regression_tests.crud import create_test_from_transcript, list_latest_tests
+from regression_tests.crud import (
+    create_test_from_transcript,
+    get_test,
+    list_latest_tests,
+)
 
 router = APIRouter(prefix="/api/tests")
 
@@ -13,6 +24,15 @@ def list_tests() -> list[TestRow]:
         TestRow.model_validate(test, from_attributes=True)
         for test in list_latest_tests()
     ]
+
+
+@router.get("/{test_id}")
+def read_test(test_id: str) -> TestDetail:
+    try:
+        test = get_test(test_id)
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail=f"test {test_id} not found")
+    return TestDetail.model_validate(test, from_attributes=True)
 
 
 @router.post("/infer")
