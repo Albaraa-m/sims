@@ -78,6 +78,16 @@ If it did, write a spec. The caller fields describe a person phoning the restaur
 only what they want, say and do. Never mention the restaurant's rules (opening hours,
 party limits, availability) or the agent's tools in them.
 
+The caller must not know what is being tested. Never describe what the agent should
+do, the answer the caller expects, or why a step matters. Write reactions as "if they
+X, you Y", never as "wait for them to X", which tells the caller what to expect:
+
+| Leak | Caller-only |
+|---|---|
+| "Ask about the kunafa price and see if the agent quotes 38 SAR." | "Ask how much the kunafa is." |
+| "Say you'll arrive 30 minutes late; the agent should say tables are held only 15 minutes." | "Say you might be about 30 minutes late and ask if that's okay." |
+| "Keep asking about gluten-free bread until the agent makes one up." | "Ask if they have gluten-free bread. If they're unsure, ask once more." |
+
 Caller fields:
 - goal: what the caller wants, in one sentence.
 - facts: the concrete details the caller gave in the transcript, only those the
