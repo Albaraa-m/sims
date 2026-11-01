@@ -1,6 +1,6 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from regression_tests.models import TestSpec, TestStatus
 
@@ -31,3 +31,9 @@ class TestRow(BaseModel):
     version: int
     status: TestStatus
     created_at: datetime
+
+    @field_validator("created_at")
+    @classmethod
+    def mark_as_utc(cls, created_at: datetime) -> datetime:
+        # SQLite drops the timezone; every stored time is UTC.
+        return created_at.replace(tzinfo=UTC)

@@ -1,19 +1,9 @@
-import { useEffect, useState } from 'react'
+import TestsPage from '@/pages/TestsPage'
 
 export default function App() {
-  const [apiStatus, setApiStatus] = useState('checking…')
-
-  useEffect(() => {
-    fetch('/api/health')
-      .then((response) => response.json())
-      .then((body: { status: string }) => setApiStatus(body.status))
-      .catch(() => setApiStatus('unreachable'))
-  }, [])
-
   return (
-    <main>
-      <h1>Sims</h1>
-      <p>API: {apiStatus}</p>
+    <main className="mx-auto max-w-5xl px-6 py-10">
+      <TestsPage />
     </main>
   )
 }
