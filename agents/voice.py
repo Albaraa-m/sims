@@ -12,7 +12,7 @@ from livekit.agents import (
     room_io,
 )
 
-from config import LLM_MODEL
+from core.config import LLM_MODEL
 
 logger = logging.getLogger("call")
 

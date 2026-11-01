@@ -1,7 +1,7 @@
 from sqlalchemy import event
 from sqlmodel import SQLModel, create_engine
 
-from config import DB_PATH
+from core.config import DB_PATH
 
 engine = create_engine(f"sqlite:///{DB_PATH}")
 

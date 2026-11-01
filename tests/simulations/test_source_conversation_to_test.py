@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-import llm
+from core import llm
 from simulations.convert import ConversionError, convert_source_conversation_to_test
 
 

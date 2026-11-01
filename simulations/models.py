@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
-from config import now
+from core.config import now
 
 
 def new_id() -> str:

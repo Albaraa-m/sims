@@ -1,7 +1,7 @@
 from livekit.agents import inference, llm, utils
 from pydantic import BaseModel, ValidationError
 
-from config import LLM_MODEL
+from core.config import LLM_MODEL
 
 
 class InvalidReplyError(Exception):

@@ -1,6 +1,6 @@
 from sqlmodel import Session, SQLModel
 
-import db
+from core import db
 from simulations.models import (
     Simulation,
     SourceConversation,

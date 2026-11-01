@@ -3,8 +3,8 @@ from typing import NamedTuple
 
 from pydantic import BaseModel
 
-import llm
 from agents.booking.agent import INSTRUCTIONS_BY_VERSION
+from core import llm
 from simulations.crud import create_test_from_spec, get_source_conversation
 from simulations.models import SourceConversation, Test, TestSpec
 

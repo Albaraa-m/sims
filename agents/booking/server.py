@@ -8,7 +8,7 @@ from livekit.agents import AgentServer, JobContext, cli
 from agents.booking.agent import BookingAgent
 from agents.booking.store import default_store
 from agents.voice import start_voice_session
-from config import evidence_dir
+from core.config import evidence_dir
 
 load_dotenv()
 

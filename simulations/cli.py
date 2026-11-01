@@ -3,7 +3,7 @@ import asyncio
 import json
 from pathlib import Path
 
-from db import create_tables
+from core.db import create_tables
 from simulations.convert import convert_source_conversation_to_test
 from simulations.crud import (
     get_simulation,

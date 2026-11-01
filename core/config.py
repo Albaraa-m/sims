@@ -3,7 +3,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-ROOT = Path(__file__).parent
+ROOT = Path(__file__).parent.parent
 DB_PATH = ROOT / "sims.db"
 EVIDENCE_DIR = ROOT / "evidence"
 LOGS_DIR = ROOT / "logs"
