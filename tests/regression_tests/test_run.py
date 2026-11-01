@@ -2,6 +2,7 @@ import asyncio
 
 import pytest
 
+from evaluations.crud import latest_evaluation_of_simulation
 from regression_tests import run
 from regression_tests.crud import create_test_from_spec, mark_ready
 from regression_tests.run import (
@@ -27,7 +28,7 @@ def test_draft_test_is_refused(spec, source_conversation):
         asyncio.run(run_test_against_agent_version(test.id, "v1"))
 
 
-def test_ready_test_starts_one_simulation_per_run(
+def test_ready_test_starts_and_evaluates_one_simulation_per_run(
     spec, source_conversation, monkeypatch
 ):
     started = []
@@ -47,3 +48,4 @@ def test_ready_test_starts_one_simulation_per_run(
     assert {(version, test_id) for version, test_id, _ in started} == {("v1", test.id)}
     assert started[0][2] == build_caller_scenario(spec)
     assert len(list_simulations_of_test(test.id)) == 3
+    assert all(latest_evaluation_of_simulation(s.id) for s in simulations)
