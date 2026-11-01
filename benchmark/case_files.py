@@ -8,6 +8,8 @@ BENCHMARK_DIR = Path(__file__).parent
 CASES_DIR = BENCHMARK_DIR / "cases"
 OUTPUTS_DIR = BENCHMARK_DIR / "outputs"
 RESULTS_PATH = BENCHMARK_DIR / "results.json"
+# Results before the last converter change, to show what it changed.
+BASELINE_RESULTS_PATH = BENCHMARK_DIR / "results.baseline.json"
 REPORT_PATH = BENCHMARK_DIR / "results.md"
 
 

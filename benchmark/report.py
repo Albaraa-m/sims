@@ -1,6 +1,12 @@
 import json
 
-from benchmark.case_files import REPORT_PATH, RESULTS_PATH, Case, load_cases
+from benchmark.case_files import (
+    BASELINE_RESULTS_PATH,
+    REPORT_PATH,
+    RESULTS_PATH,
+    Case,
+    load_cases,
+)
 from benchmark.score import CLEAN_CRITERION, CRITERIA, JUDGE_MODEL
 from regression_tests.convert import CONVERSION_MODEL
 
@@ -20,7 +26,17 @@ def hand_written_section() -> str:
     return report[report.index(HAND_WRITTEN_MARKER) :]
 
 
-def render_report(cases: list[Case], results: dict[str, dict[str, dict]]) -> str:
+def count_passes(
+    cases: list[Case], results: dict[str, dict[str, dict]], criterion: str
+) -> int:
+    return sum(results[case.name][criterion]["passed"] for case in cases)
+
+
+def render_report(
+    cases: list[Case],
+    results: dict[str, dict[str, dict]],
+    baseline_results: dict[str, dict[str, dict]] | None,
+) -> str:
     failure_cases = [case for case in cases if not case.expected.get("is_clean")]
     clean_cases = [case for case in cases if case.expected.get("is_clean")]
 
@@ -43,8 +59,7 @@ def render_report(cases: list[Case], results: dict[str, dict[str, dict]]) -> str
         ]
         lines.append(f"| {case.name} | " + " | ".join(marks) + " |")
     passes_per_criterion = [
-        sum(results[case.name][criterion]["passed"] for case in failure_cases)
-        for criterion in CRITERIA
+        count_passes(failure_cases, results, criterion) for criterion in CRITERIA
     ]
     lines.append(
         "| **Passed** | "
@@ -53,6 +68,16 @@ def render_report(cases: list[Case], results: dict[str, dict[str, dict]]) -> str
         )
         + " |"
     )
+    if baseline_results:
+        baseline_passes = [
+            count_passes(failure_cases, baseline_results, criterion)
+            for criterion in CRITERIA
+        ]
+        lines.append(
+            "| *Baseline* | "
+            + " | ".join(f"{passes}/{len(failure_cases)}" for passes in baseline_passes)
+            + " |"
+        )
     total_passes = sum(passes_per_criterion)
     total_checks = len(failure_cases) * len(CRITERIA)
     lines += [
@@ -83,7 +108,12 @@ def render_report(cases: list[Case], results: dict[str, dict[str, dict]]) -> str
 
 def write_report(cases: list[Case]) -> None:
     results = json.loads(RESULTS_PATH.read_text())
-    REPORT_PATH.write_text(render_report(cases, results))
+    baseline_results = (
+        json.loads(BASELINE_RESULTS_PATH.read_text())
+        if BASELINE_RESULTS_PATH.exists()
+        else None
+    )
+    REPORT_PATH.write_text(render_report(cases, results, baseline_results))
 
 
 def main() -> None:
