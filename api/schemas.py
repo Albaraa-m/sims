@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
+from typing import Literal
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 from regression_tests.models import TestSpec, TestStatus
 
@@ -28,6 +29,11 @@ class CreateTestRequest(BaseModel):
 class EditTestRequest(BaseModel):
     name: str
     spec: TestSpec
+
+
+class StartRunsRequest(BaseModel):
+    agent_versions: list[Literal["v1", "v2"]] = Field(min_length=1)
+    runs_per_version: int = Field(default=1, ge=1, le=5)
 
 
 class TestRow(BaseModel):

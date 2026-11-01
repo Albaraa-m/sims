@@ -1,3 +1,5 @@
+import asyncio
+
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import NoResultFound
 
@@ -6,6 +8,7 @@ from api.schemas import (
     EditTestRequest,
     InferTestRequest,
     InferTestResponse,
+    StartRunsRequest,
     TestDetail,
     TestRow,
 )
@@ -18,9 +21,13 @@ from regression_tests.crud import (
     list_test_versions,
     mark_ready,
 )
-from regression_tests.models import Test
+from regression_tests.models import Test, TestStatus
+from regression_tests.run import run_test_against_agent_version
 
 router = APIRouter(prefix="/api/tests")
+
+# The event loop keeps only weak references to tasks; these must outlive the request.
+running_tasks: set[asyncio.Task] = set()
 
 
 @router.get("")
@@ -86,3 +93,18 @@ def create_test(request: CreateTestRequest) -> TestRow:
         inferred_spec=request.inferred_spec,
     )
     return TestRow.model_validate(test, from_attributes=True)
+
+
+@router.post("/{test_id}/runs", status_code=202)
+async def start_runs_of_test(test_id: str, request: StartRunsRequest) -> None:
+    """Starts the runs and returns at once; each run appears in the runs list."""
+    if get_test_or_404(test_id).status != TestStatus.READY:
+        raise HTTPException(status_code=409, detail="mark the test ready first")
+    for agent_version in request.agent_versions:
+        task = asyncio.create_task(
+            run_test_against_agent_version(
+                test_id, agent_version, request.runs_per_version
+            )
+        )
+        running_tasks.add(task)
+        task.add_done_callback(running_tasks.discard)

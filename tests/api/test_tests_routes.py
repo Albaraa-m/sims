@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.app import create_app
+from api.routes import tests as tests_routes
 from core import llm
 from regression_tests.crud import get_source_conversation, get_test
 
@@ -173,3 +174,59 @@ def test_mark_ready(client, spec):
     response = client.post(f"/api/tests/{created['id']}/ready")
 
     assert response.json()["status"] == "ready"
+
+
+@pytest.fixture
+def started_runs(monkeypatch) -> list[tuple[str, str, int]]:
+    started: list[tuple[str, str, int]] = []
+
+    async def fake_run(test_id: str, agent_version: str, runs: int = 1) -> list:
+        started.append((test_id, agent_version, runs))
+        return []
+
+    monkeypatch.setattr(tests_routes, "run_test_against_agent_version", fake_run)
+    return started
+
+
+def create_ready_test(client, spec) -> str:
+    created = client.post(
+        "/api/tests",
+        json={
+            "transcript": "Agent: Hi",
+            "name": "Unconfirmed",
+            "spec": spec.model_dump(),
+        },
+    ).json()
+    client.post(f"/api/tests/{created['id']}/ready")
+    return created["id"]
+
+
+def test_start_runs_runs_each_version(client, spec, started_runs):
+    test_id = create_ready_test(client, spec)
+
+    with client:
+        response = client.post(
+            f"/api/tests/{test_id}/runs",
+            json={"agent_versions": ["v1", "v2"], "runs_per_version": 2},
+        )
+
+    assert response.status_code == 202
+    assert started_runs == [(test_id, "v1", 2), (test_id, "v2", 2)]
+
+
+def test_start_runs_of_a_draft_is_refused(client, spec, started_runs):
+    created = client.post(
+        "/api/tests",
+        json={
+            "transcript": "Agent: Hi",
+            "name": "Unconfirmed",
+            "spec": spec.model_dump(),
+        },
+    ).json()
+
+    response = client.post(
+        f"/api/tests/{created['id']}/runs", json={"agent_versions": ["v1"]}
+    )
+
+    assert response.status_code == 409
+    assert started_runs == []
