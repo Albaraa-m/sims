@@ -9,7 +9,8 @@
 │ SourceConversation    │     │ AgentVersion      │
 ├───────────────────────┤     ├───────────────────┤
 │ id                    │     │ id   v1 │ v2      │
-│ transcript    JSON    │     │ prompt  (in code) │
+│ transcript    text    │     │ prompt  (in code) │
+│ reported_issue?       │     │                   │
 │ agent_version? ───────┼────▶│                   │
 │ created_at            │     └───────────────────┘
 └───────────────────────┘              ▲
@@ -21,7 +22,7 @@
 │ id                    │              │
 │ lineage_id            │              │
 │ version               │              │
-│ source_conv_id        │              │
+│ source_conversation_id│              │
 │ status  draft│ready   │              │
 │ spec      TestSpec    │              │
 │ inferred  TestSpec    │              │
@@ -38,7 +39,7 @@
 │ status  running│done│failed (+queued) │
 │ report   JSON  LiveKit SessionReport  │
 │ recording_path                        │
-│ room_name, error                      │
+│ error                                 │
 │ started_at, ended_at                  │
 └───────────────────────────────────────┘
 ```
@@ -46,8 +47,13 @@
 - `AgentVersion` lives in code (`agents/booking/agent.py`, `INSTRUCTIONS_BY_VERSION`); rows store its id. A table comes only if versions must be created at runtime.
 - `Simulation.report` is LiveKit's `SessionReport.to_dict()`: transcript, tool calls, timings, usage. No hand-rolled turns table.
 - `queued` is added in this task, when the API starts simulations in the background.
+- `room_name` isn't stored; it's derived from the id as `sim-<id>`.
+- `reported_issue` is the reviewer's note on what went wrong; it anchors the conversion on that failure.
 
-**TestSpec** (Pydantic): `goal`, `facts`, `caller_instructions`, `policy_under_test`, `expected_outcome`, `fixed`, `varying`.
+**TestSpec** (Pydantic): `goal`, `facts`, `behavior`, `policy_under_test`, `expected_outcome`, `fixed`, `varying`.
+
+- `goal` is what the caller wants, `facts` the details they give, `behavior` only how they act (style, how they hand over details, when they hang up). Each piece lives in one field.
+- `fixed` holds only what the broken rule needs in order to apply (a confirmation rule needs a booking to happen). Everything else is `varying`, including whether details come at once or one at a time.
 
 - Edits insert a new `Test` row (`version + 1`, `draft`); old runs keep pointing to what ran.
 - `inferred` vs `spec` shows what the model inferred and what the reviewer changed.
@@ -72,7 +78,7 @@
 
 | Screen | Reviewer sees | Reviewer can |
 |---|---|---|
-| Paste | Transcript box | Paste and convert |
+| Paste | Transcript box, optional reported-issue note | Save the source conversation, then convert it; a clean transcript shows "no violation found" and its reason |
 | Review | Spec fields; edited fields marked against `inferred`; status badge | Edit fields, toggle fixed/varying, mark ready |
 | Runs | v1 and v2 side by side; tool calls inline; status polled every 2s | Run, rerun, open source and earlier versions |
 
@@ -80,8 +86,10 @@
 
 ## Data flow
 
-1. Reviewer pastes a transcript → `SourceConversation`.
-2. LLM extracts a `TestSpec` → `Test` v1, `draft`, `inferred = spec`.
+1. Reviewer pastes a transcript and an optional reported issue → `save_transcript_as_source_conversation` → `SourceConversation`. No model call.
+2. Reviewer converts it → `convert_source_conversation_to_test`: the LLM decides whether a rule was broken.
+   - Yes → `Test` v1, `draft`, `inferred = spec`.
+   - No → no test; the reason is shown.
 3. Reviewer edits → new `Test` row, `draft`.
 4. "Mark ready" → `ready`.
 5. "Run vs v1 and v2" → two `Simulation` rows, `queued`.
@@ -129,7 +137,8 @@
 | Versioning | Immutable rows | Old runs keep pointing to what ran |
 | Format | JSON | Matches DB columns; no YAML yet |
 | Web | FastAPI + server-rendered HTML | Fewest moving parts |
-| Conversion | One LLM call, structured output | Simple; reviewer fixes the rest |
+| Conversion | One LLM call via LiveKit Inference; JSON validated by Pydantic, retried once, then a clear error | Doesn't depend on structured-output support; reviewer fixes the rest |
+| Clean transcripts | Model returns `failure_found` and `reason`; no test when nothing broke | Stops the model inventing failures |
 | Caller | LiveKit Agents SDK agent | Required by the brief |
 | Agent servers | Two: `booking-agent` (under test) and `caller-agent` | Separates the agent under test from the test tool; one server registers one name |
 | Versions | Version id in job metadata; prompts in code | No deploys per version |
