@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { listRuns, listTestVersions, markTestReady, readTest } from '@/api'
 import EditTestDialog from '@/components/EditTestDialog'
 import RunControls from '@/components/RunControls'
+import OutcomeSummary from '@/components/OutcomeSummary'
 import RunsTable from '@/components/RunsTable'
 import SpecField from '@/components/SpecField'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -191,6 +192,7 @@ export default function TestPage() {
         {latestVersion && latestVersion.id !== test.id && (
           <p className="text-sm text-muted-foreground">Runs use the latest version.</p>
         )}
+        <OutcomeSummary runs={runs} testId={test.id} testVersion={test.version} />
         <RunsTable runs={runs} viewedTestId={test.id} now={now} />
       </div>
     </section>
