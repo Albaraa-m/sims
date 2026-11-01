@@ -26,10 +26,10 @@ def parse_json_reply[Reply: BaseModel](reply: str, schema: type[Reply]) -> Reply
 
 
 async def generate_structured[Reply: BaseModel](
-    prompt: str, schema: type[Reply]
+    prompt: str, schema: type[Reply], model: str = LLM_MODEL
 ) -> Reply:
     """Retries once with the validation error, since models often fix their own JSON."""
-    reply = await generate_text(prompt)
+    reply = await generate_text(prompt, model)
     try:
         return parse_json_reply(reply, schema)
     except ValidationError as first_error:
@@ -37,6 +37,6 @@ async def generate_structured[Reply: BaseModel](
             f"{prompt}\n\nYour previous reply was invalid: {first_error}\n{reply}"
         )
         try:
-            return parse_json_reply(await generate_text(retry_prompt), schema)
+            return parse_json_reply(await generate_text(retry_prompt, model), schema)
         except ValidationError as error:
             raise InvalidReplyError(str(error)) from error

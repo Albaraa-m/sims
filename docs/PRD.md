@@ -19,7 +19,7 @@ A restaurant booking agent with a knowledge base (hours, menu, policies) and two
 | SourceConversation | A recorded or pasted conversation that exposed a failure. |
 | AgentVersion | A prompt and tools. Immutable. |
 | SourceConversation | The reported conversation, plus the reviewer's note on what went wrong. |
-| Test | One broken rule to check: caller goal, facts, behavior, policy under test, expected outcome, fixed and varying parts. Editing creates a new version. |
+| Test | One broken rule to check: caller goal, facts, behavior, what may vary between runs, policy under test, expected outcome. Editing creates a new version. |
 | Simulation | One call: test version × agent version. Retries never erase earlier results. |
 | Evaluation | Checks with evidence and an outcome. |
 

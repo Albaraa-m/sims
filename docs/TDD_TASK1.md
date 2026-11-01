@@ -50,10 +50,13 @@
 - `room_name` isn't stored; it's derived from the id as `sim-<id>`.
 - `reported_issue` is the reviewer's note on what went wrong; it anchors the conversion on that failure.
 
-**TestSpec** (Pydantic): `goal`, `facts`, `behavior`, `policy_under_test`, `expected_outcome`, `fixed`, `varying`.
+**TestSpec** (Pydantic): `goal`, `facts`, `behavior`, `may_vary` (caller fields), `policy_under_test`, `expected_outcome` (evaluator fields).
 
 - `goal` is what the caller wants, `facts` the details they give, `behavior` only how they act (style, how they hand over details, when they hang up). Each piece lives in one field.
-- `fixed` holds only what the broken rule needs in order to apply (a confirmation rule needs a booking to happen). Everything else is `varying`, including whether details come at once or one at a time.
+- Caller fields describe only what a caller wants, says and does: no restaurant rules or tool names. `facts` come from the transcript, normalized (`19:00`, `4`). `behavior` includes must-dos, such as confirming a read-back.
+- Everything is fixed except what `may_vary` lists (e.g. name, wording, details at once or one by one). A fact that breaks a rule on purpose, like a party of 12, is never listed.
+- The caller gets only the caller fields; `policy_under_test` and `expected_outcome` are withheld so it can't steer the agent.
+- The converter prompt has two worked examples (one failure, one clean), chosen to differ from the benchmark cases.
 
 - Edits insert a new `Test` row (`version + 1`, `draft`); old runs keep pointing to what ran.
 - `inferred` vs `spec` shows what the model inferred and what the reviewer changed.
@@ -79,7 +82,7 @@
 | Screen | Reviewer sees | Reviewer can |
 |---|---|---|
 | Paste | Transcript box, optional reported-issue note | Save the source conversation, then convert it; a clean transcript shows "no violation found" and its reason |
-| Review | Spec fields; edited fields marked against `inferred`; status badge | Edit fields, toggle fixed/varying, mark ready |
+| Review | Spec fields; edited fields marked against `inferred`; status badge | Edit fields, edit what may vary, mark ready |
 | Runs | v1 and v2 side by side; tool calls inline; status polled every 2s | Run, rerun, open source and earlier versions |
 
 "Ready" badge and an enabled Run button tell the reviewer the test can run.
@@ -124,7 +127,7 @@
 | Facts kept | All key facts present |
 | Situation kept | Caller still creates the conditions that expose the failure |
 | Policy right | `policy_under_test` names the broken rule |
-| Fixed/varying | Essentials are fixed |
+| May-vary safe | Nothing the failure depends on is listed in `may_vary` |
 
 **Limits:** small sample, self-written transcripts, LLM judge bias, scores the spec only (not whether the live caller acts it out), no automated v1-fails / v2-passes check (Task 2).
 
@@ -137,7 +140,7 @@
 | Versioning | Immutable rows | Old runs keep pointing to what ran |
 | Format | JSON | Matches DB columns; no YAML yet |
 | Web | FastAPI + server-rendered HTML | Fewest moving parts |
-| Conversion | One LLM call via LiveKit Inference; JSON validated by Pydantic, retried once, then a clear error | Doesn't depend on structured-output support; reviewer fixes the rest |
+| Conversion | One LLM call via LiveKit Inference (`openai/gpt-5.4-mini`: runs offline, so stronger than the latency-tuned voice model) with two worked examples; JSON validated by Pydantic, retried once, then a clear error | Doesn't depend on structured-output support; reviewer fixes the rest |
 | Clean transcripts | Model always returns a `reason`; `spec` is null when nothing broke, so no test is created | Stops the model inventing failures |
 | Caller | LiveKit Agents SDK agent | Required by the brief |
 | Agent servers | Two: `booking-agent` (under test) and `caller-agent` | Separates the agent under test from the test tool; one server registers one name |

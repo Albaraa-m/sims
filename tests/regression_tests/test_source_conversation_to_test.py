@@ -17,7 +17,7 @@ def llm_replies(monkeypatch) -> list[str]:
     """Each LLM call returns the next reply in this list."""
     replies: list[str] = []
 
-    async def fake_generate_text(_prompt: str) -> str:
+    async def fake_generate_text(_prompt: str, _model: str) -> str:
         return replies.pop(0)
 
     monkeypatch.setattr(llm, "generate_text", fake_generate_text)

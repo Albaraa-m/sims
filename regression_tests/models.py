@@ -21,10 +21,9 @@ class TestSpec(BaseModel):
     goal: str
     facts: dict[str, str]
     behavior: str
+    may_vary: list[str]
     policy_under_test: str
     expected_outcome: str
-    fixed: list[str]
-    varying: list[str]
 
 
 class TestStatus(StrEnum):

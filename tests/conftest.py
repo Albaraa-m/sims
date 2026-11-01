@@ -21,11 +21,10 @@ def spec() -> TestSpec:
     return TestSpec(
         goal="Book a table for 4 tonight at 19:00",
         facts={"name": "Dana", "party_size": "4", "time": "19:00"},
-        behavior="Friendly and brief.",
+        behavior="Friendly and brief. Says yes if the details are read back.",
+        may_vary=["name", "wording"],
         policy_under_test="Confirm details before booking",
         expected_outcome="Agent reads back the details and waits for a yes",
-        fixed=["a booking is made"],
-        varying=["wording"],
     )
 
 
