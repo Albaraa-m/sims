@@ -14,17 +14,7 @@ from regression_tests.models import Test
 from simulations.crud import get_simulation
 from simulations.models import Simulation
 from simulations.runner import run_simulation
-
-SPEAKERS = {"assistant": "agent ", "user": "caller"}
-
-
-def spoken_lines(simulation: Simulation) -> list[str]:
-    items = (simulation.report or {}).get("chat_history", {}).get("items", [])
-    return [
-        f"{SPEAKERS[item['role']].strip().capitalize()}: {' '.join(map(str, item['content']))}"
-        for item in items
-        if item["type"] == "message" and item["role"] in SPEAKERS
-    ]
+from simulations.transcript import SPEAKERS, chat_items, message_text, spoken_lines
 
 
 def print_simulation(simulation: Simulation) -> None:
@@ -33,12 +23,10 @@ def print_simulation(simulation: Simulation) -> None:
     )
     if simulation.error:
         print(f"error: {simulation.error}")
-    for item in (simulation.report or {}).get("chat_history", {}).get("items", []):
+    for item in chat_items(simulation):
         match item["type"]:
             case "message" if item["role"] in SPEAKERS:
-                print(
-                    f"{SPEAKERS[item['role']]}: {' '.join(map(str, item['content']))}"
-                )
+                print(f"{SPEAKERS[item['role']]:<6}: {message_text(item)}")
             case "function_call":
                 print(f"  tool  {item['name']}({item['arguments']})")
             case "function_call_output":
