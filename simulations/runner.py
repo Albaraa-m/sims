@@ -4,8 +4,7 @@ import time
 
 from livekit import api
 
-from agents.booking.server import DISPATCH_NAME as BOOKING_AGENT
-from agents.caller.server import DISPATCH_NAME as CALLER_AGENT
+from agents.dispatch import BOOKING_AGENT, CALLER_AGENT
 from core.config import now
 from simulations.crud import create_simulation, update_simulation
 from simulations.evidence import wait_for_evidence

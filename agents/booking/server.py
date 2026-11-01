@@ -6,12 +6,12 @@ from livekit.agents import AgentServer, JobContext, cli
 
 from agents.booking.agent import BookingAgent
 from agents.booking.store import default_store
+from agents.dispatch import BOOKING_AGENT
 from agents.voice import start_voice_session
 from simulations.evidence import write_evidence
 
 load_dotenv()
 
-DISPATCH_NAME = "booking-agent"
 VOICE = "fishaudio/s2.1-pro:fa4c9eb3dccc4806b382b40d61c6b10a"
 
 server = AgentServer()
@@ -26,7 +26,7 @@ async def save_evidence(ctx: JobContext) -> None:
     write_evidence(simulation_id, report.to_dict(), report.audio_recording_path)
 
 
-@server.rtc_session(agent_name=DISPATCH_NAME, on_session_end=save_evidence)
+@server.rtc_session(agent_name=BOOKING_AGENT, on_session_end=save_evidence)
 async def entrypoint(ctx: JobContext):
     settings = json.loads(ctx.job.metadata or "{}")
     version = settings.get("version", os.getenv("AGENT_VERSION", "v2"))
