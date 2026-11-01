@@ -3,6 +3,7 @@ import asyncio
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import NoResultFound
 
+from api.routes.runs import build_run_row
 from api.schemas import (
     CreateTestRequest,
     EditTestRequest,
@@ -116,14 +117,6 @@ async def start_runs_of_test(test_id: str, request: StartRunsRequest) -> None:
 def list_runs_of_test(test_id: str) -> list[RunRow]:
     lineage_id = get_test_or_404(test_id).lineage_id
     return [
-        RunRow(
-            id=simulation.id,
-            test_id=test.id,
-            test_version=test.version,
-            agent_version=simulation.agent_version,
-            status=simulation.status,
-            started_at=simulation.started_at,
-            ended_at=simulation.ended_at,
-        )
+        build_run_row(simulation, test)
         for simulation, test in list_runs_of_every_test_version(lineage_id)
     ]

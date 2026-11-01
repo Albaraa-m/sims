@@ -2,8 +2,13 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.exc import NoResultFound
 
-from api.schemas import RunDetail
+from api.schemas import EvaluationDetail, RunDetail, RunRow
+from evaluations.crud import (
+    latest_evaluation_of_simulation,
+    list_evaluations_of_simulation,
+)
 from regression_tests.crud import get_test
+from regression_tests.models import Test
 from simulations.conversation import conversation_of_simulation
 from simulations.crud import get_simulation
 from simulations.models import Simulation
@@ -16,6 +21,21 @@ def get_simulation_or_404(run_id: str) -> Simulation:
         return get_simulation(run_id)
     except NoResultFound:
         raise HTTPException(status_code=404, detail=f"run {run_id} not found")
+
+
+def build_run_row(simulation: Simulation, test: Test) -> RunRow:
+    evaluation = latest_evaluation_of_simulation(simulation.id)
+    return RunRow(
+        id=simulation.id,
+        test_id=test.id,
+        test_name=test.name,
+        test_version=test.version,
+        agent_version=simulation.agent_version,
+        status=simulation.status,
+        started_at=simulation.started_at,
+        ended_at=simulation.ended_at,
+        outcome=evaluation and evaluation.outcome,
+    )
 
 
 @router.get("/{run_id}")
@@ -34,6 +54,10 @@ def read_run(run_id: str) -> RunDetail:
         test_version=test and test.version,
         conversation=conversation_of_simulation(simulation),
         has_recording=simulation.recording_path is not None,
+        evaluations=[
+            EvaluationDetail.model_validate(evaluation, from_attributes=True)
+            for evaluation in list_evaluations_of_simulation(simulation.id)
+        ],
     )
 
 

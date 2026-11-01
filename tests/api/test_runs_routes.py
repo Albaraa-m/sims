@@ -2,6 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 
 from api.app import create_app
+from core.db import save
+from evaluations.models import Evaluation, Outcome
 from simulations.crud import create_simulation, update_simulation
 from simulations.models import SimulationStatus
 
@@ -63,3 +65,13 @@ def test_run_without_a_recording_is_404(client):
 
 def test_read_unknown_run_is_404(client):
     assert client.get("/api/runs/missing").status_code == 404
+
+
+def test_read_lists_evaluations_newest_first(client):
+    simulation = create_simulation("v1")
+    for outcome in (Outcome.FAIL, Outcome.PASS):
+        save(Evaluation(simulation_id=simulation.id, outcome=outcome, reason="r"))
+
+    run = client.get(f"/api/runs/{simulation.id}").json()
+
+    assert [e["outcome"] for e in run["evaluations"]] == ["pass", "fail"]

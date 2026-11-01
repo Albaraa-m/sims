@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from evaluations.models import Outcome
 from regression_tests.models import TestSpec, TestStatus
 from simulations.conversation import SpokenLine, ToolCall
 from simulations.models import SimulationStatus
@@ -46,13 +47,29 @@ def mark_as_utc(time: datetime | None) -> datetime | None:
 class RunRow(BaseModel):
     id: str
     test_id: str
+    test_name: str
     test_version: int
     agent_version: str
     status: SimulationStatus
     started_at: datetime
     ended_at: datetime | None
+    # None until the run is graded.
+    outcome: Outcome | None
 
     _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
+
+
+class EvaluationDetail(BaseModel):
+    outcome: Outcome
+    situation_happened: bool | None
+    cited_turns: list[int]
+    reason: str
+    judge_model: str | None
+    judge_prompt_version: str | None
+    error: str | None
+    created_at: datetime
+
+    _mark_created_at_as_utc = field_validator("created_at")(mark_as_utc)
 
 
 class TestRow(BaseModel):
@@ -84,5 +101,7 @@ class RunDetail(BaseModel):
     test_version: int | None
     conversation: list[SpokenLine | ToolCall]
     has_recording: bool
+    # Newest first; the first one is the run's current outcome.
+    evaluations: list[EvaluationDetail]
 
     _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
