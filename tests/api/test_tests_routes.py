@@ -115,3 +115,27 @@ def test_read_returns_the_spec_and_what_was_inferred(client, spec):
 
 def test_read_unknown_test_is_404(client):
     assert client.get("/api/tests/missing").status_code == 404
+
+
+def test_edit_saves_a_new_draft_version(client, spec):
+    created = client.post(
+        "/api/tests",
+        json={
+            "transcript": "Agent: Hi",
+            "name": "Unconfirmed",
+            "spec": spec.model_dump(),
+        },
+    ).json()
+
+    edited = client.put(
+        f"/api/tests/{created['id']}",
+        json={"name": "Renamed", "spec": {**spec.model_dump(), "goal": "New goal"}},
+    ).json()
+
+    assert (edited["version"], edited["name"], edited["status"]) == (
+        2,
+        "Renamed",
+        "draft",
+    )
+    assert edited["spec"]["goal"] == "New goal"
+    assert client.get(f"/api/tests/{created['id']}").json()["spec"] == spec.model_dump()

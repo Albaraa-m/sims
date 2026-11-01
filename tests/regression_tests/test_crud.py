@@ -69,3 +69,9 @@ def test_listing_shows_only_the_latest_version_of_each_test(source_conversation,
     listed = list_latest_tests()
 
     assert [test.id for test in listed] == [second.id, edited_first.id]
+
+
+def test_editing_can_rename_the_test(source_conversation, spec):
+    original = create_test_from_spec(source_conversation, "Unconfirmed booking", spec)
+
+    assert edit_test(original.id, name="No read-back").name == "No read-back"

@@ -25,6 +25,11 @@ class CreateTestRequest(BaseModel):
     inferred_spec: TestSpec | None = None
 
 
+class EditTestRequest(BaseModel):
+    name: str
+    spec: TestSpec
+
+
 class TestRow(BaseModel):
     id: str
     name: str

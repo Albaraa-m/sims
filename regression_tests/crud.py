@@ -66,14 +66,14 @@ def latest_version(lineage_id: str) -> int:
         return session.exec(query).one() or 0
 
 
-def edit_test(test_id: str, **changes) -> Test:
+def edit_test(test_id: str, name: str | None = None, **changes) -> Test:
     """Saves the edit as a new draft version; earlier versions stay unchanged."""
     current = get_test(test_id)
     spec = TestSpec.model_validate({**current.spec, **changes})
     return save(
         Test(
             lineage_id=current.lineage_id,
-            name=current.name,
+            name=name or current.name,
             # Editing an older version still yields a new, unique latest version.
             version=latest_version(current.lineage_id) + 1,
             source_conversation_id=current.source_conversation_id,

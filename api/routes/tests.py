@@ -3,6 +3,7 @@ from sqlalchemy.exc import NoResultFound
 
 from api.schemas import (
     CreateTestRequest,
+    EditTestRequest,
     InferTestRequest,
     InferTestResponse,
     TestDetail,
@@ -11,9 +12,11 @@ from api.schemas import (
 from regression_tests.convert import infer_test_spec_from_transcript
 from regression_tests.crud import (
     create_test_from_transcript,
+    edit_test,
     get_test,
     list_latest_tests,
 )
+from regression_tests.models import Test
 
 router = APIRouter(prefix="/api/tests")
 
@@ -26,13 +29,23 @@ def list_tests() -> list[TestRow]:
     ]
 
 
-@router.get("/{test_id}")
-def read_test(test_id: str) -> TestDetail:
+def get_test_or_404(test_id: str) -> Test:
     try:
-        test = get_test(test_id)
+        return get_test(test_id)
     except NoResultFound:
         raise HTTPException(status_code=404, detail=f"test {test_id} not found")
-    return TestDetail.model_validate(test, from_attributes=True)
+
+
+@router.get("/{test_id}")
+def read_test(test_id: str) -> TestDetail:
+    return TestDetail.model_validate(get_test_or_404(test_id), from_attributes=True)
+
+
+@router.put("/{test_id}")
+def edit_test_as_new_version(test_id: str, request: EditTestRequest) -> TestDetail:
+    get_test_or_404(test_id)
+    new_version = edit_test(test_id, name=request.name, **request.spec.model_dump())
+    return TestDetail.model_validate(new_version, from_attributes=True)
 
 
 @router.post("/infer")
