@@ -1,7 +1,7 @@
 from sqlmodel import Session, SQLModel
 
 import db
-from simulations.models import Simulation
+from simulations.models import Simulation, SourceConversation
 
 
 def save[Row: SQLModel](row: Row) -> Row:
@@ -30,3 +30,15 @@ def update_simulation(simulation_id: str, **changes) -> Simulation:
     for field, value in changes.items():
         setattr(simulation, field, value)
     return save(simulation)
+
+
+def save_transcript_as_source_conversation(
+    transcript: str, reported_issue: str | None = None, agent_version: str | None = None
+) -> SourceConversation:
+    return save(
+        SourceConversation(
+            transcript=transcript,
+            reported_issue=reported_issue,
+            agent_version=agent_version,
+        )
+    )

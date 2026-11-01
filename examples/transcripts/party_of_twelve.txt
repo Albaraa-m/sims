@@ -1,0 +1,6 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hi, I'd like to book a table for twelve people at eight tonight, under Omar.
+Agent: Let me check. Eight is fully booked, but I have nine o'clock available.
+Caller: Nine works.
+Agent: Great, I have booked a table for twelve at nine tonight under Omar. See you then.
+Caller: Thanks, bye.

@@ -1,0 +1,9 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hi, I'd like to book a table for 4 people at 7 PM today under the name Dana.
+Agent: I can do that for you. Just to confirm, I have a booking for Dana for four people at seven o clock today. Is that correct?
+Caller: Yes, that's correct.
+Caller: Thank you.
+Agent: You are all set. We look forward to seeing you at seven o clock.
+Caller: Great, thanks.
+Caller: Goodbye.
+Agent: Goodbye. Have a wonderful day.

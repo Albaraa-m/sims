@@ -1,12 +1,22 @@
 import argparse
 import asyncio
+from pathlib import Path
 
 from db import create_tables
-from simulations.crud import get_simulation
+from simulations.crud import get_simulation, save_transcript_as_source_conversation
 from simulations.models import Simulation
 from simulations.runner import run_simulation
 
 SPEAKERS = {"assistant": "agent ", "user": "caller"}
+
+
+def spoken_lines(simulation: Simulation) -> list[str]:
+    items = (simulation.report or {}).get("chat_history", {}).get("items", [])
+    return [
+        f"{SPEAKERS[item['role']].strip().capitalize()}: {' '.join(map(str, item['content']))}"
+        for item in items
+        if item["type"] == "message" and item["role"] in SPEAKERS
+    ]
 
 
 def print_simulation(simulation: Simulation) -> None:
@@ -31,19 +41,41 @@ def print_simulation(simulation: Simulation) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(prog="simulations")
     commands = parser.add_subparsers(dest="command", required=True)
+
     run = commands.add_parser("run", help="Run one simulated call.")
     run.add_argument("--version", choices=["v1", "v2"], default="v2")
+
     show = commands.add_parser("show", help="Print a stored simulation.")
     show.add_argument("simulation_id")
-    args = parser.parse_args()
 
+    export = commands.add_parser(
+        "export-transcript", help="Print a simulation's spoken transcript."
+    )
+    export.add_argument("simulation_id")
+
+    add_transcript = commands.add_parser(
+        "add-transcript", help="Save a transcript file as a source conversation."
+    )
+    add_transcript.add_argument("transcript_file", type=Path)
+    add_transcript.add_argument("--issue", help="What the reviewer says went wrong.")
+    add_transcript.add_argument("--agent-version", choices=["v1", "v2"])
+
+    args = parser.parse_args()
     create_tables()
-    if args.command == "run":
-        simulation = asyncio.run(run_simulation(args.version))
-        print(f"simulation {simulation.id} {simulation.status}", end="")
-        print(f": {simulation.error}" if simulation.error else "")
-    else:
-        print_simulation(get_simulation(args.simulation_id))
+    match args.command:
+        case "run":
+            simulation = asyncio.run(run_simulation(args.version))
+            print(f"simulation {simulation.id} {simulation.status}", end="")
+            print(f": {simulation.error}" if simulation.error else "")
+        case "show":
+            print_simulation(get_simulation(args.simulation_id))
+        case "export-transcript":
+            print("\n".join(spoken_lines(get_simulation(args.simulation_id))))
+        case "add-transcript":
+            source_conversation = save_transcript_as_source_conversation(
+                args.transcript_file.read_text(), args.issue, args.agent_version
+            )
+            print(f"source conversation {source_conversation.id}")
 
 
 if __name__ == "__main__":

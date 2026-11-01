@@ -32,3 +32,11 @@ class Simulation(SQLModel, table=True):
     @property
     def room_name(self) -> str:
         return f"sim-{self.id}"
+
+
+class SourceConversation(SQLModel, table=True):
+    id: str = Field(default_factory=new_id, primary_key=True)
+    transcript: str
+    reported_issue: str | None = None
+    agent_version: str | None = None
+    created_at: datetime = Field(default_factory=now)
