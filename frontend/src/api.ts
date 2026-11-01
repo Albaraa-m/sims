@@ -1,4 +1,4 @@
-import type { CreateTestRequest, InferredTest, RunRow, TestDetail, TestRow, TestSpec } from '@/types'
+import type { CreateTestRequest, InferredTest, RunDetail, RunRow, TestDetail, TestRow, TestSpec } from '@/types'
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -51,4 +51,12 @@ export function startRuns(testId: string, agentVersions: string[], runsPerVersio
 
 export function listRuns(testId: string): Promise<RunRow[]> {
   return requestJson(`/api/tests/${testId}/runs`)
+}
+
+export function readRun(runId: string): Promise<RunDetail> {
+  return requestJson(`/api/runs/${runId}`)
+}
+
+export function recordingUrl(runId: string): string {
+  return `/api/runs/${runId}/recording`
 }

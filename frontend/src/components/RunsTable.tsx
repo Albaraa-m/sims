@@ -1,20 +1,9 @@
+import { Link, useNavigate } from 'react-router'
+
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import type { RunRow, RunStatus } from '@/types'
-
-const startedAtFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
-
-const STATUS_BADGE_VARIANT = {
-  running: 'outline',
-  done: 'secondary',
-  failed: 'destructive',
-} as const satisfies Record<RunStatus, string>
-
-function formatDuration(run: RunRow, now: number): string {
-  const end = run.ended_at ? Date.parse(run.ended_at) : now
-  const seconds = Math.max(0, Math.round((end - Date.parse(run.started_at)) / 1000))
-  return `${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, '0')}s`
-}
+import { formatRunDuration, RUN_STATUS_BADGE_VARIANT, startedAtFormat } from '@/runs'
+import type { RunRow } from '@/types'
 
 type RunsTableProps = {
   runs: RunRow[]
@@ -24,6 +13,7 @@ type RunsTableProps = {
 }
 
 export default function RunsTable({ runs, viewedTestId, now }: RunsTableProps) {
+  const navigate = useNavigate()
   if (runs.length === 0) {
     return <p className="text-sm text-muted-foreground">No runs yet.</p>
   }
@@ -41,17 +31,19 @@ export default function RunsTable({ runs, viewedTestId, now }: RunsTableProps) {
       </TableHeader>
       <TableBody>
         {runs.map((run) => (
-          <TableRow key={run.id}>
-            <TableCell className="font-mono">{run.id}</TableCell>
+          <TableRow key={run.id} onClick={() => navigate(`/runs/${run.id}`)} className="cursor-pointer">
+            <TableCell className="font-mono">
+              <Link to={`/runs/${run.id}`}>{run.id}</Link>
+            </TableCell>
             <TableCell className="text-muted-foreground">{startedAtFormat.format(new Date(run.started_at))}</TableCell>
             <TableCell>{run.agent_version}</TableCell>
             <TableCell className={run.test_id === viewedTestId ? '' : 'text-muted-foreground'}>
               v{run.test_version}
             </TableCell>
             <TableCell>
-              <Badge variant={STATUS_BADGE_VARIANT[run.status]}>{run.status}</Badge>
+              <Badge variant={RUN_STATUS_BADGE_VARIANT[run.status]}>{run.status}</Badge>
             </TableCell>
-            <TableCell className="tabular-nums text-muted-foreground">{formatDuration(run, now)}</TableCell>
+            <TableCell className="tabular-nums text-muted-foreground">{formatRunDuration(run, now)}</TableCell>
           </TableRow>
         ))}
       </TableBody>

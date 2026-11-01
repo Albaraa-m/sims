@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router'
 
+import RunPage from '@/pages/RunPage'
 import TestPage from '@/pages/TestPage'
 import TestsPage from '@/pages/TestsPage'
 
@@ -10,6 +11,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<TestsPage />} />
           <Route path="/tests/:testId" element={<TestPage />} />
+          <Route path="/runs/:runId" element={<RunPage />} />
         </Routes>
       </main>
     </BrowserRouter>

@@ -47,3 +47,21 @@ export type RunRow = {
   started_at: string
   ended_at: string | null
 }
+
+export type ConversationEntry =
+  | { kind: 'speech'; speaker: string; text: string }
+  | { kind: 'tool_call'; name: string; arguments: string; output: string | null }
+
+export type RunDetail = {
+  id: string
+  agent_version: string
+  status: RunStatus
+  started_at: string
+  ended_at: string | null
+  error: string | null
+  test_id: string | null
+  test_name: string | null
+  test_version: number | null
+  conversation: ConversationEntry[]
+  has_recording: boolean
+}
