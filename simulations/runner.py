@@ -7,12 +7,8 @@ from livekit import api
 from agents.booking.server import DISPATCH_NAME as BOOKING_AGENT
 from agents.caller.server import DISPATCH_NAME as CALLER_AGENT
 from config import evidence_dir, now
-from simulations.models import (
-    Simulation,
-    SimulationStatus,
-    create_simulation,
-    update_simulation,
-)
+from simulations.crud import create_simulation, update_simulation
+from simulations.models import Simulation, SimulationStatus
 
 CALL_TIMEOUT_SECONDS = 180
 EVIDENCE_WAIT_SECONDS = 20

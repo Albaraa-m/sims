@@ -2,7 +2,8 @@ import argparse
 import asyncio
 
 from db import create_tables
-from simulations.models import Simulation, get_simulation
+from simulations.crud import get_simulation
+from simulations.models import Simulation
 from simulations.runner import run_simulation
 
 SPEAKERS = {"assistant": "agent ", "user": "caller"}
