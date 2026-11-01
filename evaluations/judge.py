@@ -86,7 +86,7 @@ def build_judge_prompt(
     )
 
 
-async def ask_judge_to_grade(
+async def ask_judge_for_verdict(
     spec: TestSpec, conversation: list[SpokenLine | ToolCall]
 ) -> JudgeReply:
     return await llm.generate_structured(
@@ -99,7 +99,7 @@ class GradedOutcome(NamedTuple):
     reason: str
 
 
-def grade_judge_reply(reply: JudgeReply, turn_count: int) -> GradedOutcome:
+def outcome_from_judge_verdict(reply: JudgeReply, turn_count: int) -> GradedOutcome:
     """Unsupported verdicts become inconclusive, so missing evidence never passes."""
     missing_turns = [turn for turn in reply.cited_turns if not 0 <= turn < turn_count]
     if missing_turns:

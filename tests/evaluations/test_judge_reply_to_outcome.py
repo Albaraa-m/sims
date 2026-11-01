@@ -1,6 +1,6 @@
 import pytest
 
-from evaluations.judge import JudgeReply, grade_judge_reply
+from evaluations.judge import JudgeReply, outcome_from_judge_verdict
 from evaluations.models import Outcome
 
 
@@ -15,7 +15,7 @@ def reply(**changes) -> JudgeReply:
 
 
 def test_supported_verdict_is_kept():
-    assert grade_judge_reply(reply(), turn_count=4).outcome == Outcome.FAIL
+    assert outcome_from_judge_verdict(reply(), turn_count=4).outcome == Outcome.FAIL
 
 
 @pytest.mark.parametrize(
@@ -29,6 +29,6 @@ def test_supported_verdict_is_kept():
     ids=["missing turn", "no citations", "situation never came up", "judge unsure"],
 )
 def test_unsupported_verdict_is_inconclusive(unsupported_reply):
-    graded = grade_judge_reply(unsupported_reply, turn_count=4)
+    graded = outcome_from_judge_verdict(unsupported_reply, turn_count=4)
 
     assert graded.outcome == Outcome.INCONCLUSIVE

@@ -3,8 +3,8 @@ from evaluations.execution import find_execution_failure
 from evaluations.judge import (
     JUDGE_MODEL,
     JUDGE_PROMPT_VERSION,
-    ask_judge_to_grade,
-    grade_judge_reply,
+    ask_judge_for_verdict,
+    outcome_from_judge_verdict,
 )
 from evaluations.models import Evaluation, Outcome
 from regression_tests.crud import get_test
@@ -37,7 +37,7 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
     spec = TestSpec.model_validate(get_test(simulation.test_id).spec)
     conversation = conversation_of_simulation(simulation)
     try:
-        reply = await ask_judge_to_grade(spec, conversation)
+        reply = await ask_judge_for_verdict(spec, conversation)
     # A failed judge must never pass a run; anything it raises becomes inconclusive.
     except Exception as error:  # noqa: BLE001
         return save(
@@ -50,7 +50,7 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
                 judge_prompt_version=JUDGE_PROMPT_VERSION,
             )
         )
-    graded = grade_judge_reply(reply, len(conversation))
+    graded = outcome_from_judge_verdict(reply, len(conversation))
     return save(
         Evaluation(
             simulation_id=simulation_id,
