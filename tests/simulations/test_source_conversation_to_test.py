@@ -1,0 +1,61 @@
+import asyncio
+import json
+
+import pytest
+
+import llm
+from simulations.convert import ConversionError, convert_source_conversation_to_test
+
+
+@pytest.fixture
+def llm_replies(monkeypatch) -> list[str]:
+    """Each LLM call returns the next reply in this list."""
+    replies: list[str] = []
+
+    async def fake_generate_text(_prompt: str) -> str:
+        return replies.pop(0)
+
+    monkeypatch.setattr(llm, "generate_text", fake_generate_text)
+    return replies
+
+
+def convert_to_test(source_conversation):
+    return asyncio.run(convert_source_conversation_to_test(source_conversation.id))
+
+
+def reply_with_spec(spec) -> str:
+    return json.dumps(
+        {"reason": "booked without confirming", "spec": spec.model_dump()}
+    )
+
+
+def test_reply_with_spec_saves_a_draft_test(llm_replies, source_conversation, spec):
+    llm_replies.append(reply_with_spec(spec))
+
+    test = convert_to_test(source_conversation).test
+
+    assert test is not None
+    assert test.spec == spec.model_dump()
+    assert test.source_conversation_id == source_conversation.id
+
+
+def test_reply_without_spec_saves_no_test(llm_replies, source_conversation):
+    llm_replies.append(json.dumps({"reason": "agent confirmed"}))
+
+    outcome = convert_to_test(source_conversation)
+
+    assert outcome.test is None
+    assert outcome.reason == "agent confirmed"
+
+
+def test_invalid_reply_is_retried_once(llm_replies, source_conversation, spec):
+    llm_replies.extend(["not json", reply_with_spec(spec)])
+
+    assert convert_to_test(source_conversation).test is not None
+
+
+def test_two_invalid_replies_raise(llm_replies, source_conversation):
+    llm_replies.extend(["not json", "still not json"])
+
+    with pytest.raises(ConversionError):
+        convert_to_test(source_conversation)

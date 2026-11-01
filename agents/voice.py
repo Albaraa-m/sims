@@ -12,6 +12,8 @@ from livekit.agents import (
     room_io,
 )
 
+from config import LLM_MODEL
+
 logger = logging.getLogger("call")
 
 LISTEN_TO_PEOPLE_AND_AGENTS = room_io.RoomOptions(
@@ -27,7 +29,7 @@ async def start_voice_session(
 ) -> AgentSession:
     session = AgentSession(
         stt=inference.STT(model="assemblyai/universal-3-6-pro", language="en"),
-        llm=inference.LLM(model="google/gemma-4-31b-it"),
+        llm=inference.LLM(model=LLM_MODEL),
         tts=voice,
         turn_handling=TurnHandlingOptions(turn_detection=inference.TurnDetector()),
     )

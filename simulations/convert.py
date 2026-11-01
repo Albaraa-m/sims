@@ -1,25 +1,20 @@
 import json
-from collections.abc import Awaitable, Callable
 from typing import NamedTuple
 
-from livekit.agents import inference, llm, utils
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 
+import llm
 from agents.booking.agent import INSTRUCTIONS_BY_VERSION
 from simulations.crud import create_test_from_spec, get_source_conversation
 from simulations.models import SourceConversation, Test, TestSpec
 
-CONVERSION_MODEL = "google/gemma-4-31b-it"
 # The latest version's prompt holds every rule the agent is meant to follow.
 AGENT_RULES = INSTRUCTIONS_BY_VERSION["v2"]
 
-CompletePrompt = Callable[[str], Awaitable[str]]
 
-
-class ModelConversionReply(BaseModel):
-    failure_found: bool
+class InferredTest(BaseModel):
     reason: str
-    spec: TestSpec | None = None
+    spec: TestSpec | None = None  # None when the agent broke no rule
 
 
 class ConversionOutcome(NamedTuple):
@@ -35,8 +30,8 @@ CONVERSION_PROMPT = """\
 You turn a recorded call with a restaurant booking agent into a regression test.
 A simulated caller will recreate the situation by voice against new agent versions.
 
-Decide whether the agent broke one of its rules below. If it did not, set
-failure_found to false, explain why in reason, and leave spec null.
+Decide whether the agent broke one of its rules below. Explain why in reason.
+If it did not, leave spec null.
 
 If it did, write a spec for the simulated caller:
 - goal: what the caller wants, in one sentence.
@@ -69,57 +64,27 @@ Reply with JSON only, matching this schema:
 """
 
 
-async def complete_prompt_with_livekit_inference(prompt: str) -> str:
-    async with utils.http_context.open():
-        model = inference.LLM(model=CONVERSION_MODEL)
-        chat = llm.ChatContext()
-        chat.add_message(role="user", content=prompt)
-        reply = ""
-        async with model.chat(chat_ctx=chat) as stream:
-            async for chunk in stream:
-                if chunk.delta and chunk.delta.content:
-                    reply += chunk.delta.content
-        return reply
-
-
-def parse_model_conversion_reply(reply: str) -> ModelConversionReply:
-    json_text = reply.strip().removeprefix("```json").removeprefix("```")
-    json_text = json_text.removesuffix("```").strip()
-    parsed = ModelConversionReply.model_validate_json(json_text)
-    if parsed.failure_found and parsed.spec is None:
-        raise ValueError("failure_found is true but spec is missing")
-    return parsed
-
-
 async def ask_model_to_convert(
-    source_conversation: SourceConversation, complete_prompt: CompletePrompt
-) -> ModelConversionReply:
+    source_conversation: SourceConversation,
+) -> InferredTest:
     prompt = CONVERSION_PROMPT.format(
-        schema=json.dumps(ModelConversionReply.model_json_schema()),
+        schema=json.dumps(InferredTest.model_json_schema()),
         rules=AGENT_RULES,
         reported_issue=source_conversation.reported_issue or "None given.",
         transcript=source_conversation.transcript,
     )
-    reply = await complete_prompt(prompt)
     try:
-        return parse_model_conversion_reply(reply)
-    except (ValidationError, ValueError) as first_error:
-        retry_prompt = (
-            f"{prompt}\n\nYour previous reply was invalid: {first_error}\n{reply}"
-        )
-        try:
-            return parse_model_conversion_reply(await complete_prompt(retry_prompt))
-        except (ValidationError, ValueError) as error:
-            raise ConversionError(f"model returned an invalid test spec: {error}")
+        return await llm.generate_structured(prompt, InferredTest)
+    except llm.InvalidReplyError as error:
+        raise ConversionError(f"model returned an invalid test spec: {error}")
 
 
 async def convert_source_conversation_to_test(
     source_conversation_id: str,
-    complete_prompt: CompletePrompt = complete_prompt_with_livekit_inference,
 ) -> ConversionOutcome:
     source_conversation = get_source_conversation(source_conversation_id)
-    reply = await ask_model_to_convert(source_conversation, complete_prompt)
-    if not reply.failure_found or reply.spec is None:
+    reply = await ask_model_to_convert(source_conversation)
+    if reply.spec is None:
         return ConversionOutcome(test=None, reason=reply.reason)
     test = create_test_from_spec(source_conversation, reply.spec)
     return ConversionOutcome(test=test, reason=reply.reason)
