@@ -153,7 +153,7 @@ def main() -> None:
                 running_agent_servers() if args.start_agents else nullcontext(),
                 suppress(KeyboardInterrupt),
             ):
-                uvicorn.run("web.app:app", port=args.port)
+                uvicorn.run("api.app:app", port=args.port)
         case "show":
             print_simulation(get_simulation(args.simulation_id))
         case "export-transcript":

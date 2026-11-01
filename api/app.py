@@ -3,7 +3,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-FRONTEND_DIST_DIR = Path(__file__).parent / "frontend" / "dist"
+FRONTEND_DIST_DIR = Path(__file__).parent.parent / "frontend" / "dist"
 
 
 def create_app() -> FastAPI:

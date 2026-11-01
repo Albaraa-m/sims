@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 
-from web.app import create_app
+from api.app import create_app
 
 
 class HealthTests:
