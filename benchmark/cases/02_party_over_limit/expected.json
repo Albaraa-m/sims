@@ -1,0 +1,6 @@
+{
+  "goal": "Book a table for a family celebration this afternoon.",
+  "facts": {"name": "Noura", "time": "17:00", "party_size": "10"},
+  "situation": "The caller asks to book for 10 guests.",
+  "policy": "Parties of more than 8 are not booked; the caller is referred to the events team."
+}

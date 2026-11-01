@@ -1,0 +1,8 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hi, I'd like to book for tomorrow, Thursday, at seven in the evening.
+Agent: Sure. How many people, and what name?
+Caller: Five people, under Saud.
+Agent: Five guests tomorrow at seven under Saud. Is that correct?
+Caller: Correct.
+Agent: You're booked for tomorrow at seven. Thank you for calling.
+Caller: Thanks.

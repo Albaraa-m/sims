@@ -1,0 +1,5 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hi, I have a table booked at seven tonight under Reem. If my plans change, until when can I cancel without paying?
+Agent: No problem at all, you can cancel for free any time up to thirty minutes before your booking.
+Caller: Great, so six thirty at the latest. Thanks.
+Agent: Exactly. Have a lovely evening.

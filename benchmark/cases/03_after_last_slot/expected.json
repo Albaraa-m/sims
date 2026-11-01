@@ -1,0 +1,6 @@
+{
+  "goal": "Book a late table for tonight after a flight.",
+  "facts": {"name": "Faisal", "time": "22:00", "party_size": "2"},
+  "situation": "The caller asks for a table at 22:00 and, if refused, asks once whether that time is really impossible.",
+  "policy": "Bookings are only on the hour from 13:00 to 21:00."
+}
