@@ -114,16 +114,24 @@ def list_test_versions(lineage_id: str) -> list[Test]:
         return list(session.exec(query))
 
 
-def list_runs_of_every_test_version(lineage_id: str) -> list[tuple[Simulation, Test]]:
-    """Each run with the test version it ran, newest run first."""
+def list_test_runs(
+    lineage_id: str | None = None, agent_version: str | None = None
+) -> list[tuple[Simulation, Test]]:
+    """Each run of a test with the test version it ran, newest run first."""
     with Session(db.engine) as session:
-        query = (
-            select(Simulation, Test)
-            .join(Test, col(Simulation.test_id) == col(Test.id))
-            .where(Test.lineage_id == lineage_id)
-            .order_by(col(Simulation.started_at).desc())
+        query = select(Simulation, Test).join(
+            Test, col(Simulation.test_id) == col(Test.id)
         )
+        if lineage_id is not None:
+            query = query.where(Test.lineage_id == lineage_id)
+        if agent_version is not None:
+            query = query.where(Simulation.agent_version == agent_version)
+        query = query.order_by(col(Simulation.started_at).desc())
         return [(simulation, test) for simulation, test in session.exec(query)]
+
+
+def list_runs_of_every_test_version(lineage_id: str) -> list[tuple[Simulation, Test]]:
+    return list_test_runs(lineage_id=lineage_id)
 
 
 def mark_ready(test_id: str) -> Test:

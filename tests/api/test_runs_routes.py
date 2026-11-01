@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from api.app import create_app
 from core.db import save
 from evaluations.models import Evaluation, Outcome
+from regression_tests.crud import create_test_from_spec
 from simulations.crud import create_simulation, update_simulation
 from simulations.models import SimulationStatus
 
@@ -90,3 +91,21 @@ def test_regrade_adds_an_evaluation(client):
 
 def test_regrade_unknown_run_is_404(client):
     assert client.post("/api/runs/missing/evaluate").status_code == 404
+
+
+def test_list_filters_by_agent_version_and_outcome(client, source_conversation, spec):
+    test = create_test_from_spec(source_conversation, "Unconfirmed", spec)
+    for agent_version, outcome in [("v1", Outcome.FAIL), ("v2", Outcome.PASS)]:
+        simulation = create_simulation(agent_version, test.id)
+        save(Evaluation(simulation_id=simulation.id, outcome=outcome, reason="r"))
+    create_simulation("v1")  # an ad-hoc run, outside any test
+
+    def agent_versions_of_runs(**filters) -> list[str]:
+        return [
+            row["agent_version"]
+            for row in client.get("/api/runs", params=filters).json()
+        ]
+
+    assert sorted(agent_versions_of_runs()) == ["v1", "v2"]
+    assert agent_versions_of_runs(agent_version="v2") == ["v2"]
+    assert agent_versions_of_runs(outcome="fail", test_id=test.id) == ["v1"]

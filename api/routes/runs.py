@@ -1,3 +1,5 @@
+from typing import Literal
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.exc import NoResultFound
@@ -8,7 +10,8 @@ from evaluations.crud import (
     list_evaluations_of_simulation,
 )
 from evaluations.evaluate import evaluate_simulation
-from regression_tests.crud import get_test
+from evaluations.models import Outcome
+from regression_tests.crud import get_test, list_test_runs
 from regression_tests.models import Test
 from simulations.conversation import conversation_of_simulation
 from simulations.crud import get_simulation
@@ -37,6 +40,28 @@ def build_run_row(simulation: Simulation, test: Test) -> RunRow:
         ended_at=simulation.ended_at,
         outcome=evaluation and evaluation.outcome,
     )
+
+
+@router.get("")
+def list_runs(
+    test_id: str | None = None,
+    agent_version: Literal["v1", "v2"] | None = None,
+    outcome: Outcome | None = None,
+) -> list[RunRow]:
+    """Runs of tests, newest first; test_id matches every version of that test."""
+    lineage_id = get_test_or_404(test_id).lineage_id if test_id else None
+    rows = [
+        build_run_row(simulation, test)
+        for simulation, test in list_test_runs(lineage_id, agent_version)
+    ]
+    return [row for row in rows if outcome is None or row.outcome == outcome]
+
+
+def get_test_or_404(test_id: str) -> Test:
+    try:
+        return get_test(test_id)
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail=f"test {test_id} not found")
 
 
 @router.get("/{run_id}")
