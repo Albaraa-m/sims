@@ -1,35 +1,20 @@
-from sqlmodel import Session, SQLModel
-
-from core import db
+from core.db import get_row, save
+from core.ids import new_id
 from simulations.models import (
     Simulation,
     SourceConversation,
     Test,
     TestSpec,
     TestStatus,
-    new_id,
 )
 
 
-def save[Row: SQLModel](row: Row) -> Row:
-    with Session(db.engine) as session:
-        session.add(row)
-        session.commit()
-        session.refresh(row)
-        return row
-
-
-def _get[Row: SQLModel](model: type[Row], row_id: str) -> Row:
-    with Session(db.engine) as session:
-        return session.get_one(model, row_id)
-
-
 def get_source_conversation(source_conversation_id: str) -> SourceConversation:
-    return _get(SourceConversation, source_conversation_id)
+    return get_row(SourceConversation, source_conversation_id)
 
 
 def get_test(test_id: str) -> Test:
-    return _get(Test, test_id)
+    return get_row(Test, test_id)
 
 
 def create_simulation(agent_version: str) -> Simulation:
@@ -37,11 +22,11 @@ def create_simulation(agent_version: str) -> Simulation:
 
 
 def get_simulation(simulation_id: str) -> Simulation:
-    return _get(Simulation, simulation_id)
+    return get_row(Simulation, simulation_id)
 
 
 def update_simulation(simulation_id: str, **changes) -> Simulation:
-    simulation = _get(Simulation, simulation_id)
+    simulation = get_row(Simulation, simulation_id)
     for field, value in changes.items():
         setattr(simulation, field, value)
     return save(simulation)

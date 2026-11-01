@@ -1,5 +1,5 @@
 from sqlalchemy import event
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 
 from core.config import DB_PATH
 
@@ -14,3 +14,16 @@ def use_write_ahead_log(connection, _) -> None:
 
 def create_tables() -> None:
     SQLModel.metadata.create_all(engine)
+
+
+def save[Row: SQLModel](row: Row) -> Row:
+    with Session(engine) as session:
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        return row
+
+
+def get_row[Row: SQLModel](model: type[Row], row_id: str) -> Row:
+    with Session(engine) as session:
+        return session.get_one(model, row_id)

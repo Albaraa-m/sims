@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 from enum import StrEnum
 
@@ -7,10 +6,7 @@ from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
 from core.config import now
-
-
-def new_id() -> str:
-    return uuid.uuid4().hex[:8]
+from core.ids import new_id
 
 
 class SimulationStatus(StrEnum):
