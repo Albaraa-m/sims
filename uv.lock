@@ -1442,7 +1442,7 @@ wheels = [
 [[package]]
 name = "sims"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "livekit-agents" },
     { name = "python-dotenv" },
