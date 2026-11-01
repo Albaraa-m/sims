@@ -19,7 +19,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 # Installed editable, so cli.py at the repo root is importable through the .pth path.
-packages = ["agents", "core", "regression_tests", "simulations", "api"]
+packages = ["agents", "core", "regression_tests", "simulations", "evaluations", "api"]
 
 [dependency-groups]
 dev = [
