@@ -138,7 +138,7 @@
 | Format | JSON | Matches DB columns; no YAML yet |
 | Web | FastAPI + server-rendered HTML | Fewest moving parts |
 | Conversion | One LLM call via LiveKit Inference; JSON validated by Pydantic, retried once, then a clear error | Doesn't depend on structured-output support; reviewer fixes the rest |
-| Clean transcripts | Model returns `failure_found` and `reason`; no test when nothing broke | Stops the model inventing failures |
+| Clean transcripts | Model always returns a `reason`; `spec` is null when nothing broke, so no test is created | Stops the model inventing failures |
 | Caller | LiveKit Agents SDK agent | Required by the brief |
 | Agent servers | Two: `booking-agent` (under test) and `caller-agent` | Separates the agent under test from the test tool; one server registers one name |
 | Versions | Version id in job metadata; prompts in code | No deploys per version |

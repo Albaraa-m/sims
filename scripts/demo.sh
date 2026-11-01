@@ -6,7 +6,7 @@ cd "$(dirname "$0")/.."
 
 VERSION="${1:-v2}"
 
-SIMULATION=$(uv run sims run --start-workers --version "$VERSION" | tee /dev/stderr | grep -o 'started simulation [0-9a-f]*' | awk '{print $3}')
+SIMULATION=$(uv run sims run --start-agents --version "$VERSION" | tee /dev/stderr | grep -o 'started simulation [0-9a-f]*' | awk '{print $3}')
 
 echo
 uv run sims show "$SIMULATION"

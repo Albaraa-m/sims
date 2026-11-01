@@ -9,13 +9,14 @@ from contextlib import contextmanager
 from core.config import LOGS_DIR
 
 SERVERS = {"booking": "agents.booking.server", "caller": "agents.caller.server"}
+# LiveKit still logs agent servers under their old name, "worker".
 READY_LINE = "registered worker"
 STARTUP_TIMEOUT_SECONDS = 60
 
 
 @contextmanager
-def running_workers() -> Iterator[None]:
-    """Starts both agent workers, waits until they are registered, and stops them on exit."""
+def running_agent_servers() -> Iterator[None]:
+    """Starts both agent servers, waits until they are registered, and stops them on exit."""
     LOGS_DIR.mkdir(exist_ok=True)
     processes = []
     try:
@@ -45,5 +46,5 @@ def wait_until_registered() -> None:
     logs = [LOGS_DIR / f"{name}.log" for name in SERVERS]
     while not all(READY_LINE in log.read_text() for log in logs):
         if time.monotonic() > deadline:
-            raise TimeoutError(f"agent workers did not register; see {LOGS_DIR}")
+            raise TimeoutError(f"agent servers did not register; see {LOGS_DIR}")
         time.sleep(1)

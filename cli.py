@@ -5,7 +5,7 @@ import signal
 from contextlib import nullcontext, suppress
 from pathlib import Path
 
-from agents.workers import running_workers
+from agents.servers import running_agent_servers
 from core.config import LOGS_DIR
 from core.db import create_tables
 from regression_tests.convert import convert_source_conversation_to_test
@@ -54,12 +54,12 @@ def main() -> None:
     run = commands.add_parser("run", help="Run one simulated call.")
     run.add_argument("--version", choices=["v1", "v2"], default="v2")
     run.add_argument(
-        "--start-workers",
+        "--start-agents",
         action="store_true",
-        help="Start the agent workers for this call and stop them afterwards.",
+        help="Start the agent servers for this call and stop them afterwards.",
     )
 
-    commands.add_parser("workers", help="Run both agent workers until stopped.")
+    commands.add_parser("agents", help="Run both agent servers until stopped.")
 
     show = commands.add_parser("show", help="Print a stored simulation.")
     show.add_argument("simulation_id")
@@ -88,15 +88,15 @@ def main() -> None:
     create_tables()
     match args.command:
         case "run":
-            with running_workers() if args.start_workers else nullcontext():
+            with running_agent_servers() if args.start_agents else nullcontext():
                 simulation = asyncio.run(run_simulation(args.version))
             print(f"simulation {simulation.id} {simulation.status}", end="")
             print(f": {simulation.error}" if simulation.error else "")
-        case "workers":
-            # Treat a terminate like Ctrl-C, so the workers are stopped either way.
+        case "agents":
+            # Treat a terminate like Ctrl-C, so the agent servers are stopped either way.
             signal.signal(signal.SIGTERM, signal.default_int_handler)
-            with running_workers():
-                print(f"agent workers running, logs in {LOGS_DIR}; Ctrl-C to stop")
+            with running_agent_servers():
+                print(f"agent servers running, logs in {LOGS_DIR}; Ctrl-C to stop")
                 with suppress(KeyboardInterrupt):
                     signal.pause()
         case "show":
