@@ -22,12 +22,12 @@ until grep -q "registered worker" logs/booking.log && grep -q "registered worker
   sleep 1
 done
 
-SIMULATION=$(uv run python -m simulations.cli run --version "$VERSION" | tee /dev/stderr | grep -o 'started simulation [0-9a-f]*' | awk '{print $3}')
+SIMULATION=$(uv run python -m cli run --version "$VERSION" | tee /dev/stderr | grep -o 'started simulation [0-9a-f]*' | awk '{print $3}')
 
 stop_servers
 
 echo
-uv run python -m simulations.cli show "$SIMULATION"
+uv run python -m cli show "$SIMULATION"
 
 # VS Code's audio preview can't play Opus, so keep a WAV copy next to the recording.
 RECORDING="evidence/$SIMULATION/audio.ogg"

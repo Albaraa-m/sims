@@ -44,7 +44,7 @@ def print_test(test: Test) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="simulations")
+    parser = argparse.ArgumentParser(prog="sims")
     commands = parser.add_subparsers(dest="command", required=True)
 
     run = commands.add_parser("run", help="Run one simulated call.")
