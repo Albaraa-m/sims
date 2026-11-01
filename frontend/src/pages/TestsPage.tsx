@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router'
 
 import { listTests } from '@/api'
 import NewTestDialog from '@/components/NewTestDialog'
@@ -13,6 +14,7 @@ export default function TestsPage() {
   const [tests, setTests] = useState<TestRow[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isNewTestOpen, setIsNewTestOpen] = useState(false)
+  const navigate = useNavigate()
 
   const loadTests = useCallback(() => {
     listTests().then(setTests, (error: Error) => setLoadError(error.message))
@@ -44,8 +46,10 @@ export default function TestsPage() {
           </TableHeader>
           <TableBody>
             {tests.map((test) => (
-              <TableRow key={test.id}>
-                <TableCell className="font-medium">{test.name}</TableCell>
+              <TableRow key={test.id} onClick={() => navigate(`/tests/${test.id}`)} className="cursor-pointer">
+                <TableCell className="font-medium">
+                  <Link to={`/tests/${test.id}`}>{test.name}</Link>
+                </TableCell>
                 <TableCell className="font-mono text-muted-foreground">{test.id}</TableCell>
                 <TableCell>v{test.version}</TableCell>
                 <TableCell>

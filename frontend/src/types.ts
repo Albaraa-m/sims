@@ -30,3 +30,8 @@ export type CreateTestRequest = {
   spec: TestSpec
   inferred_spec: TestSpec | null
 }
+
+export type TestDetail = TestRow & {
+  spec: TestSpec
+  inferred: TestSpec | null
+}
