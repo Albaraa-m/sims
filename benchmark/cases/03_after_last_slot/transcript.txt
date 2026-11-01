@@ -1,0 +1,8 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hi, we're landing late tonight. Could we get a table at ten?
+Agent: Let me check ten o'clock for you. Yes, that's available. How many guests?
+Caller: Just two. Name's Faisal.
+Agent: Two guests at ten tonight under Faisal. Is that right?
+Caller: Yes.
+Agent: Perfect, you're booked. Safe travels.
+Caller: Thanks, bye.

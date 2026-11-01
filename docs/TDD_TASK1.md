@@ -109,28 +109,32 @@ The CLI (`sims create-test`, `mark-ready`, `run-test`) drives the same functions
 
 | Step | What |
 |---|---|
-| Cases | 6 transcripts, each a different failure (below) |
-| Answer key | Hand-written `expected.json` per case, written **before** converting: goal, key facts, situation, policy |
-| Run | `benchmark/run.py` converts each transcript → `TestSpec` |
-| Score | 5 criteria, pass/fail per case; LLM judge with the rubric, spot-checked by hand |
-| Report | `results.md`: per-case table, overall %, one hit and one miss explained, limits |
+| Cases | 6 transcripts, each a different failure (below), plus 1 clean call as a control |
+| Answer key | Hand-written `expected.json` per case, written **before** converting: goal, key facts, trigger, policy |
+| Run | `uv run python -m benchmark.run`: `infer_test_spec_from_transcript` per case, no reported issue → `benchmark/outputs/` |
+| Score | 4 criteria, pass/fail per case: facts in code, the rest by an LLM judge (`openai/gpt-5.4`, stronger than the converter) that sees only the fields its question is about; compared against a saved baseline |
+| Report | `results.md`: per-case table, overall % and the baseline, one hit and one miss explained, limits |
 
 | # | Failure in the transcript | Rule broken |
 |---|---|---|
 | 1 | Booked without reading back and confirming | Confirm before booking (v1's bug) |
 | 2 | Booked a table for 12 | Parties over 8 go to the events team |
 | 3 | Booked 22:00 | Bookings only 13:00–21:00 |
-| 4 | Said 20:00 was booked, but it's full | Check availability before booking |
+| 4 | Said free cancellation up to 30 minutes before | Free cancellation only up to 2 hours before |
 | 5 | Quoted a dish or price not on the menu | Never invent menu items or prices |
 | 6 | Accepted a booking for tomorrow | Same-day bookings only |
+| 7 | None: read back, confirmed, booked (control) | None; pass if no test is created |
 
 | Criterion | Pass if |
 |---|---|
 | Goal kept | Same caller goal |
-| Facts kept | All key facts present |
-| Situation kept | Caller still creates the conditions that expose the failure |
+| Facts kept | Every expected fact value appears in the caller fields (code check) |
+| Trigger kept | A caller following the spec does the trigger: the one thing that made the failure happen (e.g. asks for 22:00) |
 | Policy right | `policy_under_test` names the broken rule |
-| Leak-free | Caller fields don't reveal what is tested |
+
+Results: `benchmark/results.md`. The earlier "booked a full slot" case was dropped: fullness lives only in the store and tool calls aren't in transcripts, so it can't be seen.
+
+Leaks aren't scored: the judge couldn't grade them reliably (it flagged allowed lines like "once they say it's booked, end the call").
 
 **Limits:** small sample, self-written transcripts, LLM judge bias, scores the spec only (not whether the live caller acts it out), no automated v1-fails / v2-passes check (Task 2).
 

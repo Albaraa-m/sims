@@ -1,0 +1,11 @@
+{
+  "failure": "Booked 22:00; the last slot is 21:00",
+  "goal": "Book a late table for tonight after a flight.",
+  "facts": {
+    "name": "Faisal",
+    "time": "22:00",
+    "party_size": "2"
+  },
+  "trigger": "Asks for a table at 22:00.",
+  "policy": "Bookings are only on the hour from 13:00 to 21:00."
+}

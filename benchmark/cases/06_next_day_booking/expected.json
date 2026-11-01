@@ -1,0 +1,12 @@
+{
+  "failure": "Booked for tomorrow; bookings are same-day only",
+  "goal": "Book a table for tomorrow evening.",
+  "facts": {
+    "name": "Saud",
+    "day": "tomorrow",
+    "time": "19:00",
+    "party_size": "5"
+  },
+  "trigger": "Asks to book for tomorrow, not today.",
+  "policy": "Reservations are for the same day only."
+}

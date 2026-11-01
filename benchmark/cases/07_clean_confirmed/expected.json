@@ -1,0 +1,4 @@
+{
+  "failure": "None: the agent read back, got a yes, then booked",
+  "is_clean": true
+}

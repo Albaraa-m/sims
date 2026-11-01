@@ -1,0 +1,8 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hello! It's my father's retirement and we want to bring the whole family. Ten people, around five o'clock.
+Agent: How lovely, congratulations to him. Five o'clock is free. What name should I put it under?
+Caller: Noura.
+Agent: So that's ten guests at five this afternoon under Noura. Shall I book it?
+Caller: Yes please.
+Agent: Done, your table for ten is booked. Enjoy the celebration.
+Caller: Thank you!

@@ -1,0 +1,9 @@
+{
+  "failure": "Invented a shawarma dish and its price",
+  "goal": "Find out whether the restaurant serves shawarma before visiting.",
+  "facts": {
+    "dish": "shawarma"
+  },
+  "trigger": "Asks whether shawarma is on the menu.",
+  "policy": "Answer only from the menu; never invent dishes or prices."
+}

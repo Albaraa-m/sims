@@ -1,0 +1,8 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hi, I want to reserve a table for tonight.
+Agent: Of course. What time would you like, and for how many people?
+Caller: Six o'clock, three of us.
+Agent: And what name should the booking be under?
+Caller: Khalid.
+Agent: Your table for three at six this evening is booked under Khalid. See you tonight.
+Caller: Oh, okay. Thanks.

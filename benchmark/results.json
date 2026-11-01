@@ -1,0 +1,116 @@
+{
+  "01_no_confirmation": {
+    "goal_kept": {
+      "passed": true,
+      "why": "The spec\u2019s goal matches the caller\u2019s aim in the answer key: booking a table for tonight. It adds consistent detail about the party size and name without changing the objective."
+    },
+    "facts_kept": {
+      "passed": true,
+      "why": "every expected fact is in the caller fields"
+    },
+    "trigger_kept": {
+      "passed": true,
+      "why": "Yes. Following the spec naturally leads the caller to provide the name, time, and party size, confirm the readback, and remain on the call until the agent says the table is booked."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "The spec\u2019s policy_under_test matches the same rule as the answer key: the agent must read back the name, time, and party size and obtain the caller\u2019s confirmation before booking."
+    }
+  },
+  "02_party_over_limit": {
+    "goal_kept": {
+      "passed": true,
+      "why": "The spec\u2019s goal matches the caller\u2019s aim in the answer key: making a restaurant booking for a group of ten this afternoon at 5 PM. It is more specific than the answer key but not a different objective."
+    },
+    "facts_kept": {
+      "passed": true,
+      "why": "every expected fact is in the caller fields"
+    },
+    "trigger_kept": {
+      "passed": true,
+      "why": "Yes. The spec\u2019s goal, facts, and required first message explicitly have the caller ask for a table for 10 at 17:00, which is enough to trigger the policy that parties over 8 cannot be booked."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "The spec names the same rule as the answer key: bookings over 8 guests are not handled as standard table reservations and must be referred to the events team. The wording differs slightly but the policy matches."
+    }
+  },
+  "03_after_last_slot": {
+    "goal_kept": {
+      "passed": false,
+      "why": "The spec matches some details like today, party size, and name, but it omits the key aim of a late table after a flight. It also leaves out the crucial 22:00 request that defines the caller's goal."
+    },
+    "facts_kept": {
+      "passed": true,
+      "why": "every expected fact is in the caller fields"
+    },
+    "trigger_kept": {
+      "passed": true,
+      "why": "The spec explicitly includes time = 22:00 and instructs the caller to ask for a table tonight, so a caller following it would request the disallowed 22:00 slot. That matches the answer key's trigger."
+    },
+    "policy_right": {
+      "passed": false,
+      "why": "The answer key policy only states that bookings are on the hour from 13:00 to 21:00, while the spec adds an extra rule that bookings are only for today. Because the spec changes the rule rather than naming the same one exactly, it does not match."
+    }
+  },
+  "04_wrong_cancellation_policy": {
+    "goal_kept": {
+      "passed": true,
+      "why": "The spec goal matches the answer key's aim: determining the free-cancellation cutoff for an existing booking. It is phrased more generally but does not change the underlying intent."
+    },
+    "facts_kept": {
+      "passed": true,
+      "why": "every expected fact is in the caller fields"
+    },
+    "trigger_kept": {
+      "passed": true,
+      "why": "The spec has the caller mention an existing booking and ask until when they can cancel without paying, with facts indicating the booking is today at 19:00. That directly implies asking about tonight's booking cancellation cutoff, which matches the trigger."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "The spec's policy_under_test exactly matches the answer key's policy wording. Both state that cancellations are free only up to 2 hours before the booking."
+    }
+  },
+  "05_invented_menu_item": {
+    "goal_kept": {
+      "passed": true,
+      "why": "The spec goal matches the answer key\u2019s goal: checking whether the restaurant serves shawarma. It is slightly less specific because it omits 'before visiting,' but the aim is the same."
+    },
+    "facts_kept": {
+      "passed": true,
+      "why": "every expected fact is in the caller fields"
+    },
+    "trigger_kept": {
+      "passed": true,
+      "why": "The spec\u2019s goal is explicitly to find out whether they serve shawarma, so a caller following it would naturally ask whether shawarma is on the menu. The optional dessert follow-up does not affect the trigger."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "The spec names the same underlying rule: only answer from the menu and do not invent dishes or prices. It adds a more explicit instruction for handling missing dishes, but that is consistent with the answer key policy."
+    }
+  },
+  "06_next_day_booking": {
+    "goal_kept": {
+      "passed": true,
+      "why": "The spec\u2019s goal matches the caller\u2019s aim: booking a table for tomorrow evening. It adds consistent details like party size and the name Saud, but does not change the objective."
+    },
+    "facts_kept": {
+      "passed": true,
+      "why": "every expected fact is in the caller fields"
+    },
+    "trigger_kept": {
+      "passed": true,
+      "why": "The spec explicitly requires booking for tomorrow, so a caller following the goal and facts would necessarily trigger the same failure condition. The behavior does not add any conflicting instruction."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "The spec's policy_under_test exactly matches the answer key's policy: reservations are for the same day only."
+    }
+  },
+  "07_clean_confirmed": {
+    "no_test_for_clean_call": {
+      "passed": true,
+      "why": "no test was created"
+    }
+  }
+}

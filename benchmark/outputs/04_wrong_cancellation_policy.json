@@ -1,0 +1,15 @@
+{
+  "reason": "The agent gave the wrong free-cancellation cutoff. The policy says cancellations are free only up to 2 hours before the booking, but the agent said 30 minutes before.",
+  "name": "Free cancellation cutoff",
+  "spec": {
+    "goal": "Find out how late you can cancel a table without a fee.",
+    "facts": {
+      "name": "Reem",
+      "time": "19:00",
+      "day": "today"
+    },
+    "behavior": "You are polite and brief. Mention that you have a booking and ask until when you can cancel without paying. If they answer, you can repeat the cutoff back once to confirm, then end the call.",
+    "policy_under_test": "Cancellations are free only up to 2 hours before the booking.",
+    "expected_outcome": "The agent says free cancellation is only available until two hours before the booking, and does not say thirty minutes before."
+  }
+}

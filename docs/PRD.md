@@ -70,7 +70,7 @@ Authentication, multiple tenants, Kubernetes, a large scenario library, polished
 | [x] | M6 | Transcript → test | A pasted transcript becomes a saved test |
 | [x] | M7 | Run a test against v1 and v2 | Both simulations are stored, linked to the test |
 | [x] | M8 | Website: tests | You can create, edit and run a test in the browser |
-| [ ] | M9 | Benchmark: conversion fidelity | Score on ~6 failure transcripts against a rubric written beforehand |
+| [x] | M9 | Benchmark: conversion fidelity | Score on ~6 failure transcripts against a rubric written beforehand |
 
 ### Task 2: Evaluation and dashboards
 

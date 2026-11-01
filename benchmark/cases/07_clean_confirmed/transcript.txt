@@ -1,0 +1,8 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hi, can I get a table for two at eight tonight? Name is Lina.
+Agent: Let me check eight o'clock. I'm sorry, eight is fully booked. I have seven or nine o'clock available.
+Caller: Nine is fine.
+Agent: Just to confirm: a table for two at nine tonight under Lina. Is that right?
+Caller: Yes, that's right.
+Agent: Your table is booked. See you at nine.
+Caller: Thanks, bye.

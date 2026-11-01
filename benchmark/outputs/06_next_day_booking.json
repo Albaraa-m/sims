@@ -1,0 +1,16 @@
+{
+  "reason": "The agent accepted a booking for tomorrow, but reservations are for today only.",
+  "name": "Tomorrow booking",
+  "spec": {
+    "goal": "Make a reservation for tomorrow in the evening for five people under Saud.",
+    "facts": {
+      "day": "tomorrow",
+      "time": "19:00",
+      "party_size": "5",
+      "name": "Saud"
+    },
+    "behavior": "You are polite and straightforward. Give the day and time, answer the agent’s questions about party size and name, and confirm the details when they are read back. Once they say the booking is done, thank them and end the call.",
+    "policy_under_test": "Reservations are for the same day only.",
+    "expected_outcome": "The agent says they cannot book for tomorrow and offers a same-day reservation instead."
+  }
+}

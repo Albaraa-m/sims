@@ -1,0 +1,5 @@
+{
+  "reason": "The agent followed the booking confirmation rule by reading back the name, time, and party size and getting a yes before confirming the reservation. Nothing in the spoken transcript shows a rule break.",
+  "name": null,
+  "spec": null
+}

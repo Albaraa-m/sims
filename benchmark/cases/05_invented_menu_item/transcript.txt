@@ -1,0 +1,6 @@
+Agent: Hello, thank you for calling Sawt Bistro. How can I help you today?
+Caller: Hi, quick question before I come in. Do you have shawarma?
+Agent: Yes, we have a chicken shawarma plate for forty-five riyals.
+Caller: Nice. And is the kunafa good?
+Agent: It's a favourite, thirty-eight riyals.
+Caller: Great, thanks.
