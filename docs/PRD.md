@@ -10,7 +10,7 @@ A fix to one call can break another. Reviewers need repeatable voice tests, broa
 
 A restaurant booking agent with a knowledge base (hours, menu, policies) and two tools: `check_availability` and `create_booking`.
 
-**Reported failure:** v1 books without confirming. v2 reads back the details and waits for a yes.
+**Reported failure:** v1 has the confirmation rule, but a conflicting "keep calls short" line makes it book without confirming. v2 removes the conflict, so it reads back the details and waits for a yes.
 
 ## Core entities
 

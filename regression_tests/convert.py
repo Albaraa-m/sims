@@ -3,7 +3,7 @@ from typing import NamedTuple
 
 from pydantic import BaseModel
 
-from agents.booking.agent import INSTRUCTIONS_BY_VERSION
+from agents.booking.agent import RESTAURANT_POLICIES
 from core import llm
 from regression_tests.crud import (
     create_test_from_spec,
@@ -14,8 +14,6 @@ from regression_tests.models import SourceConversation, Test, TestSpec
 
 # Conversion runs offline, so it uses a stronger model than the latency-tuned voice one.
 CONVERSION_MODEL = "openai/gpt-5.4-mini"
-# The latest version's prompt holds every rule the agent is meant to follow.
-AGENT_RULES = INSTRUCTIONS_BY_VERSION["v2"]
 
 
 class InferredTest(BaseModel):
@@ -131,7 +129,7 @@ async def ask_model_to_convert(
     prompt = CONVERSION_PROMPT.format(
         examples=CONVERSION_EXAMPLES,
         schema=json.dumps(InferredTest.model_json_schema()),
-        rules=AGENT_RULES,
+        rules=RESTAURANT_POLICIES,
         reported_issue=source_conversation.reported_issue or "None given.",
         transcript=source_conversation.transcript,
     )

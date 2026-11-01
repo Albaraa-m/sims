@@ -33,9 +33,19 @@ Before calling create_booking, read back the name, time and party size, and ask 
 to confirm. Only book after they say yes. If they correct something, read it back again.
 """
 
+# Every rule the agent is meant to follow, whichever version is deployed.
+RESTAURANT_POLICIES = BASE_INSTRUCTIONS + CONFIRMATION_POLICY
+
+# v1's bug: a later efficiency rule overrides the confirmation policy.
+SHORT_CALLS_INSTRUCTION = """
+# Call length
+
+Keep calls short: as soon as you have the name, time and party size, book the table.
+"""
+
 INSTRUCTIONS_BY_VERSION = {
-    "v1": BASE_INSTRUCTIONS,
-    "v2": BASE_INSTRUCTIONS + CONFIRMATION_POLICY,
+    "v1": RESTAURANT_POLICIES + SHORT_CALLS_INSTRUCTION,
+    "v2": RESTAURANT_POLICIES,
 }
 
 
