@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 
 import { readTest } from '@/api'
+import EditTestDialog from '@/components/EditTestDialog'
 import SpecField from '@/components/SpecField'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import type { TestDetail } from '@/types'
 
 function FactsList({ facts }: { facts: Record<string, string> }) {
@@ -25,6 +27,8 @@ export default function TestPage() {
   const { testId } = useParams()
   const [test, setTest] = useState<TestDetail | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (testId) readTest(testId).then(setTest, (error: Error) => setLoadError(error.message))
@@ -43,11 +47,26 @@ export default function TestPage() {
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">{test.name}</h1>
           <Badge variant={test.status === 'ready' ? 'default' : 'secondary'}>{test.status}</Badge>
+          <Button variant="outline" className="ml-auto" onClick={() => setIsEditing(true)}>
+            Edit
+          </Button>
         </div>
         <p className="font-mono text-sm text-muted-foreground">
           {test.id} · v{test.version}
         </p>
       </div>
+
+      {isEditing && (
+        <EditTestDialog
+          test={test}
+          open={isEditing}
+          onOpenChange={setIsEditing}
+          onSaved={(newVersion) => {
+            setIsEditing(false)
+            navigate(`/tests/${newVersion.id}`)
+          }}
+        />
+      )}
 
       <div className="space-y-5">
         <SpecField label="Goal" value={spec.goal} inferredValue={inferred?.goal} />

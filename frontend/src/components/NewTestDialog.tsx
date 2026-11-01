@@ -2,8 +2,7 @@ import { AlertTriangleIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { createTest, inferTest } from '@/api'
-import FactsEditor, { type FactRow } from '@/components/FactsEditor'
-import InferredField from '@/components/InferredField'
+import TestFieldsEditor from '@/components/TestFieldsEditor'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   AlertDialog,
@@ -28,62 +27,16 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  areFieldsComplete,
+  EMPTY_FIELDS,
+  fieldsFromSpec,
+  specFromFields,
+  type TestFields,
+} from '@/testFields'
 import type { TestSpec } from '@/types'
 
 const UNKNOWN_AGENT_VERSION = 'unknown'
-
-function factRowsFromFacts(facts: Record<string, string>): FactRow[] {
-  return Object.entries(facts).map(([key, value]) => ({ key, value }))
-}
-
-function factsFromFactRows(rows: FactRow[]): Record<string, string> {
-  return Object.fromEntries(
-    rows.filter((row) => row.key.trim()).map((row) => [row.key.trim(), row.value.trim()]),
-  )
-}
-
-type TestFields = {
-  name: string
-  goal: string
-  facts: FactRow[]
-  behavior: string
-  policy_under_test: string
-  expected_outcome: string
-}
-
-const EMPTY_FIELDS: TestFields = {
-  name: '',
-  goal: '',
-  facts: [],
-  behavior: '',
-  policy_under_test: '',
-  expected_outcome: '',
-}
-
-function fieldsFromSpec(name: string | null, spec: TestSpec | null): TestFields {
-  if (!spec) return EMPTY_FIELDS
-  return { ...spec, name: name ?? '', facts: factRowsFromFacts(spec.facts) }
-}
-
-function factsAsText(rows: FactRow[]): string {
-  return rows.map((row) => `${row.key}: ${row.value}`).join('\n') || 'None'
-}
-
-function specFromFields(fields: TestFields): TestSpec {
-  return {
-    goal: fields.goal.trim(),
-    facts: factsFromFactRows(fields.facts),
-    behavior: fields.behavior.trim(),
-    policy_under_test: fields.policy_under_test.trim(),
-    expected_outcome: fields.expected_outcome.trim(),
-  }
-}
-
-function areFieldsComplete(fields: TestFields): boolean {
-  const textFields = [fields.name, fields.goal, fields.behavior, fields.policy_under_test, fields.expected_outcome]
-  const factsComplete = fields.facts.every((row) => !row.value.trim() || row.key.trim())
-  return textFields.every((text) => text.trim()) && factsComplete
-}
 
 type NewTestDialogProps = {
   open: boolean
@@ -104,15 +57,6 @@ export default function NewTestDialog({ open, onOpenChange, onCreated }: NewTest
   const [isConfirmingOverwrite, setIsConfirmingOverwrite] = useState(false)
   const [requestError, setRequestError] = useState<string | null>(null)
 
-  const hasInferredSpec = inferredSpec !== null
-
-  function inferenceOf(field: Exclude<keyof TestFields, 'facts'>) {
-    return {
-      aiVersion: hasInferredSpec ? fieldsFromLastInfer[field] : null,
-      isEdited: fields[field] !== fieldsFromLastInfer[field],
-    }
-  }
-
   const hasUnsavedEdits = JSON.stringify(fields) !== JSON.stringify(fieldsFromLastInfer)
   const canCreate = transcript.trim() !== '' && areFieldsComplete(fields) && !isCreating
 
@@ -125,10 +69,6 @@ export default function NewTestDialog({ open, onOpenChange, onCreated }: NewTest
     setInferredSpec(null)
     setNoRegressionReason(null)
     setRequestError(null)
-  }
-
-  function updateField<K extends keyof TestFields>(field: K, value: TestFields[K]) {
-    setFields((current) => ({ ...current, [field]: value }))
   }
 
   async function inferFields() {
@@ -238,43 +178,11 @@ export default function NewTestDialog({ open, onOpenChange, onCreated }: NewTest
             </Alert>
           )}
 
-          <InferredField id="name" label="Name" {...inferenceOf('name')}>
-            <Input id="name" value={fields.name} onChange={(event) => updateField('name', event.target.value)} />
-          </InferredField>
-          <InferredField id="goal" label="Goal" {...inferenceOf('goal')}>
-            <Textarea id="goal" rows={2} value={fields.goal} onChange={(event) => updateField('goal', event.target.value)} />
-          </InferredField>
-          <InferredField
-            label="Facts"
-            aiVersion={hasInferredSpec ? factsAsText(fieldsFromLastInfer.facts) : null}
-            isEdited={JSON.stringify(fields.facts) !== JSON.stringify(fieldsFromLastInfer.facts)}
-          >
-            <FactsEditor rows={fields.facts} onChange={(rows) => updateField('facts', rows)} />
-          </InferredField>
-          <InferredField id="behavior" label="Behavior" {...inferenceOf('behavior')}>
-            <Textarea
-              id="behavior"
-              rows={3}
-              value={fields.behavior}
-              onChange={(event) => updateField('behavior', event.target.value)}
-            />
-          </InferredField>
-          <InferredField id="policy-under-test" label="Policy under test" {...inferenceOf('policy_under_test')}>
-            <Textarea
-              id="policy-under-test"
-              rows={2}
-              value={fields.policy_under_test}
-              onChange={(event) => updateField('policy_under_test', event.target.value)}
-            />
-          </InferredField>
-          <InferredField id="expected-outcome" label="Expected outcome" {...inferenceOf('expected_outcome')}>
-            <Textarea
-              id="expected-outcome"
-              rows={2}
-              value={fields.expected_outcome}
-              onChange={(event) => updateField('expected_outcome', event.target.value)}
-            />
-          </InferredField>
+          <TestFieldsEditor
+            fields={fields}
+            onChange={setFields}
+            aiFields={inferredSpec ? fieldsFromLastInfer : null}
+          />
 
           {requestError && <p className="text-sm text-destructive">{requestError}</p>}
         </div>

@@ -1,4 +1,4 @@
-import type { CreateTestRequest, InferredTest, TestDetail, TestRow } from '@/types'
+import type { CreateTestRequest, InferredTest, TestDetail, TestRow, TestSpec } from '@/types'
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -28,4 +28,8 @@ export function inferTest(transcript: string, reportedIssue: string | null): Pro
 
 export function createTest(request: CreateTestRequest): Promise<TestRow> {
   return requestJson('/api/tests', { method: 'POST', body: JSON.stringify(request) })
+}
+
+export function editTest(testId: string, name: string, spec: TestSpec): Promise<TestDetail> {
+  return requestJson(`/api/tests/${testId}`, { method: 'PUT', body: JSON.stringify({ name, spec }) })
 }
