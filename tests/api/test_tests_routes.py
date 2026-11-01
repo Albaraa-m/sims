@@ -139,3 +139,22 @@ def test_edit_saves_a_new_draft_version(client, spec):
     )
     assert edited["spec"]["goal"] == "New goal"
     assert client.get(f"/api/tests/{created['id']}").json()["spec"] == spec.model_dump()
+
+
+def test_versions_lists_every_version_from_any_of_them(client, spec):
+    created = client.post(
+        "/api/tests",
+        json={
+            "transcript": "Agent: Hi",
+            "name": "Unconfirmed",
+            "spec": spec.model_dump(),
+        },
+    ).json()
+    client.put(
+        f"/api/tests/{created['id']}",
+        json={"name": "Unconfirmed", "spec": spec.model_dump()},
+    )
+
+    versions = client.get(f"/api/tests/{created['id']}/versions").json()
+
+    assert [version["version"] for version in versions] == [1, 2]

@@ -15,6 +15,7 @@ from regression_tests.crud import (
     edit_test,
     get_test,
     list_latest_tests,
+    list_test_versions,
 )
 from regression_tests.models import Test
 
@@ -39,6 +40,15 @@ def get_test_or_404(test_id: str) -> Test:
 @router.get("/{test_id}")
 def read_test(test_id: str) -> TestDetail:
     return TestDetail.model_validate(get_test_or_404(test_id), from_attributes=True)
+
+
+@router.get("/{test_id}/versions")
+def list_versions_of_test(test_id: str) -> list[TestRow]:
+    lineage_id = get_test_or_404(test_id).lineage_id
+    return [
+        TestRow.model_validate(version, from_attributes=True)
+        for version in list_test_versions(lineage_id)
+    ]
 
 
 @router.put("/{test_id}")

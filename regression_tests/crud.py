@@ -103,6 +103,16 @@ def list_latest_tests() -> list[Test]:
         return list(session.exec(query))
 
 
+def list_test_versions(lineage_id: str) -> list[Test]:
+    with Session(db.engine) as session:
+        query = (
+            select(Test)
+            .where(Test.lineage_id == lineage_id)
+            .order_by(col(Test.version))
+        )
+        return list(session.exec(query))
+
+
 def mark_ready(test_id: str) -> Test:
     test = get_test(test_id)
     test.status = TestStatus.READY
