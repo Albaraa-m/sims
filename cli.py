@@ -6,6 +6,8 @@ from contextlib import nullcontext, suppress
 from itertools import groupby
 from pathlib import Path
 
+import uvicorn
+
 from agents.servers import running_agent_servers
 from core.config import LOGS_DIR
 from core.db import create_tables
@@ -79,6 +81,14 @@ def main() -> None:
 
     commands.add_parser("agents", help="Run both agent servers until stopped.")
 
+    web = commands.add_parser("web", help="Serve the web app and its API.")
+    web.add_argument("--port", type=int, default=8000)
+    web.add_argument(
+        "--start-agents",
+        action="store_true",
+        help="Start the agent servers with the web app and stop them with it.",
+    )
+
     show = commands.add_parser("show", help="Print a stored simulation.")
     show.add_argument("simulation_id")
 
@@ -135,6 +145,9 @@ def main() -> None:
                 print(f"agent servers running, logs in {LOGS_DIR}; Ctrl-C to stop")
                 with suppress(KeyboardInterrupt):
                     signal.pause()
+        case "web":
+            with running_agent_servers() if args.start_agents else nullcontext():
+                uvicorn.run("web.app:app", port=args.port)
         case "show":
             print_simulation(get_simulation(args.simulation_id))
         case "export-transcript":
