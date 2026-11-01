@@ -68,3 +68,33 @@ class TestDetail(TestRow):
     spec: TestSpec
     # What the model suggested; None if it found no broken rule.
     inferred: TestSpec | None
+
+
+class SpokenLine(BaseModel):
+    kind: Literal["speech"] = "speech"
+    speaker: str
+    text: str
+
+
+class ToolCall(BaseModel):
+    kind: Literal["tool_call"] = "tool_call"
+    name: str
+    arguments: str
+    output: str | None
+
+
+class RunDetail(BaseModel):
+    id: str
+    agent_version: str
+    status: SimulationStatus
+    started_at: datetime
+    ended_at: datetime | None
+    error: str | None
+    # None for runs started outside a test, e.g. with `sims run`.
+    test_id: str | None
+    test_name: str | None
+    test_version: int | None
+    conversation: list[SpokenLine | ToolCall]
+    has_recording: bool
+
+    _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
