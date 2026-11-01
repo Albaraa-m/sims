@@ -146,7 +146,13 @@ def main() -> None:
                 with suppress(KeyboardInterrupt):
                     signal.pause()
         case "web":
-            with running_agent_servers() if args.start_agents else nullcontext():
+            # Uvicorn re-raises SIGTERM after shutting down; as Ctrl-C it lets the
+            # agent servers be stopped instead of killing this process first.
+            signal.signal(signal.SIGTERM, signal.default_int_handler)
+            with (
+                running_agent_servers() if args.start_agents else nullcontext(),
+                suppress(KeyboardInterrupt),
+            ):
                 uvicorn.run("web.app:app", port=args.port)
         case "show":
             print_simulation(get_simulation(args.simulation_id))
