@@ -77,3 +77,20 @@ def test_create_rejects_an_incomplete_spec(client, spec):
     )
 
     assert response.status_code == 422
+
+
+def test_list_returns_created_tests(client, spec):
+    client.post(
+        "/api/tests",
+        json={
+            "transcript": "Agent: Hi",
+            "name": "Unconfirmed",
+            "spec": spec.model_dump(),
+        },
+    )
+
+    rows = client.get("/api/tests").json()
+
+    assert [(row["name"], row["version"], row["status"]) for row in rows] == [
+        ("Unconfirmed", 1, "draft")
+    ]

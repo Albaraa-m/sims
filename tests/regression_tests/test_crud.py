@@ -1,7 +1,13 @@
 import pytest
 from pydantic import ValidationError
 
-from regression_tests.crud import create_test_from_spec, edit_test, get_test, mark_ready
+from regression_tests.crud import (
+    create_test_from_spec,
+    edit_test,
+    get_test,
+    list_latest_tests,
+    mark_ready,
+)
 from regression_tests.models import TestStatus
 
 
@@ -53,3 +59,13 @@ def test_editing_an_unknown_field_is_rejected(source_conversation, spec):
 
     with pytest.raises(ValidationError):
         edit_test(test.id, gaol="typo")
+
+
+def test_listing_shows_only_the_latest_version_of_each_test(source_conversation, spec):
+    first = create_test_from_spec(source_conversation, "First", spec)
+    edited_first = edit_test(first.id, goal="Book a table for 5")
+    second = create_test_from_spec(source_conversation, "Second", spec)
+
+    listed = list_latest_tests()
+
+    assert [test.id for test in listed] == [second.id, edited_first.id]

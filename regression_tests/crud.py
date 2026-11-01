@@ -1,4 +1,4 @@
-from sqlmodel import Session, func, select
+from sqlmodel import Session, col, func, select
 
 from core import db
 from core.db import get_row, save
@@ -81,6 +81,26 @@ def edit_test(test_id: str, **changes) -> Test:
             inferred=current.inferred,
         )
     )
+
+
+def list_latest_tests() -> list[Test]:
+    """The latest version of each test, newest test first."""
+    with Session(db.engine) as session:
+        latest = (
+            select(Test.lineage_id, func.max(Test.version).label("version"))
+            .group_by(col(Test.lineage_id))
+            .subquery()
+        )
+        query = (
+            select(Test)
+            .join(
+                latest,
+                (col(Test.lineage_id) == latest.c.lineage_id)
+                & (col(Test.version) == latest.c.version),
+            )
+            .order_by(col(Test.created_at).desc())
+        )
+        return list(session.exec(query))
 
 
 def mark_ready(test_id: str) -> Test:

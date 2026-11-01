@@ -2,9 +2,17 @@ from fastapi import APIRouter
 
 from api.schemas import CreateTestRequest, InferTestRequest, InferTestResponse, TestRow
 from regression_tests.convert import infer_test_spec_from_transcript
-from regression_tests.crud import create_test_from_transcript
+from regression_tests.crud import create_test_from_transcript, list_latest_tests
 
 router = APIRouter(prefix="/api/tests")
+
+
+@router.get("")
+def list_tests() -> list[TestRow]:
+    return [
+        TestRow.model_validate(test, from_attributes=True)
+        for test in list_latest_tests()
+    ]
 
 
 @router.post("/infer")
