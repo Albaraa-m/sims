@@ -15,8 +15,4 @@ def now() -> datetime:
     return datetime.now(UTC)
 
 
-def evidence_dir(simulation_id: str) -> Path:
-    return EVIDENCE_DIR / simulation_id
-
-
 LLM_MODEL = "google/gemma-4-31b-it"

@@ -1,6 +1,5 @@
 import json
 import os
-import shutil
 
 from dotenv import load_dotenv
 from livekit.agents import AgentServer, JobContext, cli
@@ -8,7 +7,7 @@ from livekit.agents import AgentServer, JobContext, cli
 from agents.booking.agent import BookingAgent
 from agents.booking.store import default_store
 from agents.voice import start_voice_session
-from core.config import evidence_dir
+from simulations.evidence import write_evidence
 
 load_dotenv()
 
@@ -24,12 +23,7 @@ async def save_evidence(ctx: JobContext) -> None:
         return
 
     report = ctx.make_session_report()
-    directory = evidence_dir(simulation_id)
-    directory.mkdir(parents=True, exist_ok=True)
-    if report.audio_recording_path and report.audio_recording_path.exists():
-        shutil.copy(report.audio_recording_path, directory / "audio.ogg")
-    # Written last: the runner treats report.json as the signal that evidence is complete.
-    (directory / "report.json").write_text(json.dumps(report.to_dict()))
+    write_evidence(simulation_id, report.to_dict(), report.audio_recording_path)
 
 
 @server.rtc_session(agent_name=DISPATCH_NAME, on_session_end=save_evidence)

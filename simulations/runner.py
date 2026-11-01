@@ -6,8 +6,9 @@ from livekit import api
 
 from agents.booking.server import DISPATCH_NAME as BOOKING_AGENT
 from agents.caller.server import DISPATCH_NAME as CALLER_AGENT
-from core.config import evidence_dir, now
+from core.config import now
 from simulations.crud import create_simulation, update_simulation
+from simulations.evidence import wait_for_evidence
 from simulations.models import Simulation, SimulationStatus
 
 CALL_TIMEOUT_SECONDS = 180
@@ -18,7 +19,7 @@ async def run_simulation(agent_version: str) -> Simulation:
     simulation = create_simulation(agent_version)
     try:
         await run_call(simulation, agent_version)
-        evidence = await collect_evidence(simulation.id)
+        evidence = await wait_for_evidence(simulation.id, EVIDENCE_WAIT_SECONDS)
     # Any error must end the simulation as failed, never leave it stuck as running.
     except Exception as error:  # noqa: BLE001
         return update_simulation(
@@ -72,21 +73,3 @@ async def wait_for_room_to_close(
             return
         await asyncio.sleep(2)
     raise TimeoutError(f"timed out after {timeout:.0f}s")
-
-
-async def collect_evidence(simulation_id: str) -> dict:
-    directory = evidence_dir(simulation_id)
-    report_file = directory / "report.json"
-    deadline = time.monotonic() + EVIDENCE_WAIT_SECONDS
-    while not report_file.exists():
-        if time.monotonic() > deadline:
-            raise TimeoutError(
-                "call ended but the booking agent saved no session report"
-            )
-        await asyncio.sleep(1)
-
-    recording = directory / "audio.ogg"
-    return {
-        "report": json.loads(report_file.read_text()),
-        "recording_path": str(recording) if recording.exists() else None,
-    }
