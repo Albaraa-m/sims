@@ -35,3 +35,7 @@ const GRADING_WINDOW_MS = 2 * 60 * 1000
 export function isAwaitingGrade(run: Pick<RunRow, 'outcome' | 'ended_at'>, now: number): boolean {
   return run.outcome === null && run.ended_at !== null && now - Date.parse(run.ended_at) < GRADING_WINDOW_MS
 }
+
+export function turnElementId(turn: number): string {
+  return `turn-${turn}`
+}

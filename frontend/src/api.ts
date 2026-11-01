@@ -1,4 +1,4 @@
-import type { CreateTestRequest, InferredTest, RunDetail, RunRow, TestDetail, TestRow, TestSpec } from '@/types'
+import type { CreateTestRequest, EvaluationDetail, InferredTest, RunDetail, RunRow, TestDetail, TestRow, TestSpec } from '@/types'
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -59,4 +59,8 @@ export function readRun(runId: string): Promise<RunDetail> {
 
 export function recordingUrl(runId: string): string {
   return `/api/runs/${runId}/recording`
+}
+
+export function regradeRun(runId: string): Promise<EvaluationDetail> {
+  return requestJson(`/api/runs/${runId}/evaluate`, { method: 'POST' })
 }
