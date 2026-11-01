@@ -35,3 +35,15 @@ export type TestDetail = TestRow & {
   spec: TestSpec
   inferred: TestSpec | null
 }
+
+export type RunStatus = 'running' | 'done' | 'failed'
+
+export type RunRow = {
+  id: string
+  test_id: string
+  test_version: number
+  agent_version: string
+  status: RunStatus
+  started_at: string
+  ended_at: string | null
+}

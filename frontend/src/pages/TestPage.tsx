@@ -1,14 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { listTestVersions, markTestReady, readTest } from '@/api'
+import { listRuns, listTestVersions, markTestReady, readTest } from '@/api'
 import EditTestDialog from '@/components/EditTestDialog'
+import RunControls from '@/components/RunControls'
+import RunsTable from '@/components/RunsTable'
 import SpecField from '@/components/SpecField'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import type { TestDetail, TestRow } from '@/types'
+import type { RunRow, TestDetail, TestRow } from '@/types'
+
+const POLL_INTERVAL_MS = 3000
+// Started runs take a moment to appear, so keep polling briefly even if none is running yet.
+const POLL_AFTER_START_MS = 15000
 
 function FactsList({ facts }: { facts: Record<string, string> }) {
   const entries = Object.entries(facts)
@@ -29,6 +35,9 @@ export default function TestPage() {
   const { testId } = useParams()
   const [test, setTest] = useState<TestDetail | null>(null)
   const [versions, setVersions] = useState<TestRow[]>([])
+  const [runs, setRuns] = useState<RunRow[]>([])
+  const [lastStartedAt, setLastStartedAt] = useState(0)
+  const [now, setNow] = useState(() => Date.now())
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const navigate = useNavigate()
@@ -38,6 +47,23 @@ export default function TestPage() {
     readTest(testId).then(setTest, (error: Error) => setLoadError(error.message))
     listTestVersions(testId).then(setVersions, (error: Error) => setLoadError(error.message))
   }, [testId])
+
+  const loadRuns = useCallback(() => {
+    if (testId) listRuns(testId).then(setRuns, (error: Error) => setLoadError(error.message))
+  }, [testId])
+
+  useEffect(loadRuns, [loadRuns])
+
+  const isPolling = runs.some((run) => run.status === 'running') || now - lastStartedAt < POLL_AFTER_START_MS
+
+  useEffect(() => {
+    if (!isPolling) return
+    const interval = setInterval(() => {
+      setNow(Date.now())
+      loadRuns()
+    }, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [isPolling, loadRuns])
 
   if (loadError) return <p className="text-sm text-destructive">Couldn't load the test: {loadError}</p>
   if (!test) return null
@@ -130,6 +156,25 @@ export default function TestPage() {
           value={spec.expected_outcome}
           inferredValue={inferred?.expected_outcome}
         />
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold">Runs</h2>
+        {test.status === 'ready' && latestVersion?.id === test.id && (
+          <RunControls
+            testId={test.id}
+            onStarted={() => {
+              const startedAt = Date.now()
+              setLastStartedAt(startedAt)
+              setNow(startedAt)
+              loadRuns()
+            }}
+          />
+        )}
+        {latestVersion && latestVersion.id !== test.id && (
+          <p className="text-sm text-muted-foreground">Runs use the latest version.</p>
+        )}
+        <RunsTable runs={runs} viewedTestId={test.id} now={now} />
       </div>
     </section>
   )
