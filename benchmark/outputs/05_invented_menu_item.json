@@ -1,11 +1,11 @@
 {
-  "reason": "The agent invented a menu item that is not on the restaurant’s menu. It said they have a chicken shawarma plate for forty-five riyals, but shawarma is not listed in the knowledge base.",
+  "reason": "The agent invented a menu item. The knowledge base does not include shawarma, so it should have said it doesn't know or that they don't serve it, not quoted a price for it.",
   "name": "Shawarma menu item",
   "spec": {
-    "goal": "Find out whether the restaurant serves shawarma and, if asked, how much the dessert is.",
+    "goal": "Find out whether they serve shawarma.",
     "facts": {},
-    "behavior": "You are casual and brief. Ask about the dish in one sentence, and if they answer, you may ask one follow-up about the dessert. End the call once they have answered both questions.",
-    "policy_under_test": "Only answer from the menu; do not invent dishes or prices that are not listed.",
-    "expected_outcome": "The agent says they do not serve shawarma. If you ask about the dessert, they say kunafa costs thirty-eight riyals."
+    "behavior": "You sound casual and ask the question naturally. If they answer, you can ask one brief follow-up about the dessert, then end the call.",
+    "policy_under_test": "Answer only from the menu; if a dish is not on the menu, say they do not serve it and do not invent menu items or prices.",
+    "expected_outcome": "The agent says they do not know or that they do not serve shawarma, instead of naming a shawarma dish or giving its price."
   }
 }
