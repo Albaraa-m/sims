@@ -14,10 +14,14 @@ CALL_TIMEOUT_SECONDS = 180
 EVIDENCE_WAIT_SECONDS = 20
 
 
-async def run_simulation(agent_version: str) -> Simulation:
-    simulation = create_simulation(agent_version)
+async def run_simulation(
+    agent_version: str,
+    test_id: str | None = None,
+    caller_scenario: str | None = None,
+) -> Simulation:
+    simulation = create_simulation(agent_version, test_id)
     try:
-        await run_call(simulation, agent_version)
+        await run_call(simulation, agent_version, caller_scenario)
         evidence = await wait_for_evidence(simulation.id, EVIDENCE_WAIT_SECONDS)
     # Any error must end the simulation as failed, never leave it stuck as running.
     except Exception as error:  # noqa: BLE001
@@ -32,7 +36,9 @@ async def run_simulation(agent_version: str) -> Simulation:
     )
 
 
-async def run_call(simulation: Simulation, agent_version: str) -> None:
+async def run_call(
+    simulation: Simulation, agent_version: str, caller_scenario: str | None
+) -> None:
     room = simulation.room_name
     async with api.LiveKitAPI() as lkapi:
         # LiveKit treats a room with only agents as empty, so empty_timeout must
@@ -41,7 +47,8 @@ async def run_call(simulation: Simulation, agent_version: str) -> None:
             api.CreateRoomRequest(name=room, empty_timeout=CALL_TIMEOUT_SECONDS + 30)
         )
         dispatches = [
-            (CALLER_AGENT, {}),
+            # Without a scenario the caller agent falls back to its default caller.
+            (CALLER_AGENT, {"scenario": caller_scenario} if caller_scenario else {}),
             (
                 BOOKING_AGENT,
                 {"simulation_id": simulation.id, "version": agent_version},

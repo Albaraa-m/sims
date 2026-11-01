@@ -1,9 +1,12 @@
+from sqlmodel import Session, col, select
+
+from core import db
 from core.db import get_row, save
 from simulations.models import Simulation
 
 
-def create_simulation(agent_version: str) -> Simulation:
-    return save(Simulation(agent_version=agent_version))
+def create_simulation(agent_version: str, test_id: str | None = None) -> Simulation:
+    return save(Simulation(agent_version=agent_version, test_id=test_id))
 
 
 def get_simulation(simulation_id: str) -> Simulation:
@@ -15,3 +18,13 @@ def update_simulation(simulation_id: str, **changes) -> Simulation:
     for field, value in changes.items():
         setattr(simulation, field, value)
     return save(simulation)
+
+
+def list_simulations_of_test(test_id: str) -> list[Simulation]:
+    with Session(db.engine) as session:
+        query = (
+            select(Simulation)
+            .where(Simulation.test_id == test_id)
+            .order_by(col(Simulation.agent_version), col(Simulation.started_at))
+        )
+        return list(session.exec(query).all())

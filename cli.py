@@ -3,6 +3,7 @@ import asyncio
 import json
 import signal
 from contextlib import nullcontext, suppress
+from itertools import groupby
 from pathlib import Path
 
 from agents.servers import running_agent_servers
@@ -12,9 +13,11 @@ from regression_tests.convert import convert_transcript_to_test
 from regression_tests.crud import (
     get_source_conversation,
     get_test,
+    mark_ready,
 )
 from regression_tests.models import Test
-from simulations.crud import get_simulation
+from regression_tests.run import run_test_against_agent_version
+from simulations.crud import get_simulation, list_simulations_of_test
 from simulations.models import Simulation
 from simulations.runner import run_simulation
 from simulations.transcript import SPEAKERS, chat_items, message_text, spoken_lines
@@ -44,6 +47,22 @@ def print_test(test: Test) -> None:
     for field, value in test.spec.items():
         edited = "" if test.inferred.get(field) == value else "  (edited)"
         print(f"{field}{edited}: {json.dumps(value, ensure_ascii=False)}")
+    simulations = list_simulations_of_test(test.id)
+    for version, runs in groupby(simulations, key=lambda s: s.agent_version):
+        runs = list(runs)
+        statuses = ", ".join(f"{s.id} {s.status}" for s in runs)
+        print(f"{version}: {len(runs)} simulations ({statuses})")
+
+
+async def run_test_against_agent_versions(
+    test_id: str, agent_versions: list[str], runs: int
+) -> list[Simulation]:
+    simulations = []
+    for agent_version in agent_versions:
+        simulations += await run_test_against_agent_version(
+            test_id, agent_version, runs
+        )
+    return simulations
 
 
 def main() -> None:
@@ -77,8 +96,29 @@ def main() -> None:
         "--agent-version", choices=["v1", "v2"], help="Version that made the call."
     )
 
-    show_test = commands.add_parser("show-test", help="Print a stored test.")
+    show_test = commands.add_parser(
+        "show-test", help="Print a stored test and its simulations."
+    )
     show_test.add_argument("test_id")
+
+    ready = commands.add_parser("mark-ready", help="Mark a test ready to run.")
+    ready.add_argument("test_id")
+
+    run_test = commands.add_parser(
+        "run-test", help="Run a ready test against agent versions."
+    )
+    run_test.add_argument("test_id")
+    run_test.add_argument(
+        "--versions", nargs="+", choices=["v1", "v2"], default=["v1", "v2"]
+    )
+    run_test.add_argument(
+        "--runs", type=int, default=1, help="Simulations per agent version."
+    )
+    run_test.add_argument(
+        "--start-agents",
+        action="store_true",
+        help="Start the agent servers for this run and stop them afterwards.",
+    )
 
     args = parser.parse_args()
     create_tables()
@@ -111,6 +151,19 @@ def main() -> None:
                 print_test(outcome.test)
         case "show-test":
             print_test(get_test(args.test_id))
+        case "mark-ready":
+            print(f"test {mark_ready(args.test_id).id} is ready")
+        case "run-test":
+            with running_agent_servers() if args.start_agents else nullcontext():
+                simulations = asyncio.run(
+                    run_test_against_agent_versions(
+                        args.test_id, args.versions, args.runs
+                    )
+                )
+            for simulation in simulations:
+                print(
+                    f"{simulation.agent_version}  simulation {simulation.id} {simulation.status}"
+                )
 
 
 if __name__ == "__main__":
