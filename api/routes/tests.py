@@ -8,6 +8,7 @@ from api.schemas import (
     EditTestRequest,
     InferTestRequest,
     InferTestResponse,
+    RunRow,
     StartRunsRequest,
     TestDetail,
     TestRow,
@@ -18,6 +19,7 @@ from regression_tests.crud import (
     edit_test,
     get_test,
     list_latest_tests,
+    list_runs_of_every_test_version,
     list_test_versions,
     mark_ready,
 )
@@ -108,3 +110,20 @@ async def start_runs_of_test(test_id: str, request: StartRunsRequest) -> None:
         )
         running_tasks.add(task)
         task.add_done_callback(running_tasks.discard)
+
+
+@router.get("/{test_id}/runs")
+def list_runs_of_test(test_id: str) -> list[RunRow]:
+    lineage_id = get_test_or_404(test_id).lineage_id
+    return [
+        RunRow(
+            id=simulation.id,
+            test_id=test.id,
+            test_version=test.version,
+            agent_version=simulation.agent_version,
+            status=simulation.status,
+            started_at=simulation.started_at,
+            ended_at=simulation.ended_at,
+        )
+        for simulation, test in list_runs_of_every_test_version(lineage_id)
+    ]

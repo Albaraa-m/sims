@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 from regression_tests.models import TestSpec, TestStatus
+from simulations.models import SimulationStatus
 
 
 class InferTestRequest(BaseModel):
@@ -36,6 +37,23 @@ class StartRunsRequest(BaseModel):
     runs_per_version: int = Field(default=1, ge=1, le=5)
 
 
+def mark_as_utc(time: datetime | None) -> datetime | None:
+    # SQLite drops the timezone; every stored time is UTC.
+    return time and time.replace(tzinfo=UTC)
+
+
+class RunRow(BaseModel):
+    id: str
+    test_id: str
+    test_version: int
+    agent_version: str
+    status: SimulationStatus
+    started_at: datetime
+    ended_at: datetime | None
+
+    _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
+
+
 class TestRow(BaseModel):
     id: str
     name: str
@@ -43,11 +61,7 @@ class TestRow(BaseModel):
     status: TestStatus
     created_at: datetime
 
-    @field_validator("created_at")
-    @classmethod
-    def mark_as_utc(cls, created_at: datetime) -> datetime:
-        # SQLite drops the timezone; every stored time is UTC.
-        return created_at.replace(tzinfo=UTC)
+    _mark_created_at_as_utc = field_validator("created_at")(mark_as_utc)
 
 
 class TestDetail(TestRow):

@@ -7,6 +7,7 @@ from api.app import create_app
 from api.routes import tests as tests_routes
 from core import llm
 from regression_tests.crud import get_source_conversation, get_test
+from simulations.crud import create_simulation
 
 
 @pytest.fixture
@@ -230,3 +231,20 @@ def test_start_runs_of_a_draft_is_refused(client, spec, started_runs):
 
     assert response.status_code == 409
     assert started_runs == []
+
+
+def test_runs_lists_runs_of_every_version_newest_first(client, spec):
+    first_id = create_ready_test(client, spec)
+    second_id = client.put(
+        f"/api/tests/{first_id}",
+        json={"name": "Unconfirmed", "spec": spec.model_dump()},
+    ).json()["id"]
+    old_run = create_simulation("v1", first_id)
+    new_run = create_simulation("v2", second_id)
+
+    runs = client.get(f"/api/tests/{second_id}/runs").json()
+
+    assert [(run["id"], run["test_version"]) for run in runs] == [
+        (new_run.id, 2),
+        (old_run.id, 1),
+    ]

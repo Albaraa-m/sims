@@ -4,6 +4,7 @@ from core import db
 from core.db import get_row, save
 from core.ids import new_id
 from regression_tests.models import SourceConversation, Test, TestSpec, TestStatus
+from simulations.models import Simulation
 
 
 def get_source_conversation(source_conversation_id: str) -> SourceConversation:
@@ -111,6 +112,18 @@ def list_test_versions(lineage_id: str) -> list[Test]:
             .order_by(col(Test.version))
         )
         return list(session.exec(query))
+
+
+def list_runs_of_every_test_version(lineage_id: str) -> list[tuple[Simulation, Test]]:
+    """Each run with the test version it ran, newest run first."""
+    with Session(db.engine) as session:
+        query = (
+            select(Simulation, Test)
+            .join(Test, col(Simulation.test_id) == col(Test.id))
+            .where(Test.lineage_id == lineage_id)
+            .order_by(col(Simulation.started_at).desc())
+        )
+        return [(simulation, test) for simulation, test in session.exec(query)]
 
 
 def mark_ready(test_id: str) -> Test:
