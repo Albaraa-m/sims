@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from sqlalchemy import JSON, Column
 from sqlmodel import Field, SQLModel
 
@@ -18,6 +18,9 @@ class SourceConversation(SQLModel, table=True):
 
 
 class TestSpec(BaseModel):
+    # An unknown field is a typo or a model mistake, never something to drop silently.
+    model_config = ConfigDict(extra="forbid")
+
     goal: str
     facts: dict[str, str]
     behavior: str

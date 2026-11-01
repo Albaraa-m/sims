@@ -1,3 +1,6 @@
+import pytest
+from pydantic import ValidationError
+
 from regression_tests.crud import create_test_from_spec, edit_test, get_test, mark_ready
 from regression_tests.models import TestStatus
 
@@ -36,3 +39,9 @@ def test_editing_an_older_version_still_creates_the_latest(source_conversation, 
 
     assert edited_again.version == 3
 
+
+def test_editing_an_unknown_field_is_rejected(source_conversation, spec):
+    test = create_test_from_spec(source_conversation, spec)
+
+    with pytest.raises(ValidationError):
+        edit_test(test.id, gaol="typo")
