@@ -44,8 +44,6 @@ class SourceConversation(SQLModel, table=True):
 
 
 class TestSpec(BaseModel):
-    __test__ = False  # stops pytest collecting this class as a test case
-
     goal: str
     facts: dict[str, str]
     behavior: str
@@ -56,15 +54,11 @@ class TestSpec(BaseModel):
 
 
 class TestStatus(StrEnum):
-    __test__ = False  # stops pytest collecting this class as a test case
-
     DRAFT = "draft"
     READY = "ready"
 
 
 class Test(SQLModel, table=True):
-    __test__ = False  # stops pytest collecting this class as a test case
-
     id: str = Field(default_factory=new_id, primary_key=True)
     lineage_id: str
     version: int = 1
