@@ -16,6 +16,7 @@ from regression_tests.crud import (
     get_test,
     list_latest_tests,
     list_test_versions,
+    mark_ready,
 )
 from regression_tests.models import Test
 
@@ -49,6 +50,12 @@ def list_versions_of_test(test_id: str) -> list[TestRow]:
         TestRow.model_validate(version, from_attributes=True)
         for version in list_test_versions(lineage_id)
     ]
+
+
+@router.post("/{test_id}/ready")
+def mark_test_ready(test_id: str) -> TestDetail:
+    get_test_or_404(test_id)
+    return TestDetail.model_validate(mark_ready(test_id), from_attributes=True)
 
 
 @router.put("/{test_id}")

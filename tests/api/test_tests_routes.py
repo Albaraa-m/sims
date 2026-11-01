@@ -158,3 +158,18 @@ def test_versions_lists_every_version_from_any_of_them(client, spec):
     versions = client.get(f"/api/tests/{created['id']}/versions").json()
 
     assert [version["version"] for version in versions] == [1, 2]
+
+
+def test_mark_ready(client, spec):
+    created = client.post(
+        "/api/tests",
+        json={
+            "transcript": "Agent: Hi",
+            "name": "Unconfirmed",
+            "spec": spec.model_dump(),
+        },
+    ).json()
+
+    response = client.post(f"/api/tests/{created['id']}/ready")
+
+    assert response.json()["status"] == "ready"
