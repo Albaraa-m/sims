@@ -11,6 +11,9 @@ import uvicorn
 from agents.servers import running_agent_servers
 from core.config import LOGS_DIR
 from core.db import create_tables
+from evaluations.crud import latest_evaluation_of_simulation
+from evaluations.evaluate import evaluate_simulation
+from evaluations.models import Evaluation
 from regression_tests.convert import convert_transcript_to_test
 from regression_tests.crud import (
     get_source_conversation,
@@ -23,6 +26,15 @@ from simulations.crud import get_simulation, list_simulations_of_test
 from simulations.models import Simulation
 from simulations.runner import run_simulation
 from simulations.transcript import SPEAKERS, chat_items, message_text, spoken_lines
+
+
+def print_evaluation(evaluation: Evaluation | None) -> None:
+    if evaluation is None:
+        print("outcome: not evaluated")
+        return
+    print(f"outcome: {evaluation.outcome}  ({evaluation.reason})")
+    if evaluation.cited_turns:
+        print(f"cited turns: {evaluation.cited_turns}")
 
 
 def print_simulation(simulation: Simulation) -> None:
@@ -40,6 +52,7 @@ def print_simulation(simulation: Simulation) -> None:
             case "function_call_output":
                 print(f"     -> {item['output']}")
     print(f"recording: {simulation.recording_path}")
+    print_evaluation(latest_evaluation_of_simulation(simulation.id))
 
 
 def print_test(test: Test) -> None:
@@ -93,6 +106,11 @@ def main() -> None:
 
     show = commands.add_parser("show", help="Print a stored simulation.")
     show.add_argument("simulation_id")
+
+    evaluate = commands.add_parser(
+        "evaluate", help="Grade a simulation again; earlier grades are kept."
+    )
+    evaluate.add_argument("simulation_id")
 
     export = commands.add_parser(
         "export-transcript", help="Print a simulation's spoken transcript."
@@ -158,6 +176,8 @@ def main() -> None:
                 uvicorn.run("api.app:app", port=args.port)
         case "show":
             print_simulation(get_simulation(args.simulation_id))
+        case "evaluate":
+            print_evaluation(asyncio.run(evaluate_simulation(args.simulation_id)))
         case "export-transcript":
             print("\n".join(spoken_lines(get_simulation(args.simulation_id))))
         case "create-test":
@@ -182,8 +202,10 @@ def main() -> None:
                     )
                 )
             for simulation in simulations:
+                evaluation = latest_evaluation_of_simulation(simulation.id)
+                outcome = evaluation.outcome if evaluation else "not evaluated"
                 print(
-                    f"{simulation.agent_version}  simulation {simulation.id} {simulation.status}"
+                    f"{simulation.agent_version}  simulation {simulation.id} {simulation.status}  {outcome}"
                 )
 
 
