@@ -18,7 +18,9 @@ CONVERSION_MODEL = "openai/gpt-5.4-mini"
 
 class InferredTest(BaseModel):
     reason: str
-    spec: TestSpec | None = None  # None when the agent broke no rule
+    # Both None when the agent broke no rule.
+    name: str | None = None
+    spec: TestSpec | None = None
 
 
 class ConversionOutcome(NamedTuple):
@@ -43,6 +45,7 @@ Caller: Great, thanks.
 
 Reply:
 {"reason": "On Friday the restaurant opens at 13:00, but the agent said 12:00.",
+ "name": "Friday opening hours",
  "spec": {
   "goal": "Find out whether the restaurant is open at noon on Friday for lunch.",
   "facts": {"day": "Friday", "time": "12:00", "party_size": "2"},
@@ -71,7 +74,8 @@ Decide whether the agent broke one of its rules below. Always explain why in rea
 If it did not, leave spec null. The transcript holds only what was said; the agent's
 tool use is not visible. Only report a broken rule that the spoken words show.
 
-If it did, write a spec. The caller fields describe a person phoning the restaurant:
+If it did, give the test a short name (a few words naming the situation, like
+"Friday opening hours") and write a spec. The caller fields describe a person phoning the restaurant:
 only what they want, say and do. Never mention the restaurant's rules (opening hours,
 party limits, availability) or the agent's tools in them.
 
@@ -146,7 +150,9 @@ async def convert_source_conversation_to_test(
     reply = await ask_model_to_convert(source_conversation)
     if reply.spec is None:
         return ConversionOutcome(test=None, reason=reply.reason)
-    test = create_test_from_spec(source_conversation, reply.spec)
+    test = create_test_from_spec(
+        source_conversation, reply.name or reply.spec.goal, reply.spec
+    )
     return ConversionOutcome(test=test, reason=reply.reason)
 
 

@@ -30,7 +30,11 @@ def convert_to_test(source_conversation):
 
 def reply_with_spec(spec) -> str:
     return json.dumps(
-        {"reason": "booked without confirming", "spec": spec.model_dump()}
+        {
+            "reason": "booked without confirming",
+            "name": "Unconfirmed booking",
+            "spec": spec.model_dump(),
+        }
     )
 
 
@@ -40,6 +44,7 @@ def test_reply_with_spec_saves_a_draft_test(llm_replies, source_conversation, sp
     test = convert_to_test(source_conversation).test
 
     assert test is not None
+    assert test.name == "Unconfirmed booking"
     assert test.spec == spec.model_dump()
     assert test.source_conversation_id == source_conversation.id
 

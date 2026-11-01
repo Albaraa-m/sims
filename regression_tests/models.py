@@ -36,6 +36,7 @@ class TestStatus(StrEnum):
 class Test(SQLModel, table=True):
     id: str = Field(default_factory=new_id, primary_key=True)
     lineage_id: str
+    name: str
     version: int = 1
     source_conversation_id: str = Field(foreign_key="sourceconversation.id")
     status: TestStatus = TestStatus.DRAFT

@@ -22,7 +22,7 @@ def test_caller_scenario_has_caller_fields_only(spec):
 
 
 def test_draft_test_is_refused(spec, source_conversation):
-    test = create_test_from_spec(source_conversation, spec)
+    test = create_test_from_spec(source_conversation, "Unconfirmed booking", spec)
     with pytest.raises(TestNotReadyError):
         asyncio.run(run_test_against_agent_version(test.id, "v1"))
 
@@ -37,7 +37,9 @@ def test_ready_test_starts_one_simulation_per_run(
         return create_simulation(agent_version, test_id)
 
     monkeypatch.setattr(run, "run_simulation", fake_run_simulation)
-    test = mark_ready(create_test_from_spec(source_conversation, spec).id)
+    test = mark_ready(
+        create_test_from_spec(source_conversation, "Unconfirmed booking", spec).id
+    )
 
     simulations = asyncio.run(run_test_against_agent_version(test.id, "v1", runs=3))
 

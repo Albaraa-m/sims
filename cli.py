@@ -44,7 +44,9 @@ def print_simulation(simulation: Simulation) -> None:
 
 def print_test(test: Test) -> None:
     source = get_source_conversation(test.source_conversation_id)
-    print(f"test {test.id}  v{test.version}  {test.status}  source {source.id}")
+    print(
+        f"test {test.id}  {test.name}  v{test.version}  {test.status}  source {source.id}"
+    )
     print(f"reported issue: {source.reported_issue or '-'}")
     for field, value in test.spec.items():
         edited = "" if test.inferred.get(field) == value else "  (edited)"

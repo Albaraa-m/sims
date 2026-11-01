@@ -27,13 +27,14 @@ def save_transcript_as_source_conversation(
 
 
 def create_test_from_spec(
-    source_conversation: SourceConversation, spec: TestSpec
+    source_conversation: SourceConversation, name: str, spec: TestSpec
 ) -> Test:
     test_id = new_id()
     return save(
         Test(
             id=test_id,
             lineage_id=test_id,
+            name=name,
             source_conversation_id=source_conversation.id,
             spec=spec.model_dump(),
             inferred=spec.model_dump(),
@@ -54,6 +55,7 @@ def edit_test(test_id: str, **changes) -> Test:
     return save(
         Test(
             lineage_id=current.lineage_id,
+            name=current.name,
             # Editing an older version still yields a new, unique latest version.
             version=latest_version(current.lineage_id) + 1,
             source_conversation_id=current.source_conversation_id,
