@@ -1,0 +1,15 @@
+{
+  "reason": "The agent took a booking for tomorrow, but reservations are for today only. The spoken words show it accepted a next-day reservation instead of refusing or redirecting.",
+  "name": "Tomorrow booking",
+  "spec": {
+    "goal": "Book a table for an evening meal.",
+    "facts": {
+      "day": "Thursday",
+      "time": "19:00",
+      "party_size": "5"
+    },
+    "behavior": "You are polite and brief. Give the day, time, party size and name when asked, confirm the details when they are read back, and end the call once they say the booking is done.",
+    "policy_under_test": "Only accept reservations for today, not for another day.",
+    "expected_outcome": "The agent says they can only book for today and does not confirm a reservation for tomorrow."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "reason": "The agent confirmed the booking without reading back the name, time and party size and asking the caller to confirm first.",
+  "name": "Missing confirmation",
+  "spec": {
+    "goal": "Reserve a table for tonight.",
+    "facts": {
+      "time": "18:00",
+      "party_size": "3"
+    },
+    "behavior": "You speak naturally and answer the agent’s questions directly. When they repeat back the booking details, you should confirm them if they are correct. Once they say the table is booked, end the call.",
+    "policy_under_test": "Before making a booking, read back the name, time and party size and ask for confirmation.",
+    "expected_outcome": "The agent repeats the name, time and party size and asks you to confirm before saying the table is booked."
+  }
+}

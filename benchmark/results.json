@@ -1,0 +1,140 @@
+{
+  "01_no_confirmation": {
+    "goal_kept": {
+      "passed": true,
+      "why": "The spec\u2019s goal matches the answer key\u2019s goal: reserving a table for tonight is the same intent as booking a table for tonight. The wording differs, but the aim is unchanged."
+    },
+    "facts_kept": {
+      "passed": false,
+      "why": "missing: name=Khalid"
+    },
+    "situation_kept": {
+      "passed": true,
+      "why": "The generated spec preserves the same goal, time, party size, and behavior of confirming the agent\u2019s readback and staying on until the booking is completed. Ignoring the missing name as instructed, a caller following it would recreate the same booking flow and could trigger the same failure."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "Yes. Both describe the same rule: before booking, the agent must read back the name, time, and party size and obtain the caller's confirmation."
+    },
+    "leak_free": {
+      "passed": true,
+      "why": "The caller fields only describe the caller\u2019s booking goal, details, and natural responses during the call. They do not reveal restaurant rules, limits, hours, availability, tools, or the failure condition."
+    }
+  },
+  "02_party_over_limit": {
+    "goal_kept": {
+      "passed": true,
+      "why": "The spec\u2019s goal matches the same overall aim: making a reservation for a family celebration with a large group. It is less specific about timing, but it does not change the caller\u2019s objective."
+    },
+    "facts_kept": {
+      "passed": false,
+      "why": "missing: name=Noura"
+    },
+    "situation_kept": {
+      "passed": false,
+      "why": "The spec leads the caller to accept and confirm a booking if offered, but it does not encode the key situation that parties over 8 must be refused and redirected to the events team. So it does not reliably recreate the answer key's failure scenario."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "The spec\u2019s policy_under_test matches the answer key\u2019s rule: parties over 8 should not be booked and should be referred to the events team."
+    },
+    "leak_free": {
+      "passed": false,
+      "why": "The behavior leaks the expected success path by saying to end the call once they confirm the booking, which hints at what the agent should do and the tested outcome. Caller fields should stay neutral about whether a booking will be completed."
+    }
+  },
+  "03_after_last_slot": {
+    "goal_kept": {
+      "passed": false,
+      "why": "The spec omits the key aim of getting a late table after a flight, specifically around 22:00. 'For tonight for two people' is too broad and could match many different booking requests."
+    },
+    "facts_kept": {
+      "passed": false,
+      "why": "missing: name=Faisal"
+    },
+    "situation_kept": {
+      "passed": false,
+      "why": "The spec does not include the key behavior of asking again if 22:00 is refused; instead it assumes the booking succeeds and ends after confirmation. A caller following only this spec would not recreate the answer key\u2019s refusal-and-pushback situation."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "Yes. Both describe the same rule: bookings are accepted only on the hour within the 13:00\u201321:00 range; the spec\u2019s mention of 'for today' does not change the core policy being tested."
+    },
+    "leak_free": {
+      "passed": false,
+      "why": "The behavior says \"Once they say the table is booked,\" which reveals the expected successful outcome and thus hints at the failure being tested. It should stay caller-only and not assume the booking succeeds."
+    }
+  },
+  "04_wrong_cancellation_policy": {
+    "goal_kept": {
+      "passed": true,
+      "why": "The spec\u2019s goal matches the answer key\u2019s goal: both ask for the cutoff time to cancel a booking without a fee. The spec is slightly more general, but it does not change the aim."
+    },
+    "facts_kept": {
+      "passed": false,
+      "why": "missing: name=Reem"
+    },
+    "situation_kept": {
+      "passed": true,
+      "why": "The generated spec matches the key situation: an existing booking for tonight at 19:00 and asking how late it can be canceled without charge. Ignoring the missing name, a caller following it would recreate the same cancellation-policy scenario."
+    },
+    "policy_right": {
+      "passed": false,
+      "why": "The answer key\u2019s policy is the specific rule that free cancellation is allowed only up to 2 hours before the booking. The spec\u2019s policy_under_test describes how to state a policy, not the same cancellation rule itself."
+    },
+    "leak_free": {
+      "passed": false,
+      "why": "The caller fields leak the tested restaurant policy by asking specifically when a reservation can be canceled without paying, which reveals the free-cancellation rule under test. They otherwise stay in caller perspective, but this policy detail makes it fail."
+    }
+  },
+  "05_invented_menu_item": {
+    "goal_kept": {
+      "passed": false,
+      "why": "The shared part about checking whether the restaurant serves shawarma matches, but the spec adds a separate goal about dessert pricing. That changes the aim beyond the answer key's single goal, so it should not pass."
+    },
+    "facts_kept": {
+      "passed": true,
+      "why": "every expected fact is in the caller fields"
+    },
+    "situation_kept": {
+      "passed": false,
+      "why": "The generated spec changes the scenario by adding a second goal about dessert pricing, which is not in the answer key\u2019s situation. Because the caller is instructed they may continue past the shawarma question, it does not cleanly recreate the same situation from the answer key."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "The spec\u2019s policy_under_test matches the answer key\u2019s policy in meaning: both require answering only from the menu and not inventing dishes or prices."
+    },
+    "leak_free": {
+      "passed": false,
+      "why": "The goal adds a second test target about dessert pricing that is not caller-natural and hints at what is being checked beyond the caller\u2019s simple intent. It also shifts away from the answer key\u2019s caller-only objective of asking whether shawarma is served."
+    }
+  },
+  "06_next_day_booking": {
+    "goal_kept": {
+      "passed": false,
+      "why": "The answer key's goal is specifically to book a table for tomorrow evening, while the spec only says an evening meal and omits the key intent that it is for tomorrow. That makes the aim less specific and not clearly the same request."
+    },
+    "facts_kept": {
+      "passed": false,
+      "why": "missing: name=Saud, day=tomorrow"
+    },
+    "situation_kept": {
+      "passed": false,
+      "why": "The key failure depends on the caller requesting a booking for tomorrow when the restaurant only accepts same-day reservations. The generated spec instead fixes the day to Thursday and omits the crucial tomorrow-vs-today situation, so a caller following it would not reliably recreate the same failure."
+    },
+    "policy_right": {
+      "passed": true,
+      "why": "The spec's policy_under_test matches the answer key's policy: both state that reservations are only accepted for the same day/today and not for another day."
+    },
+    "leak_free": {
+      "passed": true,
+      "why": "The caller fields describe only the caller\u2019s booking request and normal conversational behavior. They do not mention the restaurant\u2019s same-day-only policy, any limits or availability, the agent\u2019s tools, required agent actions, or the failure condition."
+    }
+  },
+  "07_clean_confirmed": {
+    "no_test_for_clean_call": {
+      "passed": true,
+      "why": "no test was created"
+    }
+  }
+}

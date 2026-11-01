@@ -1,0 +1,14 @@
+{
+  "reason": "The agent booked a table for ten o'clock, but reservations are only taken on the hour from 13:00 to 21:00 today, so ten o'clock is outside the booking window.",
+  "name": "Late night booking",
+  "spec": {
+    "goal": "Book a table for tonight for two people.",
+    "facts": {
+      "time": "22:00",
+      "party_size": "2"
+    },
+    "behavior": "You sound polite and brief. Ask for the table, give the name and party size when asked, and confirm the details when they are read back. Once they say the table is booked, thank them and end the call.",
+    "policy_under_test": "Only accept bookings for today on the hour between 13:00 and 21:00.",
+    "expected_outcome": "The agent says that time is not available for booking tonight and offers an alternative within the booking window."
+  }
+}

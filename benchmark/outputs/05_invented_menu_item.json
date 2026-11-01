@@ -1,0 +1,11 @@
+{
+  "reason": "The agent invented a menu item that is not on the restaurant’s menu. It said they have a chicken shawarma plate for forty-five riyals, but shawarma is not listed in the knowledge base.",
+  "name": "Shawarma menu item",
+  "spec": {
+    "goal": "Find out whether the restaurant serves shawarma and, if asked, how much the dessert is.",
+    "facts": {},
+    "behavior": "You are casual and brief. Ask about the dish in one sentence, and if they answer, you may ask one follow-up about the dessert. End the call once they have answered both questions.",
+    "policy_under_test": "Only answer from the menu; do not invent dishes or prices that are not listed.",
+    "expected_outcome": "The agent says they do not serve shawarma. If you ask about the dessert, they say kunafa costs thirty-eight riyals."
+  }
+}

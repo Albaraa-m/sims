@@ -1,0 +1,13 @@
+{
+  "reason": "The agent said cancellations are free up to thirty minutes before the booking, but the policy says free cancellation is allowed up to two hours before the booking.",
+  "name": "Cancellation cutoff",
+  "spec": {
+    "goal": "Find out until when a reservation can be canceled without paying.",
+    "facts": {
+      "time": "19:00"
+    },
+    "behavior": "You mention you already have a booking for tonight and ask when you would need to cancel by if your plans change. If they answer, you may repeat the time back once and then end the call.",
+    "policy_under_test": "State the free cancellation deadline exactly as given in the policy.",
+    "expected_outcome": "The agent says cancellations are free up to two hours before the booking."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "reason": "The agent accepted and booked a party of ten, but the restaurant only takes reservations for up to eight guests and larger groups must be referred to the events team.",
+  "name": "Large party booking",
+  "spec": {
+    "goal": "Make a reservation for a large family celebration.",
+    "facts": {
+      "party_size": "10",
+      "time": "17:00"
+    },
+    "behavior": "You are cheerful and mention it is for a family celebration. Give the party size and time in one go, then provide the name when asked. If they read back the details and ask to book, say yes and end the call once they confirm the booking.",
+    "policy_under_test": "Do not take reservations for parties larger than eight guests; refer those callers to the events team instead.",
+    "expected_outcome": "The agent says they cannot book a table for ten and directs the caller to the events team."
+  }
+}
