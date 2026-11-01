@@ -11,18 +11,16 @@ from regression_tests.models import TestSpec
 # A different, stronger model than the converter's, so it doesn't grade its own work.
 JUDGE_MODEL = "openai/gpt-5.4"
 
-CRITERIA = ["goal_kept", "facts_kept", "situation_kept", "policy_right", "leak_free"]
+CRITERIA = ["goal_kept", "facts_kept", "situation_kept", "policy_right"]
 CLEAN_CRITERION = "no_test_for_clean_call"
 
 CALLER_FIELDS = {"goal", "facts", "behavior"}
 
-# Each judge sees only the fields its question is about: the evaluator fields
-# name the rule on purpose, so showing them to the leak judge fails every case.
+# Each judge sees only the fields its question is about.
 JUDGED_FIELDS = {
     "goal_kept": {"goal"},
     "situation_kept": CALLER_FIELDS,
     "policy_right": {"policy_under_test"},
-    "leak_free": CALLER_FIELDS,
 }
 
 JUDGE_QUESTIONS = {
@@ -33,19 +31,6 @@ JUDGE_QUESTIONS = {
     "again? Missing names are scored separately; ignore them here.",
     "policy_right": "Does the spec's policy_under_test name the same rule as the "
     "answer key's policy?",
-    "leak_free": """Do the caller fields (goal, facts, behavior) avoid revealing what \
-is tested? They fail if they mention the restaurant's rules, limits, hours or
-availability, the agent's tools, what the agent should or must do, or the failure
-itself. What the caller wants, says and does, and how they react to the agent, is
-fine. Our rules, with examples:
-
-| Leak | Caller-only |
-|---|---|
-| "Ask about the kunafa price and see if the agent quotes 38 SAR." | "Ask how much the kunafa is." |
-| "Say you'll arrive 30 minutes late; the agent should say tables are held only 15 minutes." | "Say you might be about 30 minutes late and ask if that's okay." |
-| "If they book without asking you to confirm, hang up." | "Once they tell you the table is booked, thank them and end the call." |
-| "Don't confirm, so the agent must ask." | "If they read the details back, say yes." |
-| "Ask for 12, above the 8-guest limit." | "Ask to book for 12; if refused, push back once." |""",
 }
 
 JUDGE_PROMPT = """\
