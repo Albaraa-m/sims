@@ -35,7 +35,7 @@
 │ id                                    │
 │ test_id?        (empty for ad-hoc)    │
 │ agent_version                         │
-│ status  queued│running│done│failed    │
+│ status  running│done│failed (+queued) │
 │ report   JSON  LiveKit SessionReport  │
 │ recording_path                        │
 │ room_name, error                      │
@@ -43,8 +43,9 @@
 └───────────────────────────────────────┘
 ```
 
-- `AgentVersion` lives in code (`booking/agent.py`, `INSTRUCTIONS_BY_VERSION`); rows store its id. A table comes only if versions must be created at runtime.
+- `AgentVersion` lives in code (`agents/booking/agent.py`, `INSTRUCTIONS_BY_VERSION`); rows store its id. A table comes only if versions must be created at runtime.
 - `Simulation.report` is LiveKit's `SessionReport.to_dict()`: transcript, tool calls, timings, usage. No hand-rolled turns table.
+- `queued` is added in this task, when the API starts simulations in the background.
 
 **TestSpec** (Pydantic): `goal`, `facts`, `caller_instructions`, `policy_under_test`, `expected_outcome`, `fixed`, `varying`.
 
@@ -62,7 +63,7 @@
                                           ├─ booking-agent server: agent under test (v1│v2)
                                           └─ caller-agent server:  digital human (TestSpec)
                                                    │
-                         SessionReport + recording ┘ (on_session_end → Simulation)
+            evidence/<id>/report.json + audio.ogg ─┘ (runner stores them on the Simulation)
 
  benchmark/ ──▶ converter ──▶ score.py ──▶ results.md
 ```
@@ -84,8 +85,8 @@
 3. Reviewer edits → new `Test` row, `draft`.
 4. "Mark ready" → `ready`.
 5. "Run vs v1 and v2" → two `Simulation` rows, `queued`.
-6. Runner creates a room, dispatches `booking-agent` (version in job metadata) and `caller-agent` (TestSpec in job metadata) → `running`.
-7. Call ends (caller hang-up tool or timeout) → booking session's `on_session_end` saves the session report and recording → `done` or `failed`.
+6. Runner creates a room, dispatches `booking-agent` (version in job metadata) and `caller-agent` (TestSpec in job metadata; today the caller's goal is hardcoded) → `running`.
+7. Call ends (caller hang-up tool or timeout) → booking agent writes its session report and recording to `evidence/<id>/` → runner stores them → `done`, or `failed` on timeout, missing report or any error.
 8. UI shows source, test version and both simulations side by side, tool calls inline.
 
 ## Benchmark: conversion fidelity
@@ -94,11 +95,20 @@
 
 | Step | What |
 |---|---|
-| Cases | ~6 transcripts, each a different failure: no confirmation, party > 8, outside hours, invented price, wrong date, cancellation policy |
+| Cases | 6 transcripts, each a different failure (below) |
 | Answer key | Hand-written `expected.json` per case, written **before** converting: goal, key facts, situation, policy |
 | Run | `benchmark/run.py` converts each transcript → `TestSpec` |
 | Score | 5 criteria, pass/fail per case; LLM judge with the rubric, spot-checked by hand |
 | Report | `results.md`: per-case table, overall %, one hit and one miss explained, limits |
+
+| # | Failure in the transcript | Rule broken |
+|---|---|---|
+| 1 | Booked without reading back and confirming | Confirm before booking (v1's bug) |
+| 2 | Booked a table for 12 | Parties over 8 go to the events team |
+| 3 | Booked 22:00 | Bookings only 13:00–21:00 |
+| 4 | Said 20:00 was booked, but it's full | Check availability before booking |
+| 5 | Quoted a dish or price not on the menu | Never invent menu items or prices |
+| 6 | Accepted a booking for tomorrow | Same-day bookings only |
 
 | Criterion | Pass if |
 |---|---|
@@ -108,7 +118,7 @@
 | Policy right | `policy_under_test` names the broken rule |
 | Fixed/varying | Essentials are fixed |
 
-**Limits:** small sample, self-written transcripts, LLM judge bias, no automated v1-fails / v2-passes check (Task 2).
+**Limits:** small sample, self-written transcripts, LLM judge bias, scores the spec only (not whether the live caller acts it out), no automated v1-fails / v2-passes check (Task 2).
 
 ## Key decisions
 
@@ -123,9 +133,9 @@
 | Caller | LiveKit Agents SDK agent | Required by the brief |
 | Agent servers | Two: `booking-agent` (under test) and `caller-agent` | Separates the agent under test from the test tool; one server registers one name |
 | Versions | Version id in job metadata; prompts in code | No deploys per version |
-| Call record | LiveKit `SessionReport` JSON, saved in `on_session_end` | Standard SDK format; LiveKit Cloud keeps sessions only 30 days and has no fetch API |
+| Call record | LiveKit `SessionReport` JSON, written to `evidence/<id>/` by the agent and stored by the runner | Standard SDK format; LiveKit Cloud keeps sessions only 30 days and has no fetch API; agents stay independent of the database |
 | Naming | `Simulation` = one call; `Swarm` = batch; `Attempt` = retry (Task 3) | Brief's terms; LiveKit uses "run" for a batch |
-| Runner | `call.py` logic, called from an in-process background task | Task 3 replaces it with a reliable queue |
+| Runner | `simulations/runner.py` `run_simulation()`, called from an in-process background task | Task 3 replaces it with a reliable queue |
 | Comparison | Side-by-side view, no verdict | Verdicts are Task 2 |
 
 ## Risks
