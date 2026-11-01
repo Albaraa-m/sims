@@ -1,0 +1,103 @@
+# Technical Design (TDD): Task 2 — Evaluator and Results (M10–M11)
+
+**Done when:** every finished run gets an outcome (pass, fail, execution failure or inconclusive) with the cited turns that justify it. The reviewer reads the grading criteria before running, filters results, and drills from a result into its evidence. Dashboards (M12) and the evaluator benchmark (M13) are out of scope.
+
+## Outcomes
+
+| Outcome | Meaning | Decided by |
+|---|---|---|
+| Pass | The situation happened and the agent followed the policy | Judge |
+| Fail | The situation happened and the agent broke the policy | Judge |
+| Execution failure | No usable call: crash, timeout, missing report, empty side of the conversation | Code, before the judge |
+| Inconclusive | The call ran, but the policy can't be graded: the caller never pursued the goal, the call ended before the situation came up, the judge errored or cited turns that don't exist | Judge or code |
+
+Only pass and fail count towards a pass rate. The other two are always shown, never counted as passes.
+
+## Core entities
+
+```
+┌──────────────┐ 1   N ┌──────────────┐ 1   N ┌──────────────────────────┐
+│ Test         │──────▶│ Simulation   │──────▶│ Evaluation (immutable)   │
+│ (version)    │       │ (one call)   │       ├──────────────────────────┤
+│ spec:        │       │ agent_version│       │ id                       │
+│  policy_     │       │ status       │       │ simulation_id            │
+│  under_test  │       │ report       │       │ outcome                  │
+│  expected_   │       └──────────────┘       │ situation_happened?      │
+│  outcome     │                              │ cited_turns  [int]       │
+└──────────────┘                              │ reason                   │
+                                              │ judge_model              │
+                                              │ judge_prompt_version     │
+                                              │ error?                   │
+                                              │ created_at               │
+                                              └──────────────────────────┘
+```
+
+- One `Evaluation` per grading. Regrading adds a row; the newest is shown and earlier ones stay in the history.
+- A rerun is a new `Simulation`, so an earlier failure is never overwritten.
+- The test version and agent version come through the `Simulation`. The judge model and prompt version sit on the `Evaluation`, so every result shows the settings that produced it.
+- `cited_turns` are indexes into the run's conversation, the same list the run page already shows.
+
+## Structure
+
+```
+ Runner ── simulation done/failed ──▶ evaluate_simulation(id)
+                                          │
+                     1. execution check (code) ── unusable ──▶ Evaluation: execution_failed
+                                          │ usable
+                     2. judge (one LLM call): spec evaluator fields + numbered conversation
+                                          │
+                     3. validate reply (code) ── error / bad turns ──▶ Evaluation: inconclusive
+                                          ▼
+                                     Evaluation row ──▶ SQLite ──▶ FastAPI ──▶ React
+```
+
+## Screens
+
+| Screen | Reviewer sees | Reviewer can |
+|---|---|---|
+| Test | A "Graded on" block: policy, pass condition, judge model; per agent version, "v1: 0 pass / 3 fail / 0 inconclusive / 0 execution failure (n=3)"; an outcome column in the runs table | Run, open a run |
+| Run | Outcome badge, reason, cited turns highlighted in the conversation (click to scroll), judge model and prompt version, earlier evaluations | Regrade, go to the test version |
+| Results | Every run across tests: test, test version, agent version, outcome, when | Filter by test, agent version and outcome; open a run |
+
+A fixed line under each comparison: *"Covers only this test's policy, over n runs; inconclusive and execution failures are excluded from pass counts."*
+
+## Data flow
+
+1. Before a run, the test page shows `policy_under_test` and `expected_outcome` as the grading criteria.
+2. The run finishes → the runner calls `evaluate_simulation(simulation_id)`.
+3. The execution check runs in code: `failed` status, a missing report, or no speech from the agent or the caller → execution failure, and the judge isn't called.
+4. Otherwise the judge gets the evaluator fields, the caller's goal and the numbered conversation, tool calls included. It returns `situation_happened`, an outcome, `cited_turns` and a reason.
+5. Code checks the reply: invalid after one retry, cited turns out of range, a pass or fail with no cited turns, or `situation_happened = false` with a pass or fail → inconclusive.
+6. An `Evaluation` row is saved. `sims evaluate <id>` and the Regrade button rerun steps 3–6 and add a new row.
+7. The test, run and results pages read the newest evaluation of each run.
+
+## Key decisions
+
+| Decision | Choice | Why |
+|---|---|---|
+| Evaluator | One LLM judge per run, against the test's evaluator fields | One test, one policy; other policies are other tests |
+| Judge implementation | Our own `generate_structured` call, not LiveKit's `JudgeGroup` | Checked the SDK judges: pass/fail/maybe plus free text, one question per judge, need a rebuilt `ChatContext`. We need cited turns and the situation check in one call |
+| Judge model | `openai/gpt-5.4` via LiveKit Inference | Offline, so the stronger model; already used by the Task 1 benchmark |
+| Execution failure | Code, before the judge | No LLM cost, and a broken call can't be passed |
+| Evidence | Cited turn indexes, checked by code | Clickable in the UI; citations of turns that don't exist are caught |
+| Inconclusive | Caller off-goal, judge error, or bad citations | Missing evidence never becomes a pass |
+| Code rules on tool calls | Not built (backlog) | One rule per policy; the judge already sees tool calls |
+| Human override | Not built (backlog) | Not required by the brief |
+| Storage | Immutable `Evaluation` rows | Regrading and judge changes keep the history |
+| When it runs | Automatically after each run, in the runner's background task; also a CLI command and a button | Results appear without extra steps; regrading after a prompt change |
+| Results filtering | Query parameters on `GET /api/runs` | Small data, plain SQL |
+
+## Risks
+
+- The judge is wrong or inconsistent → cited turns make it checkable by hand; agreement is measured in M13.
+- The judge marks off-goal calls as pass → `situation_happened` is required, and code enforces it.
+- The caller rarely hits the situation → shows up as inconclusive, not as a false pass.
+- A prompt change makes old results incomparable → the prompt version is stored and shown.
+
+## Backlog
+
+Code rules on tool calls, human override, several judge votes, LiveKit `JudgeGroup` export.
+
+## Your steps
+
+None. The judge uses LiveKit Inference.

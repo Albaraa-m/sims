@@ -76,7 +76,7 @@ Authentication, multiple tenants, Kubernetes, a large scenario library, polished
 
 | | # | Milestone | Done when |
 |---|---|---|---|
-| [ ] | M10 | Evaluator | Each run gets an outcome with evidence |
+| [x] | M10 | Evaluator | Each run gets an outcome with evidence |
 | [ ] | M11 | Website: results | You can filter results and drill into a run's evidence |
 | [ ] | M12 | Dashboards | Version comparison and system health views |
 | [ ] | M13 | Benchmark: evaluator trust | Agreement with hand labels and the false-pass rate on ~20 runs, including injected faults |
