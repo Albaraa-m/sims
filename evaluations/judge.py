@@ -1,9 +1,10 @@
 import hashlib
 import json
-from typing import Literal
+from typing import Literal, NamedTuple
 
 from pydantic import BaseModel
 
+from evaluations.models import Outcome
 from regression_tests.models import TestSpec
 from simulations.conversation import SpokenLine, ToolCall
 
@@ -82,3 +83,29 @@ def build_judge_prompt(
             for number, turn in enumerate(conversation)
         ),
     )
+
+
+class GradedOutcome(NamedTuple):
+    outcome: Outcome
+    reason: str
+
+
+def grade_judge_reply(reply: JudgeReply, turn_count: int) -> GradedOutcome:
+    """Unsupported verdicts become inconclusive, so missing evidence never passes."""
+    missing_turns = [turn for turn in reply.cited_turns if not 0 <= turn < turn_count]
+    if missing_turns:
+        return GradedOutcome(
+            Outcome.INCONCLUSIVE,
+            f"the judge cited turns that don't exist: {missing_turns}",
+        )
+    if not reply.situation_happened:
+        return GradedOutcome(
+            Outcome.INCONCLUSIVE, f"the situation never came up: {reply.reason}"
+        )
+    if reply.verdict == "inconclusive":
+        return GradedOutcome(Outcome.INCONCLUSIVE, reply.reason)
+    if not reply.cited_turns:
+        return GradedOutcome(
+            Outcome.INCONCLUSIVE, f"the judge said {reply.verdict} without citing turns"
+        )
+    return GradedOutcome(Outcome(reply.verdict), reply.reason)
