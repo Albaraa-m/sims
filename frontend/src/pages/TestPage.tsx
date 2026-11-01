@@ -140,7 +140,11 @@ export default function TestPage() {
         />
       )}
 
-      <div className="space-y-5">
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold">Caller sees</h2>
+          <p className="text-sm text-muted-foreground">The digital human acts on these and nothing else.</p>
+        </div>
         <SpecField label="Goal" value={spec.goal} inferredValue={inferred?.goal} />
         <SpecField
           label="Facts"
@@ -149,6 +153,16 @@ export default function TestPage() {
           isEdited={inferred !== null && JSON.stringify(spec.facts) !== JSON.stringify(inferred.facts)}
         />
         <SpecField label="Behavior" value={spec.behavior} inferredValue={inferred?.behavior} />
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-base font-semibold">Graded on</h2>
+          <p className="text-sm text-muted-foreground">
+            Hidden from the caller. After each call an LLM judge grades the agent against these and cites the turns
+            that prove its verdict.
+          </p>
+        </div>
         <SpecField
           label="Policy under test"
           value={spec.policy_under_test}
