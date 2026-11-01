@@ -10,6 +10,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { isAwaitingGrade } from '@/runs'
 import type { RunRow, TestDetail, TestRow } from '@/types'
 
 const POLL_INTERVAL_MS = 3000
@@ -54,7 +55,9 @@ export default function TestPage() {
 
   useEffect(loadRuns, [loadRuns])
 
-  const isPolling = runs.some((run) => run.status === 'running') || now - lastStartedAt < POLL_AFTER_START_MS
+  const isPolling =
+    runs.some((run) => run.status === 'running' || isAwaitingGrade(run, now)) ||
+    now - lastStartedAt < POLL_AFTER_START_MS
 
   useEffect(() => {
     if (!isPolling) return

@@ -38,14 +38,30 @@ export type TestDetail = TestRow & {
 
 export type RunStatus = 'running' | 'done' | 'failed'
 
+export type Outcome = 'pass' | 'fail' | 'execution_failed' | 'inconclusive'
+
 export type RunRow = {
   id: string
   test_id: string
+  test_name: string
   test_version: number
   agent_version: string
   status: RunStatus
   started_at: string
   ended_at: string | null
+  // Null until the run is graded.
+  outcome: Outcome | null
+}
+
+export type EvaluationDetail = {
+  outcome: Outcome
+  situation_happened: boolean | null
+  cited_turns: number[]
+  reason: string
+  judge_model: string | null
+  judge_prompt_version: string | null
+  error: string | null
+  created_at: string
 }
 
 export type ConversationEntry =
@@ -64,4 +80,6 @@ export type RunDetail = {
   test_version: number | null
   conversation: ConversationEntry[]
   has_recording: boolean
+  // Newest first; the first one is the run's current outcome.
+  evaluations: EvaluationDetail[]
 }

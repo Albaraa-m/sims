@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router'
 
+import OutcomeBadge from '@/components/OutcomeBadge'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { formatRunDuration, RUN_STATUS_BADGE_VARIANT, startedAtFormat } from '@/runs'
@@ -26,6 +27,7 @@ export default function RunsTable({ runs, viewedTestId, now }: RunsTableProps) {
           <TableHead>Agent</TableHead>
           <TableHead>Test</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Outcome</TableHead>
           <TableHead>Time</TableHead>
         </TableRow>
       </TableHeader>
@@ -42,6 +44,9 @@ export default function RunsTable({ runs, viewedTestId, now }: RunsTableProps) {
             </TableCell>
             <TableCell>
               <Badge variant={RUN_STATUS_BADGE_VARIANT[run.status]}>{run.status}</Badge>
+            </TableCell>
+            <TableCell>
+              <OutcomeBadge run={run} now={now} />
             </TableCell>
             <TableCell className="tabular-nums text-muted-foreground">{formatRunDuration(run, now)}</TableCell>
           </TableRow>
