@@ -37,3 +37,7 @@ export function createTest(request: CreateTestRequest): Promise<TestRow> {
 export function editTest(testId: string, name: string, spec: TestSpec): Promise<TestDetail> {
   return requestJson(`/api/tests/${testId}`, { method: 'PUT', body: JSON.stringify({ name, spec }) })
 }
+
+export function markTestReady(testId: string): Promise<TestDetail> {
+  return requestJson(`/api/tests/${testId}/ready`, { method: 'POST' })
+}

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { listTestVersions, readTest } from '@/api'
+import { listTestVersions, markTestReady, readTest } from '@/api'
 import EditTestDialog from '@/components/EditTestDialog'
 import SpecField from '@/components/SpecField'
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -82,6 +83,21 @@ export default function TestPage() {
           </p>
         )}
       </div>
+
+      {test.status === 'draft' && (
+        <Alert>
+          <AlertTitle>Not ready to run</AlertTitle>
+          <AlertDescription>Review the fields, then mark the test ready.</AlertDescription>
+          <AlertAction>
+            <Button
+              size="sm"
+              onClick={() => markTestReady(test.id).then(setTest, (error: Error) => setLoadError(error.message))}
+            >
+              Mark ready
+            </Button>
+          </AlertAction>
+        </Alert>
+      )}
 
       {isEditing && (
         <EditTestDialog
