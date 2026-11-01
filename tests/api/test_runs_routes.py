@@ -75,3 +75,18 @@ def test_read_lists_evaluations_newest_first(client):
     run = client.get(f"/api/runs/{simulation.id}").json()
 
     assert [e["outcome"] for e in run["evaluations"]] == ["pass", "fail"]
+
+
+def test_regrade_adds_an_evaluation(client):
+    simulation = create_simulation("v1")
+    update_simulation(simulation.id, status=SimulationStatus.FAILED, error="timeout")
+
+    evaluation = client.post(f"/api/runs/{simulation.id}/evaluate").json()
+
+    assert evaluation["outcome"] == "execution_failed"
+    run = client.get(f"/api/runs/{simulation.id}").json()
+    assert len(run["evaluations"]) == 1
+
+
+def test_regrade_unknown_run_is_404(client):
+    assert client.post("/api/runs/missing/evaluate").status_code == 404

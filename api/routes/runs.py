@@ -7,6 +7,7 @@ from evaluations.crud import (
     latest_evaluation_of_simulation,
     list_evaluations_of_simulation,
 )
+from evaluations.evaluate import evaluate_simulation
 from regression_tests.crud import get_test
 from regression_tests.models import Test
 from simulations.conversation import conversation_of_simulation
@@ -59,6 +60,14 @@ def read_run(run_id: str) -> RunDetail:
             for evaluation in list_evaluations_of_simulation(simulation.id)
         ],
     )
+
+
+@router.post("/{run_id}/evaluate")
+async def regrade_run(run_id: str) -> EvaluationDetail:
+    """Adds a new evaluation; earlier ones stay in the run's history."""
+    get_simulation_or_404(run_id)
+    evaluation = await evaluate_simulation(run_id)
+    return EvaluationDetail.model_validate(evaluation, from_attributes=True)
 
 
 @router.get("/{run_id}/recording")
