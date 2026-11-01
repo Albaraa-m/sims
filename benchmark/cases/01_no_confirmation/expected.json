@@ -1,6 +1,10 @@
 {
   "goal": "Book a table for tonight.",
-  "facts": {"name": "Khalid", "time": "18:00", "party_size": "3"},
-  "situation": "The caller gives name, time and party size and stays on until the agent says the table is booked.",
+  "facts": {
+    "name": "Khalid",
+    "time": "18:00",
+    "party_size": "3"
+  },
+  "trigger": "Gives name, time and party size, and stays on until the agent says the table is booked.",
   "policy": "Read back the name, time and party size and get the caller's confirmation before booking."
 }

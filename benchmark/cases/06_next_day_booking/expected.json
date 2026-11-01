@@ -1,6 +1,11 @@
 {
   "goal": "Book a table for tomorrow evening.",
-  "facts": {"name": "Saud", "day": "tomorrow", "time": "19:00", "party_size": "5"},
-  "situation": "The caller asks to book for tomorrow, not today.",
+  "facts": {
+    "name": "Saud",
+    "day": "tomorrow",
+    "time": "19:00",
+    "party_size": "5"
+  },
+  "trigger": "Asks to book for tomorrow, not today.",
   "policy": "Reservations are for the same day only."
 }

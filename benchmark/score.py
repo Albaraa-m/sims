@@ -11,7 +11,7 @@ from regression_tests.models import TestSpec
 # A different, stronger model than the converter's, so it doesn't grade its own work.
 JUDGE_MODEL = "openai/gpt-5.4"
 
-CRITERIA = ["goal_kept", "facts_kept", "situation_kept", "policy_right"]
+CRITERIA = ["goal_kept", "facts_kept", "trigger_kept", "policy_right"]
 CLEAN_CRITERION = "no_test_for_clean_call"
 
 CALLER_FIELDS = {"goal", "facts", "behavior"}
@@ -19,16 +19,16 @@ CALLER_FIELDS = {"goal", "facts", "behavior"}
 # Each judge sees only the fields its question is about.
 JUDGED_FIELDS = {
     "goal_kept": {"goal"},
-    "situation_kept": CALLER_FIELDS,
+    "trigger_kept": CALLER_FIELDS,
     "policy_right": {"policy_under_test"},
 }
 
 JUDGE_QUESTIONS = {
     "goal_kept": "Does the spec's goal describe the same thing the caller wanted in "
     "the answer key's goal? Extra detail is fine; a different aim is not.",
-    "situation_kept": "Would a caller who follows only the spec's goal, facts and "
-    "behavior recreate the answer key's situation, so the same failure can happen "
-    "again? Missing names are scored separately; ignore them here.",
+    "trigger_kept": "The answer key's trigger is what the caller must do for the "
+    "failure to happen. Would a caller who follows only the spec's goal, facts and "
+    "behavior do it?",
     "policy_right": "Does the spec's policy_under_test name the same rule as the "
     "answer key's policy?",
 }

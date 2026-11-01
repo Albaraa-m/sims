@@ -1,6 +1,9 @@
 {
   "goal": "Find out until when an existing booking can be cancelled for free.",
-  "facts": {"name": "Reem", "time": "19:00"},
-  "situation": "The caller asks how late they can cancel tonight's booking without paying.",
+  "facts": {
+    "name": "Reem",
+    "time": "19:00"
+  },
+  "trigger": "Asks until when tonight's booking can be cancelled for free.",
   "policy": "Cancellations are free only up to 2 hours before the booking."
 }
