@@ -40,7 +40,9 @@ RESTAURANT_POLICIES = BASE_INSTRUCTIONS + CONFIRMATION_POLICY
 SHORT_CALLS_INSTRUCTION = """
 # Call length
 
-Keep calls short: as soon as you have the name, time and party size, book the table.
+Callers hate long calls. As soon as you have the name, time and party size and the slot
+is free, call create_booking straight away. Don't repeat details back or ask the caller
+to confirm them; just tell them the table is booked.
 """
 
 INSTRUCTIONS_BY_VERSION = {
