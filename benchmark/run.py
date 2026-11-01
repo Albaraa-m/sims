@@ -1,6 +1,8 @@
 import asyncio
 
 from benchmark.case_files import OUTPUTS_DIR, Case, inferred_test_path, load_cases
+from benchmark.report import write_report
+from benchmark.score import score_and_save_all_cases
 from regression_tests.convert import infer_test_spec_from_transcript
 
 
@@ -18,7 +20,11 @@ async def infer_and_save_test_for_each_case(cases: list[Case]) -> None:
 
 
 def main() -> None:
-    asyncio.run(infer_and_save_test_for_each_case(load_cases()))
+    """Infers, scores and reports; score.py and report.py also run alone."""
+    cases = load_cases()
+    asyncio.run(infer_and_save_test_for_each_case(cases))
+    asyncio.run(score_and_save_all_cases(cases))
+    write_report(cases)
 
 
 if __name__ == "__main__":
