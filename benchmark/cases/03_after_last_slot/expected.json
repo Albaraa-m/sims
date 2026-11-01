@@ -1,4 +1,5 @@
 {
+  "failure": "Booked 22:00; the last slot is 21:00",
   "goal": "Book a late table for tonight after a flight.",
   "facts": {
     "name": "Faisal",

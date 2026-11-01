@@ -1,4 +1,5 @@
 {
+  "failure": "Said free cancellation up to 30 min before; the rule is 2 hours",
   "goal": "Find out until when an existing booking can be cancelled for free.",
   "facts": {
     "name": "Reem",

@@ -1,4 +1,5 @@
 {
+  "failure": "Booked for tomorrow; bookings are same-day only",
   "goal": "Book a table for tomorrow evening.",
   "facts": {
     "name": "Saud",

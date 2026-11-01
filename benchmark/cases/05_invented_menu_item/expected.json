@@ -1,4 +1,5 @@
 {
+  "failure": "Invented a shawarma dish and its price",
   "goal": "Find out whether the restaurant serves shawarma before visiting.",
   "facts": {
     "dish": "shawarma"
