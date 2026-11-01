@@ -27,8 +27,12 @@ def save_transcript_as_source_conversation(
 
 
 def create_test_from_spec(
-    source_conversation: SourceConversation, name: str, spec: TestSpec
+    source_conversation: SourceConversation,
+    name: str,
+    spec: TestSpec,
+    inferred_spec: TestSpec | None = None,
 ) -> Test:
+    """inferred_spec is what the model suggested, None if it found no broken rule."""
     test_id = new_id()
     return save(
         Test(
@@ -37,9 +41,23 @@ def create_test_from_spec(
             name=name,
             source_conversation_id=source_conversation.id,
             spec=spec.model_dump(),
-            inferred=spec.model_dump(),
+            inferred=inferred_spec.model_dump() if inferred_spec else None,
         )
     )
+
+
+def create_test_from_transcript(
+    transcript: str,
+    reported_issue: str | None,
+    agent_version: str | None,
+    name: str,
+    spec: TestSpec,
+    inferred_spec: TestSpec | None,
+) -> Test:
+    source_conversation = save_transcript_as_source_conversation(
+        transcript, reported_issue, agent_version
+    )
+    return create_test_from_spec(source_conversation, name, spec, inferred_spec)
 
 
 def latest_version(lineage_id: str) -> int:

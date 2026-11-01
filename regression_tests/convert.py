@@ -5,12 +5,8 @@ from pydantic import BaseModel
 
 from agents.booking.agent import RESTAURANT_POLICIES
 from core import llm
-from regression_tests.crud import (
-    create_test_from_spec,
-    get_source_conversation,
-    save_transcript_as_source_conversation,
-)
-from regression_tests.models import SourceConversation, Test, TestSpec
+from regression_tests.crud import create_test_from_transcript
+from regression_tests.models import Test, TestSpec
 
 # Conversion runs offline, so it uses a stronger model than the latency-tuned voice one.
 CONVERSION_MODEL = "openai/gpt-5.4-mini"
@@ -127,15 +123,16 @@ Reply with JSON only, matching this schema:
 """
 
 
-async def ask_model_to_convert(
-    source_conversation: SourceConversation,
+async def infer_test_spec_from_transcript(
+    transcript: str, reported_issue: str | None = None
 ) -> InferredTest:
+    """Asks the model for a test; saves nothing, so a reviewer can edit it first."""
     prompt = CONVERSION_PROMPT.format(
         examples=CONVERSION_EXAMPLES,
         schema=json.dumps(InferredTest.model_json_schema()),
         rules=RESTAURANT_POLICIES,
-        reported_issue=source_conversation.reported_issue or "None given.",
-        transcript=source_conversation.transcript,
+        reported_issue=reported_issue or "None given.",
+        transcript=transcript,
     )
     try:
         return await llm.generate_structured(prompt, InferredTest, CONVERSION_MODEL)
@@ -143,24 +140,19 @@ async def ask_model_to_convert(
         raise ConversionError(f"model returned an invalid test spec: {error}")
 
 
-async def convert_source_conversation_to_test(
-    source_conversation_id: str,
-) -> ConversionOutcome:
-    source_conversation = get_source_conversation(source_conversation_id)
-    reply = await ask_model_to_convert(source_conversation)
-    if reply.spec is None:
-        return ConversionOutcome(test=None, reason=reply.reason)
-    test = create_test_from_spec(
-        source_conversation, reply.name or reply.spec.goal, reply.spec
-    )
-    return ConversionOutcome(test=test, reason=reply.reason)
-
-
 async def convert_transcript_to_test(
     transcript: str, reported_issue: str | None = None, agent_version: str | None = None
 ) -> ConversionOutcome:
-    """Saves the transcript as the test's source, then converts it."""
-    source_conversation = save_transcript_as_source_conversation(
-        transcript, reported_issue, agent_version
+    """Saves the inferred test as is, or nothing when the agent broke no rule."""
+    inferred = await infer_test_spec_from_transcript(transcript, reported_issue)
+    if inferred.spec is None:
+        return ConversionOutcome(test=None, reason=inferred.reason)
+    test = create_test_from_transcript(
+        transcript,
+        reported_issue,
+        agent_version,
+        name=inferred.name or inferred.spec.goal,
+        spec=inferred.spec,
+        inferred_spec=inferred.spec,
     )
-    return await convert_source_conversation_to_test(source_conversation.id)
+    return ConversionOutcome(test=test, reason=inferred.reason)

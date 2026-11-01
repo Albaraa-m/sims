@@ -41,5 +41,5 @@ class Test(SQLModel, table=True):
     source_conversation_id: str = Field(foreign_key="sourceconversation.id")
     status: TestStatus = TestStatus.DRAFT
     spec: dict = Field(sa_column=Column(JSON))
-    inferred: dict = Field(sa_column=Column(JSON))
+    inferred: dict | None = Field(sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=now)

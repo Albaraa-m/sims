@@ -49,7 +49,7 @@ def print_test(test: Test) -> None:
     )
     print(f"reported issue: {source.reported_issue or '-'}")
     for field, value in test.spec.items():
-        edited = "" if test.inferred.get(field) == value else "  (edited)"
+        edited = "" if (test.inferred or {}).get(field) == value else "  (edited)"
         print(f"{field}{edited}: {json.dumps(value, ensure_ascii=False)}")
     simulations = list_simulations_of_test(test.id)
     for version, runs in groupby(simulations, key=lambda s: s.agent_version):

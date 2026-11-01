@@ -10,11 +10,19 @@ def test_new_test_starts_as_draft_v1(source_conversation, spec):
 
     assert test.version == 1
     assert test.status == TestStatus.DRAFT
-    assert test.spec == test.inferred == spec.model_dump()
+    assert test.spec == spec.model_dump()
+
+
+def test_hand_written_test_has_no_inferred_spec(source_conversation, spec):
+    test = create_test_from_spec(source_conversation, "Unconfirmed booking", spec)
+
+    assert test.inferred is None
 
 
 def test_editing_adds_a_version_and_keeps_the_original(source_conversation, spec):
-    original = create_test_from_spec(source_conversation, "Unconfirmed booking", spec)
+    original = create_test_from_spec(
+        source_conversation, "Unconfirmed booking", spec, inferred_spec=spec
+    )
 
     edited = edit_test(original.id, goal="Book a table for 5")
 
