@@ -43,7 +43,7 @@ def print_test(test: Test) -> None:
     print(f"reported issue: {source.reported_issue or '-'}")
     for field, value in test.spec.items():
         edited = "" if test.inferred.get(field) == value else "  (edited)"
-        print(f"{field}{edited}: {json.dumps(value)}")
+        print(f"{field}{edited}: {json.dumps(value, ensure_ascii=False)}")
 
 
 def main() -> None:
