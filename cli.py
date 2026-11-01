@@ -1,8 +1,12 @@
 import argparse
 import asyncio
 import json
+import signal
+from contextlib import nullcontext, suppress
 from pathlib import Path
 
+from agents.workers import running_workers
+from core.config import LOGS_DIR
 from core.db import create_tables
 from regression_tests.convert import convert_source_conversation_to_test
 from regression_tests.crud import (
@@ -49,6 +53,13 @@ def main() -> None:
 
     run = commands.add_parser("run", help="Run one simulated call.")
     run.add_argument("--version", choices=["v1", "v2"], default="v2")
+    run.add_argument(
+        "--start-workers",
+        action="store_true",
+        help="Start the agent workers for this call and stop them afterwards.",
+    )
+
+    commands.add_parser("workers", help="Run both agent workers until stopped.")
 
     show = commands.add_parser("show", help="Print a stored simulation.")
     show.add_argument("simulation_id")
@@ -77,9 +88,17 @@ def main() -> None:
     create_tables()
     match args.command:
         case "run":
-            simulation = asyncio.run(run_simulation(args.version))
+            with running_workers() if args.start_workers else nullcontext():
+                simulation = asyncio.run(run_simulation(args.version))
             print(f"simulation {simulation.id} {simulation.status}", end="")
             print(f": {simulation.error}" if simulation.error else "")
+        case "workers":
+            # Treat a terminate like Ctrl-C, so the workers are stopped either way.
+            signal.signal(signal.SIGTERM, signal.default_int_handler)
+            with running_workers():
+                print(f"agent workers running, logs in {LOGS_DIR}; Ctrl-C to stop")
+                with suppress(KeyboardInterrupt):
+                    signal.pause()
         case "show":
             print_simulation(get_simulation(args.simulation_id))
         case "export-transcript":
