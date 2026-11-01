@@ -4,6 +4,7 @@ from typing import Literal
 from pydantic import BaseModel, Field, field_validator
 
 from regression_tests.models import TestSpec, TestStatus
+from simulations.conversation import SpokenLine, ToolCall
 from simulations.models import SimulationStatus
 
 
@@ -68,19 +69,6 @@ class TestDetail(TestRow):
     spec: TestSpec
     # What the model suggested; None if it found no broken rule.
     inferred: TestSpec | None
-
-
-class SpokenLine(BaseModel):
-    kind: Literal["speech"] = "speech"
-    speaker: str
-    text: str
-
-
-class ToolCall(BaseModel):
-    kind: Literal["tool_call"] = "tool_call"
-    name: str
-    arguments: str
-    output: str | None
 
 
 class RunDetail(BaseModel):

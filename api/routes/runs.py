@@ -2,11 +2,11 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.exc import NoResultFound
 
-from api.schemas import RunDetail, SpokenLine, ToolCall
+from api.schemas import RunDetail
 from regression_tests.crud import get_test
+from simulations.conversation import conversation_of_simulation
 from simulations.crud import get_simulation
 from simulations.models import Simulation
-from simulations.transcript import SPEAKERS, chat_items, message_text
 
 router = APIRouter(prefix="/api/runs")
 
@@ -16,27 +16,6 @@ def get_simulation_or_404(run_id: str) -> Simulation:
         return get_simulation(run_id)
     except NoResultFound:
         raise HTTPException(status_code=404, detail=f"run {run_id} not found")
-
-
-def conversation_of_simulation(simulation: Simulation) -> list[SpokenLine | ToolCall]:
-    """Spoken lines in order, each tool call paired with its output."""
-    conversation: list[SpokenLine | ToolCall] = []
-    tool_calls_by_id: dict[str, ToolCall] = {}
-    for item in chat_items(simulation):
-        match item["type"]:
-            case "message" if item["role"] in SPEAKERS:
-                conversation.append(
-                    SpokenLine(speaker=SPEAKERS[item["role"]], text=message_text(item))
-                )
-            case "function_call":
-                tool_call = ToolCall(
-                    name=item["name"], arguments=item["arguments"], output=None
-                )
-                tool_calls_by_id[item["call_id"]] = tool_call
-                conversation.append(tool_call)
-            case "function_call_output" if item["call_id"] in tool_calls_by_id:
-                tool_calls_by_id[item["call_id"]].output = str(item["output"])
-    return conversation
 
 
 @router.get("/{run_id}")
