@@ -2,7 +2,7 @@ import pytest
 from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, create_engine
 
-from core import db
+from core import db, llm
 from regression_tests.crud import save_transcript_as_source_conversation
 from regression_tests.models import SourceConversation, TestSpec
 
@@ -30,3 +30,15 @@ def spec() -> TestSpec:
 @pytest.fixture
 def source_conversation() -> SourceConversation:
     return save_transcript_as_source_conversation("Agent: Hi, how can I help?")
+
+
+@pytest.fixture
+def llm_replies(monkeypatch) -> list[str]:
+    """Each LLM call returns the next reply in this list."""
+    replies: list[str] = []
+
+    async def fake_generate_text(_prompt: str, _model: str) -> str:
+        return replies.pop(0)
+
+    monkeypatch.setattr(llm, "generate_text", fake_generate_text)
+    return replies

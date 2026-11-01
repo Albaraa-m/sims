@@ -4,7 +4,7 @@ import json
 import pytest
 from sqlmodel import Session, func, select
 
-from core import db, llm
+from core import db
 from regression_tests.convert import (
     ConversionError,
     convert_transcript_to_test,
@@ -17,18 +17,6 @@ from regression_tests.models import Test
 def get_test_count() -> int:
     with Session(db.engine) as session:
         return session.exec(select(func.count()).select_from(Test)).one()
-
-
-@pytest.fixture
-def llm_replies(monkeypatch) -> list[str]:
-    """Each LLM call returns the next reply in this list."""
-    replies: list[str] = []
-
-    async def fake_generate_text(_prompt: str, _model: str) -> str:
-        return replies.pop(0)
-
-    monkeypatch.setattr(llm, "generate_text", fake_generate_text)
-    return replies
 
 
 def convert_to_test(transcript="Agent: Hi"):
