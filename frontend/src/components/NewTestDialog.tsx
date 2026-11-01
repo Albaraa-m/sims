@@ -3,6 +3,7 @@ import { useState } from 'react'
 
 import { createTest, inferTest } from '@/api'
 import FactsEditor, { type FactRow } from '@/components/FactsEditor'
+import InferredField from '@/components/InferredField'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   AlertDialog,
@@ -64,6 +65,10 @@ function fieldsFromSpec(name: string | null, spec: TestSpec | null): TestFields 
   return { ...spec, name: name ?? '', facts: factRowsFromFacts(spec.facts) }
 }
 
+function factsAsText(rows: FactRow[]): string {
+  return rows.map((row) => `${row.key}: ${row.value}`).join('\n') || 'None'
+}
+
 function specFromFields(fields: TestFields): TestSpec {
   return {
     goal: fields.goal.trim(),
@@ -98,6 +103,15 @@ export default function NewTestDialog({ open, onOpenChange, onCreated }: NewTest
   const [isCreating, setIsCreating] = useState(false)
   const [isConfirmingOverwrite, setIsConfirmingOverwrite] = useState(false)
   const [requestError, setRequestError] = useState<string | null>(null)
+
+  const hasInferredSpec = inferredSpec !== null
+
+  function inferenceOf(field: Exclude<keyof TestFields, 'facts'>) {
+    return {
+      aiVersion: hasInferredSpec ? fieldsFromLastInfer[field] : null,
+      isEdited: fields[field] !== fieldsFromLastInfer[field],
+    }
+  }
 
   const hasUnsavedEdits = JSON.stringify(fields) !== JSON.stringify(fieldsFromLastInfer)
   const canCreate = transcript.trim() !== '' && areFieldsComplete(fields) && !isCreating
@@ -224,45 +238,43 @@ export default function NewTestDialog({ open, onOpenChange, onCreated }: NewTest
             </Alert>
           )}
 
-          <div className="grid gap-2">
-            <Label htmlFor="name">Name</Label>
+          <InferredField id="name" label="Name" {...inferenceOf('name')}>
             <Input id="name" value={fields.name} onChange={(event) => updateField('name', event.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="goal">Goal</Label>
+          </InferredField>
+          <InferredField id="goal" label="Goal" {...inferenceOf('goal')}>
             <Textarea id="goal" rows={2} value={fields.goal} onChange={(event) => updateField('goal', event.target.value)} />
-          </div>
-          <div className="grid gap-2">
-            <Label>Facts</Label>
+          </InferredField>
+          <InferredField
+            label="Facts"
+            aiVersion={hasInferredSpec ? factsAsText(fieldsFromLastInfer.facts) : null}
+            isEdited={JSON.stringify(fields.facts) !== JSON.stringify(fieldsFromLastInfer.facts)}
+          >
             <FactsEditor rows={fields.facts} onChange={(rows) => updateField('facts', rows)} />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="behavior">Behavior</Label>
+          </InferredField>
+          <InferredField id="behavior" label="Behavior" {...inferenceOf('behavior')}>
             <Textarea
               id="behavior"
               rows={3}
               value={fields.behavior}
               onChange={(event) => updateField('behavior', event.target.value)}
             />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="policy-under-test">Policy under test</Label>
+          </InferredField>
+          <InferredField id="policy-under-test" label="Policy under test" {...inferenceOf('policy_under_test')}>
             <Textarea
               id="policy-under-test"
               rows={2}
               value={fields.policy_under_test}
               onChange={(event) => updateField('policy_under_test', event.target.value)}
             />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="expected-outcome">Expected outcome</Label>
+          </InferredField>
+          <InferredField id="expected-outcome" label="Expected outcome" {...inferenceOf('expected_outcome')}>
             <Textarea
               id="expected-outcome"
               rows={2}
               value={fields.expected_outcome}
               onChange={(event) => updateField('expected_outcome', event.target.value)}
             />
-          </div>
+          </InferredField>
 
           {requestError && <p className="text-sm text-destructive">{requestError}</p>}
         </div>

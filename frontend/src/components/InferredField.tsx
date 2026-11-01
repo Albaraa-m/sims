@@ -1,0 +1,43 @@
+import { useState, type ReactNode } from 'react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+
+type InferredFieldProps = {
+  id?: string
+  label: string
+  // Null when nothing was inferred; the field then has no label.
+  aiVersion: ReactNode | null
+  isEdited: boolean
+  children: ReactNode
+}
+
+export default function InferredField({ id, label, aiVersion, isEdited, children }: InferredFieldProps) {
+  const [isShowingAiVersion, setIsShowingAiVersion] = useState(false)
+  const wasInferred = aiVersion !== null
+
+  return (
+    <div className="grid gap-2">
+      <div className="flex items-center gap-2">
+        <Label htmlFor={id}>{label}</Label>
+        {wasInferred && <Badge variant={isEdited ? 'outline' : 'secondary'}>{isEdited ? 'Edited' : 'Inferred'}</Badge>}
+        {wasInferred && isEdited && (
+          <Button
+            variant="link"
+            size="sm"
+            className="h-auto p-0 text-muted-foreground"
+            onClick={() => setIsShowingAiVersion(!isShowingAiVersion)}
+            aria-expanded={isShowingAiVersion}
+          >
+            {isShowingAiVersion ? 'Hide AI version' : 'Show AI version'}
+          </Button>
+        )}
+      </div>
+      {children}
+      {wasInferred && isEdited && isShowingAiVersion && (
+        <div className="border-l-2 pl-3 text-sm whitespace-pre-wrap text-muted-foreground">{aiVersion}</div>
+      )}
+    </div>
+  )
+}
