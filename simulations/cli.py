@@ -4,14 +4,15 @@ import json
 from pathlib import Path
 
 from core.db import create_tables
-from simulations.convert import convert_source_conversation_to_test
-from simulations.crud import (
-    get_simulation,
+from regression_tests.convert import convert_source_conversation_to_test
+from regression_tests.crud import (
     get_source_conversation,
     get_test,
     save_transcript_as_source_conversation,
 )
-from simulations.models import Simulation, Test
+from regression_tests.models import Test
+from simulations.crud import get_simulation
+from simulations.models import Simulation
 from simulations.runner import run_simulation
 
 SPEAKERS = {"assistant": "agent ", "user": "caller"}

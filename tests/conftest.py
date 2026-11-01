@@ -3,8 +3,8 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel, create_engine
 
 from core import db
-from simulations.crud import save_transcript_as_source_conversation
-from simulations.models import SourceConversation, TestSpec
+from regression_tests.crud import save_transcript_as_source_conversation
+from regression_tests.models import SourceConversation, TestSpec
 
 
 @pytest.fixture(autouse=True)

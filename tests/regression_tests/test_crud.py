@@ -1,5 +1,5 @@
-from simulations.crud import create_test_from_spec, edit_test, get_test, mark_ready
-from simulations.models import TestStatus
+from regression_tests.crud import create_test_from_spec, edit_test, get_test, mark_ready
+from regression_tests.models import TestStatus
 
 
 def test_new_test_starts_as_draft_v1(source_conversation, spec):

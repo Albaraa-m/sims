@@ -5,8 +5,8 @@ from pydantic import BaseModel
 
 from agents.booking.agent import INSTRUCTIONS_BY_VERSION
 from core import llm
-from simulations.crud import create_test_from_spec, get_source_conversation
-from simulations.models import SourceConversation, Test, TestSpec
+from regression_tests.crud import create_test_from_spec, get_source_conversation
+from regression_tests.models import SourceConversation, Test, TestSpec
 
 # The latest version's prompt holds every rule the agent is meant to follow.
 AGENT_RULES = INSTRUCTIONS_BY_VERSION["v2"]

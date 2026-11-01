@@ -4,7 +4,10 @@ import json
 import pytest
 
 from core import llm
-from simulations.convert import ConversionError, convert_source_conversation_to_test
+from regression_tests.convert import (
+    ConversionError,
+    convert_source_conversation_to_test,
+)
 
 
 @pytest.fixture

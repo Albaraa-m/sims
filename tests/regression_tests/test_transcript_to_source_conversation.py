@@ -1,4 +1,4 @@
-from simulations.crud import (
+from regression_tests.crud import (
     get_source_conversation,
     save_transcript_as_source_conversation,
 )
