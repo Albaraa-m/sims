@@ -96,7 +96,8 @@ Caller fields:
 - behavior: how the caller acted, written to the caller as "you": speaking style,
   how they hand over details, how they answer questions, when they hang up. Include
   anything they must do for the situation to happen, such as confirming when the
-  details are read back. Do not repeat the goal or facts or reveal what is tested.
+  details are read back. Leave out requests and questions that didn't lead to the
+  failure. Do not repeat the goal or facts or reveal what is tested.
   Never contrast what the agent did with what it should have done ("without asking
   you", "if they forget to"). Always say when to end the call, tied to something
   any agent does, such as saying the table is booked or answering the question, so
