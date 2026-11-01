@@ -64,3 +64,10 @@ export function recordingUrl(runId: string): string {
 export function regradeRun(runId: string): Promise<EvaluationDetail> {
   return requestJson(`/api/runs/${runId}/evaluate`, { method: 'POST' })
 }
+
+export type RunFilters = { test_id?: string; agent_version?: string; outcome?: string }
+
+export function listRunsOfAllTests(filters: RunFilters): Promise<RunRow[]> {
+  const definedFilters = Object.entries(filters).filter((entry): entry is [string, string] => Boolean(entry[1]))
+  return requestJson(`/api/runs?${new URLSearchParams(definedFilters)}`)
+}
