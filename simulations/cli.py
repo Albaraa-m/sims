@@ -5,8 +5,13 @@ from pathlib import Path
 
 from db import create_tables
 from simulations.convert import convert_source_conversation_to_test
-from simulations.crud import get, get_simulation, save_transcript_as_source_conversation
-from simulations.models import Simulation, SourceConversation, Test
+from simulations.crud import (
+    get_simulation,
+    get_source_conversation,
+    get_test,
+    save_transcript_as_source_conversation,
+)
+from simulations.models import Simulation, Test
 from simulations.runner import run_simulation
 
 SPEAKERS = {"assistant": "agent ", "user": "caller"}
@@ -41,7 +46,7 @@ def print_simulation(simulation: Simulation) -> None:
 
 
 def print_test(test: Test) -> None:
-    source = get(SourceConversation, test.source_conversation_id)
+    source = get_source_conversation(test.source_conversation_id)
     print(f"test {test.id}  v{test.version}  {test.status}  source {source.id}")
     print(f"reported issue: {source.reported_issue or '-'}")
     for field, value in test.spec.items():
@@ -104,7 +109,7 @@ def main() -> None:
             else:
                 print_test(outcome.test)
         case "show-test":
-            print_test(get(Test, args.test_id))
+            print_test(get_test(args.test_id))
 
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from livekit.agents import inference, llm, utils
 from pydantic import BaseModel, ValidationError
 
 from agents.booking.agent import INSTRUCTIONS_BY_VERSION
-from simulations.crud import create_test_from_spec, get
+from simulations.crud import create_test_from_spec, get_source_conversation
 from simulations.models import SourceConversation, Test, TestSpec
 
 CONVERSION_MODEL = "google/gemma-4-31b-it"
@@ -117,7 +117,7 @@ async def convert_source_conversation_to_test(
     source_conversation_id: str,
     complete_prompt: CompletePrompt = complete_prompt_with_livekit_inference,
 ) -> ConversionOutcome:
-    source_conversation = get(SourceConversation, source_conversation_id)
+    source_conversation = get_source_conversation(source_conversation_id)
     reply = await ask_model_to_convert(source_conversation, complete_prompt)
     if not reply.failure_found or reply.spec is None:
         return ConversionOutcome(test=None, reason=reply.reason)

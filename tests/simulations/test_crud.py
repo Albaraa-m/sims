@@ -1,11 +1,12 @@
 from simulations.crud import (
     create_test_from_spec,
     edit_test,
-    get,
+    get_source_conversation,
+    get_test,
     mark_ready,
     save_transcript_as_source_conversation,
 )
-from simulations.models import SourceConversation, Test, TestSpec, TestStatus
+from simulations.models import TestSpec, TestStatus
 
 SPEC = TestSpec(
     goal="Book a table for tonight",
@@ -22,7 +23,7 @@ def test_save_transcript_as_source_conversation():
     saved = save_transcript_as_source_conversation(
         "Agent: hi", "booked without confirming", "v1"
     )
-    stored = get(SourceConversation, saved.id)
+    stored = get_source_conversation(saved.id)
     assert (stored.transcript, stored.reported_issue, stored.agent_version) == (
         "Agent: hi",
         "booked without confirming",
@@ -47,7 +48,7 @@ def test_edit_test_creates_new_version_and_keeps_old():
     assert (edited.version, edited.lineage_id) == (2, original.lineage_id)
     assert edited.spec["goal"] == "Book a table for 5"
     assert edited.inferred == SPEC.model_dump()
-    assert get(Test, original.id).spec == SPEC.model_dump()
+    assert get_test(original.id).spec == SPEC.model_dump()
 
 
 def test_mark_ready():

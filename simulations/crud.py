@@ -19,9 +19,17 @@ def save[Row: SQLModel](row: Row) -> Row:
         return row
 
 
-def get[Row: SQLModel](model: type[Row], row_id: str) -> Row:
+def _get[Row: SQLModel](model: type[Row], row_id: str) -> Row:
     with Session(db.engine) as session:
         return session.get_one(model, row_id)
+
+
+def get_source_conversation(source_conversation_id: str) -> SourceConversation:
+    return _get(SourceConversation, source_conversation_id)
+
+
+def get_test(test_id: str) -> Test:
+    return _get(Test, test_id)
 
 
 def create_simulation(agent_version: str) -> Simulation:
@@ -29,11 +37,11 @@ def create_simulation(agent_version: str) -> Simulation:
 
 
 def get_simulation(simulation_id: str) -> Simulation:
-    return get(Simulation, simulation_id)
+    return _get(Simulation, simulation_id)
 
 
 def update_simulation(simulation_id: str, **changes) -> Simulation:
-    simulation = get(Simulation, simulation_id)
+    simulation = _get(Simulation, simulation_id)
     for field, value in changes.items():
         setattr(simulation, field, value)
     return save(simulation)
@@ -68,7 +76,7 @@ def create_test_from_spec(
 
 def edit_test(test_id: str, **changes) -> Test:
     """Saves the edit as a new draft version; earlier versions stay unchanged."""
-    current = get(Test, test_id)
+    current = get_test(test_id)
     spec = TestSpec.model_validate({**current.spec, **changes})
     return save(
         Test(
@@ -82,6 +90,6 @@ def edit_test(test_id: str, **changes) -> Test:
 
 
 def mark_ready(test_id: str) -> Test:
-    test = get(Test, test_id)
+    test = get_test(test_id)
     test.status = TestStatus.READY
     return save(test)
