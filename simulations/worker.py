@@ -111,20 +111,24 @@ async def run_worker(
     register_worker(worker_id, socket.gethostname(), os.getpid(), max_calls)
     try:
         while not stop.is_set():
-            record_worker_heartbeat(worker_id, len(attempts))
-            if time.monotonic() >= next_reap:
-                await reap_and_close_rooms()
-                next_reap = time.monotonic() + REAP_EVERY_SECONDS
-            effective_fail_rate = max(fail_rate, get_fail_rate())
-            while len(attempts) < max_calls:
-                simulation = claim_next_run(worker_id)
-                if simulation is None:
-                    break
-                task = asyncio.create_task(
-                    work_on_attempt(simulation, effective_fail_rate)
-                )
-                attempts.add(task)
-                task.add_done_callback(attempts.discard)
+            try:
+                record_worker_heartbeat(worker_id, len(attempts))
+                if time.monotonic() >= next_reap:
+                    await reap_and_close_rooms()
+                    next_reap = time.monotonic() + REAP_EVERY_SECONDS
+                effective_fail_rate = max(fail_rate, get_fail_rate())
+                while len(attempts) < max_calls:
+                    simulation = claim_next_run(worker_id)
+                    if simulation is None:
+                        break
+                    task = asyncio.create_task(
+                        work_on_attempt(simulation, effective_fail_rate)
+                    )
+                    attempts.add(task)
+                    task.add_done_callback(attempts.discard)
+            # A busy database or a LiveKit hiccup must not stop the worker and its calls.
+            except Exception as error:  # noqa: BLE001
+                print(f"worker {worker_id}: loop error, retrying: {error}")
             await asyncio.sleep(POLL_SECONDS)
     finally:
         unregister_worker(worker_id)

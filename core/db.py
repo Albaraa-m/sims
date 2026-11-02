@@ -10,6 +10,7 @@ engine = create_engine(f"sqlite:///{DB_PATH}")
 def use_write_ahead_log(connection, _) -> None:
     # The workers, CLI and website open the same file from different processes.
     connection.execute("PRAGMA journal_mode=WAL")
+    connection.execute("PRAGMA busy_timeout=15000")
     # Python's sqlite3 commits schema changes on its own; take over transactions so a
     # failed migration rolls back completely.
     connection.isolation_level = None
@@ -17,7 +18,9 @@ def use_write_ahead_log(connection, _) -> None:
 
 @event.listens_for(engine, "begin")
 def begin_transaction(connection) -> None:
-    connection.exec_driver_sql("BEGIN")
+    # IMMEDIATE takes the write lock up front, so a busy database makes it wait (up to
+    # busy_timeout) instead of failing midway when a read turns into a write.
+    connection.exec_driver_sql("BEGIN IMMEDIATE")
 
 
 def table_matches_model(connection: Connection, table_name: str) -> bool:
