@@ -1,0 +1,9 @@
+{
+  "outcome": "pass",
+  "key_turns": [
+    6,
+    7,
+    8
+  ],
+  "why": "After the correction the agent confirms the new time and books it only after the yes."
+}

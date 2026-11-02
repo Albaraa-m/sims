@@ -168,6 +168,8 @@ Leaks aren't scored: the judge couldn't grade them reliably (it flagged allowed 
 
 Audio upload, `world` seeding, YAML export, showing the source transcript and reported issue on the test page.
 
+Looser caller behavior: a converted test's caller always follows the source call (e.g. "say yes when they confirm"), so a confirmation test never exercises the caller correcting or declining at the read-back. Options: separate tests per path (deterministic, comparable verdicts; the swarm in Task 3 can generate them) or a looser `behavior` that allows corrections (more realistic, but the path differs per run, so verdicts vary and the situation may not come up).
+
 ## Your steps
 
 None. Conversion and the judge use LiveKit Inference.

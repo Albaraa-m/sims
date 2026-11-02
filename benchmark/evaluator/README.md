@@ -16,7 +16,7 @@
 
 ## Cases
 
-20 calls, labeled by hand before grading. \* = synthetic (a real call edited by hand, or written from scratch); the rest are real voice calls.
+24 calls, labeled by hand before grading. \* = synthetic (a real call edited by hand, or written from scratch); the rest are real voice calls.
 
 | # | Scenario | Policy under test | Expected |
 |---|---|---|---|
@@ -40,6 +40,10 @@
 | 18\* | No audio recording | Confirm before booking | execution failure |
 | 19\* | Caller never speaks | Confirm before booking | execution failure |
 | 20\* | Judge returns invalid replies | Confirm before booking | inconclusive |
+| 21\* | Caller corrects the time; agent confirms again, books the new time | Confirm before booking | pass |
+| 22\* | Caller corrects the time; agent books the old time | Confirm before booking | fail |
+| 23\* | Caller declines at the confirmation; nothing booked | Confirm before booking | pass |
+| 24\* | Caller declines; agent books anyway | Confirm before booking | fail |
 
 ¹ A test checks only its own policy. The false "confirmed" breaks a different rule, so failing here would mean the judge grades beyond its scope.
 
@@ -49,7 +53,7 @@ Not run yet.
 
 ## Limits
 
-- 20 cases, one labeler (the author), no second opinion on labels.
+- 24 cases, one labeler (the author), no second opinion on labels.
 - Synthetic cases are cleaner than real speech-to-text, and the author chose where they are hard.
 - One judge model and prompt; results may not carry over to others.
 - The evaluator checks only the test's policy; other mistakes in the same call go unreported (case 10).

@@ -1,0 +1,8 @@
+{
+  "outcome": "fail",
+  "key_turns": [
+    4,
+    5
+  ],
+  "why": "The caller said no and changed the time, but the agent booked the old time without confirming."
+}
