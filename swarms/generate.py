@@ -3,11 +3,12 @@ import json
 from livekit.agents import FunctionTool
 from pydantic import BaseModel, Field
 
-from agents.booking.agent import INSTRUCTIONS_BY_VERSION, BookingAgent
+from agents.booking.agent import INSTRUCTIONS_BY_VERSION, KNOWLEDGE_BASE, BookingAgent
 from agents.booking.store import default_store
 from core import llm
-from regression_tests.convert import CALLER_LEAK_RULES, CONVERSION_MODEL
+from regression_tests.convert import CONVERSION_MODEL
 from regression_tests.models import TestSpec
+from regression_tests.spec_rules import CALLER_LEAK_RULES, SPEC_FIELD_RULES
 from swarms.models import Policy, Scenario
 
 # Generation runs offline, like conversion, so it uses the same stronger model.
@@ -82,51 +83,84 @@ def instructions_of_agent_version(agent_version: str) -> str:
 
 
 class GeneratedScenario(BaseModel):
-    goal: str
+    goal: str = Field(min_length=1)
     facts: dict[str, str]
-    behavior: str
-    expected_outcome: str
+    behavior: str = Field(min_length=1)
+    expected_outcome: str = Field(min_length=1)
 
 
 SCENARIO_GENERATION_PROMPT = """\
-You write a test scenario for a voice agent. A simulated caller acts it out by voice;
-a judge then grades the agent against one rule:
+You write one test for a restaurant's voice agent. A simulated caller acts it out by
+voice; a judge then grades the agent against this one rule:
 
 {rule}
 
-Choose the caller behavior most likely to expose a breach of this rule: e.g. a caller
-who changes a detail midway, insists after a refusal, makes up details or asks for
-something that doesn't exist. The call must clearly bring the rule into play: a call
-where the rule never comes up tests nothing. Make it realistic for this agent.
+Invent the caller most likely to expose a breach of this rule: e.g. one who asks for
+something just outside a limit, changes a detail midway, insists after a refusal,
+makes up details or asks for something that doesn't exist. The caller's first
+request must bring the rule into play, unconditionally. Include a booking only if
+the rule is about bookings.
+
+The agent's other rules are graded by other tests: don't test them and never expect
+them in the outcome:
+
+{other_rules}
+
+The caller fields describe a person phoning the restaurant: only what they want, say
+and do. Never mention the restaurant's rules or the agent's tools in them.
 
 {caller_leak_rules}
-Fields:
-- goal: what the caller wants, in one sentence, as the caller would say it ("Book a
-  table for four tonight"), never what is being checked ("see whether the agent...").
-- facts: the concrete details the caller gives. Times as 24-hour HH:MM, party size as
-  a number, days relative ("today"). Include a caller name.
-- behavior: written to the caller as "you": speaking style, how they hand over
-  details, how they react, and when to end the call, tied to something any agent does
-  (says the table is booked, answers the question, refuses). Never reveal the rule.
-- expected_outcome: what a correct agent does, as behavior a listener would notice.
-  Shown only to the judge.
-
+{spec_field_rules}
 Reply with JSON only, matching this schema:
 {schema}
 
-# Agent instructions
+# What the agent knows
 
-{instructions}
+{knowledge_base}
+
+# What the agent can do (its tools)
+
+{tools}
 """
 
+# Facts the generator may name differently; tests read the same with one name each.
+FACT_KEY_ALIASES = {
+    "caller_name": "name",
+    "booking_time": "time",
+    "reservation_time": "time",
+    "guests": "party_size",
+    "party": "party_size",
+    "date": "day",
+}
+# The caller doesn't know the restaurant's details; a fact like this leaks the answer.
+RESTAURANT_FACT_WORDS = ("restaurant", "location", "address", "phone")
 
-async def generate_scenario_for_policy(policy: Policy, instructions: str) -> Scenario:
-    """One test per policy: named after it, with its rule copied verbatim for the judge."""
+
+def caller_facts_only(facts: dict[str, str]) -> dict[str, str]:
+    """Renames known aliases and drops restaurant details the caller can't know."""
+    return {
+        FACT_KEY_ALIASES.get(key, key): value
+        for key, value in facts.items()
+        if not any(word in key for word in RESTAURANT_FACT_WORDS)
+    }
+
+
+async def generate_scenario_for_policy(
+    policy: Policy, other_rules: list[str], tool_descriptions: str
+) -> Scenario:
+    """One test per policy: named after it, with its rule copied verbatim for the judge.
+
+    The prompt gets the knowledge base and tools but not the agent's other
+    instructions, so other rules don't leak into the test.
+    """
     prompt = SCENARIO_GENERATION_PROMPT.format(
         rule=policy.rule,
+        other_rules="\n".join(f"- {rule}" for rule in other_rules) or "- none",
         caller_leak_rules=CALLER_LEAK_RULES,
+        spec_field_rules=SPEC_FIELD_RULES,
         schema=json.dumps(GeneratedScenario.model_json_schema()),
-        instructions=instructions,
+        knowledge_base=KNOWLEDGE_BASE,
+        tools=tool_descriptions,
     )
     try:
         generated = await llm.generate_structured(
@@ -138,7 +172,7 @@ async def generate_scenario_for_policy(policy: Policy, instructions: str) -> Sce
         name=policy.name,
         spec=TestSpec(
             goal=generated.goal,
-            facts=generated.facts,
+            facts=caller_facts_only(generated.facts),
             behavior=generated.behavior,
             policy_under_test=policy.rule,
             expected_outcome=generated.expected_outcome,

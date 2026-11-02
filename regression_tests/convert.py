@@ -7,6 +7,7 @@ from agents.booking.agent import RESTAURANT_POLICIES
 from core import llm
 from regression_tests.crud import create_test_from_transcript
 from regression_tests.models import Test, TestSpec
+from regression_tests.spec_rules import CALLER_LEAK_RULES, SPEC_FIELD_RULES
 
 # Conversion runs offline, so it uses a stronger model than the latency-tuned voice one.
 CONVERSION_MODEL = "openai/gpt-5.4-mini"
@@ -62,21 +63,6 @@ Reply:
 """
 
 
-# Shared with swarm generation: caller fields must never reveal the test.
-CALLER_LEAK_RULES = """\
-The caller must not know what is being tested. Never describe what the agent should
-do, the answer the caller expects, or why a step matters. Write reactions as "if they
-X, you Y", never as "wait for them to X", which tells the caller what to expect:
-
-| Leak | Caller-only |
-|---|---|
-| "Ask about the kunafa price and see if the agent quotes 38 SAR." | "Ask how much the kunafa is." |
-| "Say you'll arrive 30 minutes late; the agent should say tables are held only 15 minutes." | "Say you might be about 30 minutes late and ask if that's okay." |
-| "Keep asking about gluten-free bread until the agent makes one up." | "Ask if they have gluten-free bread. If they're unsure, ask once more." |
-| "If they book without asking you to confirm, hang up." | "Once they tell you the table is booked, thank them and end the call." |
-"""
-
-
 CONVERSION_PROMPT = """\
 You turn a recorded call with a restaurant booking agent into a regression test.
 A simulated caller will recreate the situation by voice against new agent versions.
@@ -91,30 +77,7 @@ only what they want, say and do. Never mention the restaurant's rules (opening h
 party limits, availability) or the agent's tools in them.
 
 {caller_leak_rules}
-Caller fields:
-- goal: what the caller wants, in one sentence. Only the request that exposed the
-  failure; leave out the caller's other questions.
-- facts: the concrete details the caller gave in the transcript: the caller's name
-  if they gave one, plus those the failure depended on. Times as 24-hour HH:MM,
-  party size as a number. Keep days relative to the call ("today", "tomorrow"),
-  never a weekday or a date, so the test means the same whenever it runs.
-- behavior: how the caller acted, written to the caller as "you": speaking style,
-  how they hand over details, how they answer questions, when they hang up. Include
-  anything they must do for the situation to happen, such as confirming when the
-  details are read back. Leave out requests and questions that didn't lead to the
-  failure. Do not repeat the goal or facts or reveal what is tested.
-  Never contrast what the agent did with what it should have done ("without asking
-  you", "if they forget to"). Always say when to end the call, tied to something
-  any agent does, such as saying the table is booked or answering the question, so
-  the caller never improvises past the moment the failure shows.
-
-Evaluator fields (never shown to the caller):
-- policy_under_test: the rule the agent broke, in plain words, without tool names.
-  State the rule itself with its numbers ("free cancellation only up to 2 hours
-  before the booking"), not an instruction like "state the policy correctly".
-- expected_outcome: what a correct agent does instead, as behavior a listener would
-  notice.
-
+{spec_field_rules}
 {examples}
 
 Reply with JSON only, matching this schema:
@@ -140,6 +103,7 @@ async def infer_test_spec_from_transcript(
     """Asks the model for a test; saves nothing, so a reviewer can edit it first."""
     prompt = CONVERSION_PROMPT.format(
         caller_leak_rules=CALLER_LEAK_RULES,
+        spec_field_rules=SPEC_FIELD_RULES,
         examples=CONVERSION_EXAMPLES,
         schema=json.dumps(InferredTest.model_json_schema()),
         rules=RESTAURANT_POLICIES,

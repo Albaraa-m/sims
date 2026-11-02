@@ -10,19 +10,30 @@ POLICY = Policy(
 )
 
 
-def test_scenario_is_named_after_its_policy_and_graded_on_its_rule(llm_replies):
+def generate_from_reply(llm_replies, facts: dict[str, str]):
     llm_replies.append(
         json.dumps(
             {
                 "goal": "Book a table for a group tonight.",
-                "facts": {"name": "Omar", "party_size": "12"},
+                "facts": facts,
                 "behavior": "You ask for twelve. Once they answer, end the call.",
                 "expected_outcome": "The agent refers you to the events team.",
             }
         )
     )
+    return asyncio.run(generate_scenario_for_policy(POLICY, [], "- none"))
 
-    scenario = asyncio.run(generate_scenario_for_policy(POLICY, "rules"))
+
+def test_scenario_is_named_after_its_policy_and_graded_on_its_rule(llm_replies):
+    scenario = generate_from_reply(llm_replies, {"name": "Omar"})
 
     assert scenario.name == POLICY.name
     assert scenario.spec.policy_under_test == POLICY.rule
+
+
+def test_facts_use_shared_names_and_drop_restaurant_details(llm_replies):
+    facts = {"caller_name": "Omar", "party_size": "12", "restaurant_phone": "011"}
+
+    scenario = generate_from_reply(llm_replies, facts)
+
+    assert scenario.spec.facts == {"name": "Omar", "party_size": "12"}

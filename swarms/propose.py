@@ -27,9 +27,16 @@ async def find_policies_of_agent_version(agent_version: str) -> list[Policy]:
 
 async def propose_swarm(agent_version: str, policies: list[Policy]) -> SwarmProposal:
     """Writes one test per chosen policy; nothing is saved."""
-    instructions = instructions_of_agent_version(agent_version)
+    tool_descriptions = describe_agent_tools(agent_version)
     scenarios = await asyncio.gather(
-        *(generate_scenario_for_policy(policy, instructions) for policy in policies)
+        *(
+            generate_scenario_for_policy(
+                policy,
+                [other.rule for other in policies if other is not policy],
+                tool_descriptions,
+            )
+            for policy in policies
+        )
     )
     return SwarmProposal(
         agent_version=agent_version,
