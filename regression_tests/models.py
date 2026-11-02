@@ -38,7 +38,10 @@ class Test(SQLModel, table=True):
     lineage_id: str
     name: str
     version: int = 1
-    source_conversation_id: str = Field(foreign_key="sourceconversation.id")
+    # None for generated tests, which have no recorded call behind them.
+    source_conversation_id: str | None = Field(
+        default=None, foreign_key="sourceconversation.id"
+    )
     status: TestStatus = TestStatus.DRAFT
     spec: dict = Field(sa_column=Column(JSON))
     inferred: dict | None = Field(sa_column=Column(JSON))

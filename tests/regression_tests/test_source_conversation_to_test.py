@@ -71,6 +71,7 @@ def test_transcript_is_saved_as_the_tests_source(llm_replies, spec):
     outcome = asyncio.run(convert_transcript_to_test("Agent: Hi", "no confirmation"))
 
     assert outcome.test is not None
+    assert outcome.test.source_conversation_id is not None
     source = get_source_conversation(outcome.test.source_conversation_id)
     assert source.transcript == "Agent: Hi"
     assert source.reported_issue == "no confirmation"

@@ -65,6 +65,7 @@ def test_create_saves_the_test_and_its_source(client, spec):
     test = get_test(response.json()["id"])
     assert test.name == "Unconfirmed"
     assert test.inferred is None
+    assert test.source_conversation_id is not None
     assert (
         get_source_conversation(test.source_conversation_id).transcript == "Agent: Hi"
     )

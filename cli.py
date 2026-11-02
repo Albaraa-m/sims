@@ -56,11 +56,16 @@ def print_simulation(simulation: Simulation) -> None:
 
 
 def print_test(test: Test) -> None:
-    source = get_source_conversation(test.source_conversation_id)
-    print(
-        f"test {test.id}  {test.name}  v{test.version}  {test.status}  source {source.id}"
+    source = (
+        get_source_conversation(test.source_conversation_id)
+        if test.source_conversation_id
+        else None
     )
-    print(f"reported issue: {source.reported_issue or '-'}")
+    print(
+        f"test {test.id}  {test.name}  v{test.version}  {test.status}  "
+        f"source {source.id if source else '-'}"
+    )
+    print(f"reported issue: {(source and source.reported_issue) or '-'}")
     for field, value in test.spec.items():
         edited = "" if (test.inferred or {}).get(field) == value else "  (edited)"
         print(f"{field}{edited}: {json.dumps(value, ensure_ascii=False)}")
