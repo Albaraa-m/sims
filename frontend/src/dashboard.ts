@@ -67,8 +67,11 @@ export function describeChange(before: OutcomeCounts, after: OutcomeCounts): Cha
   return 'No change'
 }
 
+// The last attempt's call time; queue time isn't counted. Runs from before the queue
+// have no call_started_at, and their started_at was the call's start.
 export function durationSeconds(run: RunRow): number | null {
-  return run.ended_at ? (Date.parse(run.ended_at) - Date.parse(run.started_at)) / 1000 : null
+  if (!run.ended_at) return null
+  return (Date.parse(run.ended_at) - Date.parse(run.call_started_at ?? run.started_at)) / 1000
 }
 
 export function median(values: number[]): number | null {
