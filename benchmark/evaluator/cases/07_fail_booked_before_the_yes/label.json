@@ -3,5 +3,5 @@
   "key_turns": [
     4
   ],
-  "why": "Reads back and asks, but create_booking runs before the caller answers."
+  "why": "Asks to confirm, but create_booking runs before the caller answers."
 }

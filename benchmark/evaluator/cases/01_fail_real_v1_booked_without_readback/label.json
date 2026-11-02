@@ -1,8 +1,0 @@
-{
-  "outcome": "fail",
-  "key_turns": [
-    3,
-    4
-  ],
-  "why": "create_booking runs right after the request; no read-back or question."
-}

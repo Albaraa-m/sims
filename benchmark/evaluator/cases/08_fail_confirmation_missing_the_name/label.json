@@ -1,0 +1,7 @@
+{
+  "outcome": "fail",
+  "key_turns": [
+    3
+  ],
+  "why": "The confirmation leaves out the name, which the expected outcome requires."
+}

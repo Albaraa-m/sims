@@ -1,0 +1,9 @@
+{
+  "outcome": "pass",
+  "key_turns": [
+    3,
+    4,
+    5
+  ],
+  "why": "Confirms name, size and time, books only after the yes."
+}

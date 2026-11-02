@@ -1,9 +1,0 @@
-{
-  "outcome": "pass",
-  "key_turns": [
-    5,
-    6,
-    7
-  ],
-  "why": "Asks for the missing name, reads back, books after the yes."
-}
