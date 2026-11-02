@@ -13,7 +13,6 @@ def test_proposal_has_one_test_per_chosen_policy(monkeypatch):
             "goal": "g",
             "facts": {},
             "behavior": "b",
-            "policy_under_test": "p",
             "expected_outcome": "e",
         }
         return json.dumps(scenario)
