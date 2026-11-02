@@ -4,12 +4,9 @@ export function judgeOfRun(run: RunRow): string | null {
   return run.judge_model && `${run.judge_model} · prompt ${run.judge_prompt_version ?? '?'}`
 }
 
-// Runs no judge looked at (execution failures, ungraded runs) belong to every judge's view.
-export function runsSeenByJudge(runs: RunRow[], judge: string): RunRow[] {
-  return runs.filter((run) => {
-    const runJudge = judgeOfRun(run)
-    return runJudge === null || runJudge === judge
-  })
+// Only passes and fails say anything about the agent; the rest are system or evaluator problems.
+export function runsGradedOnAgentBehavior(runs: RunRow[], judge: string): RunRow[] {
+  return runs.filter((run) => (run.outcome === 'pass' || run.outcome === 'fail') && judgeOfRun(run) === judge)
 }
 
 export function listJudgesNewestFirst(runs: RunRow[]): string[] {
@@ -25,7 +22,6 @@ export function countOutcomes(runs: RunRow[]): OutcomeCounts {
   return counts
 }
 
-// Only passes and fails say anything about the agent.
 export function passRate(counts: OutcomeCounts): number | null {
   const graded = counts.pass + counts.fail
   return graded === 0 ? null : counts.pass / graded
@@ -60,14 +56,12 @@ export function groupRunsIntoComparisonRows(runs: RunRow[], agentVersions: strin
   return rows.sort((a, b) => a.testName.localeCompare(b.testName) || b.testVersion - a.testVersion)
 }
 
-export type Change = 'Fixed' | 'Improved' | 'No change' | 'Regressed' | 'Broke' | "Can't compare"
+export type Change = 'Improved' | 'No change' | 'Regressed' | "Can't compare"
 
 export function describeChange(before: OutcomeCounts, after: OutcomeCounts): Change {
   const beforeRate = passRate(before)
   const afterRate = passRate(after)
   if (beforeRate === null || afterRate === null) return "Can't compare"
-  if (beforeRate === 0 && afterRate === 1) return 'Fixed'
-  if (beforeRate === 1 && afterRate === 0) return 'Broke'
   if (afterRate > beforeRate) return 'Improved'
   if (afterRate < beforeRate) return 'Regressed'
   return 'No change'

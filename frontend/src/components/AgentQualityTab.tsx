@@ -1,6 +1,5 @@
 import { Link } from 'react-router'
 
-import RunBlocks from '@/components/RunBlocks'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
   type ComparisonCell,
@@ -9,38 +8,28 @@ import {
   groupRunsIntoComparisonRows,
   passRate,
   resultsUrl,
-  runsSeenByJudge,
+  runsGradedOnAgentBehavior,
 } from '@/dashboard'
 import type { RunRow } from '@/types'
 
 function CellSummary({ cell, to }: { cell: ComparisonCell; to: string }) {
-  const { pass, fail, inconclusive, execution_failed, ungraded } = cell.counts
+  const { pass, fail } = cell.counts
   if (cell.runs.length === 0) return <span className="text-muted-foreground">—</span>
-  const rate = passRate(cell.counts)
-  const notes = [
-    inconclusive && `${inconclusive} inconclusive`,
-    execution_failed && `${execution_failed} execution failure`,
-    ungraded && `${ungraded} not graded`,
-  ].filter(Boolean)
   return (
-    <div className="space-y-1">
-      <Link to={to} className="block tabular-nums hover:underline">
-        {rate === null ? 'no graded runs' : `${pass}/${pass + fail} pass`}
-      </Link>
-      <RunBlocks runs={cell.runs} />
-      {notes.length > 0 && <div className="text-xs text-muted-foreground">+ {notes.join(', ')}</div>}
-    </div>
+    <Link to={to} className="tabular-nums hover:underline">
+      {pass}/{pass + fail} pass
+    </Link>
   )
 }
 
 export default function AgentQualityTab({ runs, judge }: { runs: RunRow[]; judge: string }) {
-  const judgedRuns = runsSeenByJudge(runs, judge)
+  const judgedRuns = runsGradedOnAgentBehavior(runs, judge)
   const agentVersions = [...new Set(judgedRuns.map((run) => run.agent_version))].sort()
   const rows = groupRunsIntoComparisonRows(judgedRuns, agentVersions)
   const failedRuns = judgedRuns.filter((run) => run.outcome === 'fail')
   const [before, after] = agentVersions
 
-  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No runs yet. Start one from a test.</p>
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No graded runs for this judge yet.</p>
 
   return (
     <>
@@ -106,8 +95,9 @@ export default function AgentQualityTab({ runs, judge }: { runs: RunRow[]; judge
           </TableFooter>
         </Table>
         <p className="text-xs text-muted-foreground">
-          Pass rate counts only passes and fails. Each cell is a few runs of one test version, so it shows how the
-          agent handles these scenarios, not how it performs in general.
+          Counts only runs the judge passed or failed; execution failures, inconclusive and ungraded runs are on
+          System health. Each cell is a few runs of one test version, so it shows how the agent handles these
+          scenarios, not how it performs in general.
         </p>
       </div>
 
