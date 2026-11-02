@@ -112,3 +112,19 @@ def test_cancelling_a_run_leaves_the_swarms_other_runs(client, spec):
         (2, "queued"),
         (1, "cancelled"),
     ]
+
+
+def test_a_promoted_swarm_test_joins_the_regression_suite(client, spec):
+    swarm_id = client.post("/api/swarms", json=swarm_body(spec)).json()["id"]
+    [test] = client.get(f"/api/swarms/{swarm_id}").json()["tests"]
+
+    promoted = client.post(f"/api/tests/{test['id']}/promote").json()
+
+    assert (promoted["swarm_id"], promoted["promoted_from_swarm_id"]) == (
+        None,
+        swarm_id,
+    )
+    assert [t["id"] for t in client.get("/api/tests").json()] == [test["id"]]
+    swarm_tests = client.get(f"/api/swarms/{swarm_id}").json()["tests"]
+    assert swarm_tests[0]["promoted_from_swarm_id"] == swarm_id
+    assert client.post(f"/api/tests/{test['id']}/promote").status_code == 409

@@ -113,6 +113,8 @@ class TestRow(BaseModel):
     status: TestStatus
     # Set for generated tests; None for tests made from a transcript.
     swarm_id: str | None
+    # Set for swarm tests promoted into the regression suite.
+    promoted_from_swarm_id: str | None
     created_at: datetime
 
     _mark_created_at_as_utc = field_validator("created_at")(mark_as_utc)
@@ -187,6 +189,7 @@ class SwarmTest(BaseModel):
     version: int
     status: TestStatus
     spec: TestSpec
+    promoted_from_swarm_id: str | None
 
 
 class SwarmDetail(SwarmRow):

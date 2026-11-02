@@ -79,14 +79,18 @@ def edit_test(test_id: str, name: str | None = None, **changes) -> Test:
             version=latest_version(current.lineage_id) + 1,
             source_conversation_id=current.source_conversation_id,
             swarm_id=current.swarm_id,
+            promoted_from_swarm_id=current.promoted_from_swarm_id,
             spec=spec.model_dump(),
             inferred=current.inferred,
         )
     )
 
 
-def list_latest_tests(swarm_id: str | None = None) -> list[Test]:
-    """The latest version of each test, newest test first; only a swarm's if given."""
+def list_latest_tests(
+    swarm_id: str | None = None, regression_only: bool = False
+) -> list[Test]:
+    """The latest version of each test, newest first. swarm_id keeps a swarm's tests,
+    including those promoted out of it; regression_only keeps the regression suite."""
     with Session(db.engine) as session:
         latest = (
             select(Test.lineage_id, func.max(Test.version).label("version"))
@@ -103,7 +107,12 @@ def list_latest_tests(swarm_id: str | None = None) -> list[Test]:
             .order_by(col(Test.created_at).desc())
         )
         if swarm_id is not None:
-            query = query.where(Test.swarm_id == swarm_id)
+            query = query.where(
+                (col(Test.swarm_id) == swarm_id)
+                | (col(Test.promoted_from_swarm_id) == swarm_id)
+            )
+        if regression_only:
+            query = query.where(col(Test.swarm_id).is_(None))
         return list(session.exec(query))
 
 
@@ -148,3 +157,22 @@ def mark_ready(test_id: str) -> Test:
     test = get_test(test_id)
     test.status = TestStatus.READY
     return save(test)
+
+
+class NotASwarmTestError(Exception):
+    pass
+
+
+def promote_test_to_regression_suite(test_id: str) -> Test:
+    """Moves every version of a swarm test into the regression suite, keeping its origin."""
+    swarm_id = get_test(test_id).swarm_id
+    if swarm_id is None:
+        raise NotASwarmTestError(f"test {test_id} is already a regression test")
+    lineage_id = get_test(test_id).lineage_id
+    with Session(db.engine) as session:
+        for version in session.exec(select(Test).where(Test.lineage_id == lineage_id)):
+            version.promoted_from_swarm_id = swarm_id
+            version.swarm_id = None
+            session.add(version)
+        session.commit()
+    return get_test(test_id)
