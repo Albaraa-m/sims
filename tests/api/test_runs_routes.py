@@ -109,3 +109,29 @@ def test_list_filters_by_agent_version_and_outcome(client, source_conversation, 
     assert sorted(agent_versions_of_runs()) == ["v1", "v2"]
     assert agent_versions_of_runs(agent_version="v2") == ["v2"]
     assert agent_versions_of_runs(outcome="fail", test_id=test.id) == ["v1"]
+
+
+def test_list_carries_the_judge_and_the_execution_failure_kind(
+    client, source_conversation, spec
+):
+    test = create_test_from_spec(source_conversation, "Unconfirmed", spec)
+    judged = create_simulation("v1", test.id)
+    save(
+        Evaluation(
+            simulation_id=judged.id,
+            outcome=Outcome.FAIL,
+            reason="booked unconfirmed",
+            judge_model="m",
+            judge_prompt_version="2",
+        )
+    )
+    broken = create_simulation("v2", test.id)
+    update_simulation(broken.id, status=SimulationStatus.FAILED, error="timeout")
+    client.post(f"/api/runs/{broken.id}/evaluate")
+
+    rows = {row["id"]: row for row in client.get("/api/runs").json()}
+
+    assert rows[judged.id]["reason"] == "booked unconfirmed"
+    assert rows[judged.id]["judge_model"] == "m"
+    assert rows[judged.id]["execution_failure_kind"] is None
+    assert rows[broken.id]["execution_failure_kind"] == "call_failed"

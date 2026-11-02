@@ -10,6 +10,7 @@ from evaluations.crud import (
     list_evaluations_of_simulation,
 )
 from evaluations.evaluate import evaluate_simulation
+from evaluations.execution import find_execution_failure
 from evaluations.models import Outcome
 from regression_tests.crud import get_test, list_test_runs
 from regression_tests.models import Test
@@ -29,6 +30,11 @@ def get_simulation_or_404(run_id: str) -> Simulation:
 
 def build_run_row(simulation: Simulation, test: Test) -> RunRow:
     evaluation = latest_evaluation_of_simulation(simulation.id)
+    execution_failure = (
+        find_execution_failure(simulation)
+        if evaluation and evaluation.outcome == Outcome.EXECUTION_FAILED
+        else None
+    )
     return RunRow(
         id=simulation.id,
         test_id=test.id,
@@ -39,6 +45,10 @@ def build_run_row(simulation: Simulation, test: Test) -> RunRow:
         started_at=simulation.started_at,
         ended_at=simulation.ended_at,
         outcome=evaluation and evaluation.outcome,
+        reason=evaluation and evaluation.reason,
+        judge_model=evaluation and evaluation.judge_model,
+        judge_prompt_version=evaluation and evaluation.judge_prompt_version,
+        execution_failure_kind=execution_failure and execution_failure.kind,
     )
 
 

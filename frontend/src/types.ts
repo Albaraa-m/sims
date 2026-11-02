@@ -51,7 +51,20 @@ export type RunRow = {
   ended_at: string | null
   // Null until the run is graded.
   outcome: Outcome | null
+  reason: string | null
+  judge_model: string | null
+  judge_prompt_version: string | null
+  // Set only for execution failures, so they can be grouped.
+  execution_failure_kind: ExecutionFailureKind | null
 }
+
+export type ExecutionFailureKind =
+  | 'call_failed'
+  | 'call_unfinished'
+  | 'no_report'
+  | 'no_recording'
+  | 'agent_silent'
+  | 'caller_silent'
 
 export type EvaluationDetail = {
   outcome: Outcome

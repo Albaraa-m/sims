@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
+from evaluations.execution import ExecutionFailureKind
 from evaluations.models import Outcome
 from regression_tests.models import TestSpec, TestStatus
 from simulations.conversation import SpokenLine, ToolCall
@@ -55,6 +56,11 @@ class RunRow(BaseModel):
     ended_at: datetime | None
     # None until the run is graded.
     outcome: Outcome | None
+    reason: str | None
+    judge_model: str | None
+    judge_prompt_version: str | None
+    # Set only for execution failures, so they can be grouped.
+    execution_failure_kind: ExecutionFailureKind | None
 
     _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
 
