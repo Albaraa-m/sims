@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import RunHealthOverTimeChart from '@/components/RunHealthOverTimeChart'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { durationSeconds, judgeOfRun, median, resultsUrl } from '@/dashboard'
-import { EXECUTION_FAILURE_KIND_LABEL, formatRunDuration, isAwaitingGrade } from '@/runs'
+import { EXECUTION_FAILURE_KIND_LABEL, formatRunDuration, isActive, isAwaitingGrade } from '@/runs'
 import type { ExecutionFailureKind, RunRow } from '@/types'
 
 function Count({ label, value, to }: { label: string; value: number; to?: string }) {
@@ -30,7 +30,7 @@ function formatSeconds(seconds: number | null): string {
 
 export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: number }) {
   // Each run lands in exactly one bucket, so the counts add up to the total.
-  const inProgressRuns = runs.filter((run) => run.status === 'running' || isAwaitingGrade(run, now))
+  const inProgressRuns = runs.filter((run) => isActive(run) || isAwaitingGrade(run, now))
   const executionFailures = runs.filter(
     (run) => run.outcome === 'execution_failed' || (run.status === 'failed' && run.outcome === null),
   )

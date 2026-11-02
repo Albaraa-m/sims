@@ -38,7 +38,15 @@ export type TestDetail = TestRow & {
   inferred: TestSpec | null
 }
 
-export type RunStatus = 'running' | 'done' | 'failed'
+export type RunStatus = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
+
+export type AttemptLogEntry = {
+  attempt: number
+  status: 'completed' | 'failed' | 'interrupted'
+  reason: string | null
+  started_at: string | null
+  ended_at: string | null
+}
 
 export type Outcome = 'pass' | 'fail' | 'execution_failed' | 'inconclusive'
 
@@ -49,9 +57,14 @@ export type RunRow = {
   test_version: number
   agent_version: string
   status: RunStatus
+  // The current attempt, 0 while queued for the first time; past ones are in attempts.
+  attempt: number
+  attempts: AttemptLogEntry[]
+  // When the run was requested; call_started_at is when its current attempt began.
   started_at: string
+  call_started_at: string | null
   ended_at: string | null
-  // Null until the run is graded.
+  // Null until the latest attempt is done and graded.
   outcome: Outcome | null
   reason: string | null
   judge_model: string | null
@@ -87,7 +100,11 @@ export type RunDetail = {
   id: string
   agent_version: string
   status: RunStatus
+  attempt: number
+  max_attempts: number
+  attempts: AttemptLogEntry[]
   started_at: string
+  call_started_at: string | null
   ended_at: string | null
   error: string | null
   test_id: string | null

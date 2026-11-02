@@ -50,7 +50,7 @@ export default function Verdict({ run, now, onRegraded }: VerdictProps) {
       <div className="flex items-center gap-3">
         <h2 className="text-base font-semibold">Verdict</h2>
         <OutcomeBadge run={{ outcome: latest?.outcome ?? null, ended_at: run.ended_at }} now={now} />
-        {run.status !== 'running' && (
+        {run.status === 'done' && (
           <Button variant="outline" size="sm" className="ml-auto" onClick={regrade} disabled={isRegrading}>
             {isRegrading ? 'Grading…' : 'Regrade'}
           </Button>

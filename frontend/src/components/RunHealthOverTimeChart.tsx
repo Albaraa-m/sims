@@ -1,4 +1,4 @@
-import { isAwaitingGrade } from '@/runs'
+import { isActive, isAwaitingGrade } from '@/runs'
 import type { RunRow } from '@/types'
 
 type Bucket = 'Completed' | 'Execution Failures' | 'Not Graded'
@@ -14,7 +14,7 @@ const DAY_MS = 24 * HOUR_MS
 const CHART_HEIGHT_PX = 120
 
 function bucketOfRun(run: RunRow, now: number): Bucket | null {
-  if (run.status === 'running' || isAwaitingGrade(run, now)) return null
+  if (isActive(run) || isAwaitingGrade(run, now)) return null
   if (run.outcome === 'execution_failed' || (run.status === 'failed' && run.outcome === null)) {
     return 'Execution Failures'
   }

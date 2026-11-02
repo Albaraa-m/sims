@@ -1,12 +1,26 @@
-import type { ExecutionFailureKind, Outcome, RunRow, RunStatus, TestStatus } from '@/types'
+import type { AttemptLogEntry, ExecutionFailureKind, Outcome, RunRow, RunStatus, TestStatus } from '@/types'
 
 export const startedAtFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
 export const RUN_STATUS_LABEL = {
+  queued: 'Queued',
   running: 'Running',
   done: 'Done',
-  failed: 'Failed',
+  // Never "Failed": that word is kept for the agent failing a test.
+  failed: "Couldn't Run",
+  cancelled: 'Cancelled',
 } as const satisfies Record<RunStatus, string>
+
+export const ATTEMPT_STATUS_LABEL = {
+  completed: 'Completed',
+  failed: 'Call Failed',
+  interrupted: 'Interrupted',
+} as const satisfies Record<AttemptLogEntry['status'], string>
+
+// Waiting or running: what the pages keep polling for.
+export function isActive(run: Pick<RunRow, 'status'>): boolean {
+  return run.status === 'queued' || run.status === 'running'
+}
 
 export const TEST_STATUS_LABEL = {
   draft: 'Draft',
@@ -14,15 +28,31 @@ export const TEST_STATUS_LABEL = {
 } as const satisfies Record<TestStatus, string>
 
 export const RUN_STATUS_BADGE_VARIANT = {
+  queued: 'outline',
   running: 'outline',
   done: 'secondary',
   failed: 'destructive',
+  cancelled: 'secondary',
 } as const satisfies Record<RunStatus, string>
 
-export function formatRunDuration(run: Pick<RunRow, 'started_at' | 'ended_at'>, now: number): string {
-  const end = run.ended_at ? Date.parse(run.ended_at) : now
-  const seconds = Math.max(0, Math.round((end - Date.parse(run.started_at)) / 1000))
+function formatSeconds(seconds: number): string {
   return `${Math.floor(seconds / 60)}m ${String(seconds % 60).padStart(2, '0')}s`
+}
+
+// The current attempt's call time; queue time isn't counted.
+export function formatRunDuration(
+  run: Pick<RunRow, 'status' | 'started_at' | 'call_started_at' | 'ended_at'>,
+  now: number,
+): string {
+  if (run.status === 'queued') return '–'
+  const start = Date.parse(run.call_started_at ?? run.started_at)
+  const end = run.ended_at ? Date.parse(run.ended_at) : now
+  return formatSeconds(Math.max(0, Math.round((end - start) / 1000)))
+}
+
+export function formatAttemptDuration(entry: AttemptLogEntry): string {
+  if (!entry.started_at || !entry.ended_at) return '–'
+  return formatSeconds(Math.max(0, Math.round((Date.parse(entry.ended_at) - Date.parse(entry.started_at)) / 1000)))
 }
 
 export const OUTCOME_LABEL = {

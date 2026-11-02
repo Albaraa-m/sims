@@ -6,7 +6,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import Verdict from '@/components/Verdict'
 import {
+  ATTEMPT_STATUS_LABEL,
   formatRunDuration,
+  isActive,
   isAwaitingGrade,
   RUN_STATUS_BADGE_VARIANT,
   RUN_STATUS_LABEL,
@@ -57,7 +59,7 @@ export default function RunPage() {
     )
   }, [runId])
 
-  const isRunning = run?.status === 'running'
+  const isRunning = run !== null && isActive(run)
   const outcome = run?.evaluations[0]?.outcome ?? null
   const isPolling = isRunning || (run !== null && isAwaitingGrade({ outcome, ended_at: run.ended_at }, loadedAt))
 
@@ -92,12 +94,29 @@ export default function RunPage() {
         <p className="text-sm text-muted-foreground">
           Agent {run.agent_version} · {startedAtFormat.format(new Date(run.started_at))} ·{' '}
           {formatRunDuration(run, loadedAt)}
+          {run.attempt > 0 && (
+            <>
+              {' '}
+              ·{' '}
+              {run.status === 'queued'
+                ? `Waiting for attempt ${run.attempt + 1} of ${run.max_attempts}`
+                : `Attempt ${run.attempt} of ${run.max_attempts}`}
+            </>
+          )}
         </p>
+        {run.attempts
+          .filter((entry) => entry.status !== 'completed')
+          .map((entry) => (
+            <p key={entry.attempt} className="text-sm text-muted-foreground">
+              Attempt {entry.attempt}: {ATTEMPT_STATUS_LABEL[entry.status]}
+              {entry.reason && <> ({entry.reason})</>}
+            </p>
+          ))}
       </div>
 
       {run.error && (
         <Alert variant="destructive">
-          <AlertTitle>The run failed</AlertTitle>
+          <AlertTitle>{run.status === 'failed' ? "The call couldn't run" : 'The last attempt failed'}</AlertTitle>
           <AlertDescription>{run.error}</AlertDescription>
         </Alert>
       )}
@@ -109,7 +128,7 @@ export default function RunPage() {
       <div className="space-y-3 text-sm">
         <h2 className="text-base font-semibold">Conversation</h2>
         {run.conversation.length === 0 ? (
-          <p className="text-muted-foreground">{isRunning ? 'The call is in progress.' : 'Nothing was said.'}</p>
+          <p className="text-muted-foreground">{run.status === 'queued' ? 'Waiting for a worker to place the call.' : isRunning ? 'The call is in progress.' : 'Nothing was said.'}</p>
         ) : (
           run.conversation.map((entry, turn) => (
             <ConversationLine key={turn} entry={entry} turn={turn} isCited={citedTurns.has(turn)} />
