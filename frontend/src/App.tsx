@@ -1,5 +1,6 @@
 import { BrowserRouter, NavLink, Route, Routes } from 'react-router'
 
+import DashboardPage from '@/pages/DashboardPage'
 import ResultsPage from '@/pages/ResultsPage'
 import RunPage from '@/pages/RunPage'
 import TestPage from '@/pages/TestPage'
@@ -12,6 +13,7 @@ export default function App() {
         {[
           { to: '/', label: 'Tests' },
           { to: '/results', label: 'Results' },
+          { to: '/dashboard', label: 'Dashboard' },
         ].map(({ to, label }) => (
           <NavLink
             key={to}
@@ -29,6 +31,7 @@ export default function App() {
           <Route path="/tests/:testId" element={<TestPage />} />
           <Route path="/runs/:runId" element={<RunPage />} />
           <Route path="/results" element={<ResultsPage />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
         </Routes>
       </main>
     </BrowserRouter>
