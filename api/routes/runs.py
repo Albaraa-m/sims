@@ -13,7 +13,7 @@ from evaluations.evaluate import evaluate_simulation
 from evaluations.execution import find_execution_failure
 from evaluations.models import Outcome
 from regression_tests.crud import get_test, list_test_runs
-from regression_tests.models import Test
+from regression_tests.models import Test, TestSpec
 from simulations.conversation import conversation_of_simulation
 from simulations.crud import get_simulation
 from simulations.models import Simulation, SimulationStatus
@@ -111,6 +111,7 @@ def get_test_or_404(test_id: str) -> Test:
 def read_run(run_id: str) -> RunDetail:
     simulation = get_simulation_or_404(run_id)
     test = get_test(simulation.test_id) if simulation.test_id else None
+    spec = TestSpec.model_validate(test.spec) if test else None
     return RunDetail(
         id=simulation.id,
         agent_version=simulation.agent_version,
@@ -127,6 +128,8 @@ def read_run(run_id: str) -> RunDetail:
         test_id=test and test.id,
         test_name=test and test.name,
         test_version=test and test.version,
+        policy_under_test=spec and spec.policy_under_test,
+        expected_outcome=spec and spec.expected_outcome,
         conversation=conversation_of_simulation(simulation),
         has_recording=simulation.recording_path is not None,
         evaluations=[

@@ -118,6 +118,9 @@ export type RunDetail = {
   test_id: string | null
   test_name: string | null
   test_version: number | null
+  // What the judge grades against, from the test's spec.
+  policy_under_test: string | null
+  expected_outcome: string | null
   conversation: ConversationEntry[]
   has_recording: boolean
   // Newest first; the first one is the run's current outcome.
