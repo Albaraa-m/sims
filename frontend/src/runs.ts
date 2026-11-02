@@ -1,4 +1,4 @@
-import type { Outcome, RunRow, RunStatus } from '@/types'
+import type { ExecutionFailureKind, Outcome, RunRow, RunStatus } from '@/types'
 
 export const startedAtFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
 
@@ -27,6 +27,15 @@ export const OUTCOME_BADGE_VARIANT = {
   inconclusive: 'outline',
   execution_failed: 'secondary',
 } as const satisfies Record<Outcome, string>
+
+export const EXECUTION_FAILURE_KIND_LABEL = {
+  call_failed: 'call failed',
+  call_unfinished: "call didn't finish",
+  no_report: 'no session report',
+  no_recording: 'no recording',
+  agent_silent: 'agent never spoke',
+  caller_silent: 'caller never spoke',
+} as const satisfies Record<ExecutionFailureKind, string>
 
 // Grading starts when the call ends and takes seconds; ungraded runs older than this
 // predate the evaluator rather than waiting for it.

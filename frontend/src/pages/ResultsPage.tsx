@@ -3,38 +3,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { listRunsOfAllTests, listTests } from '@/api'
 import OutcomeBadge from '@/components/OutcomeBadge'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import Filter from '@/components/Filter'
+import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { OUTCOME_LABEL, startedAtFormat } from '@/runs'
-import type { Outcome, RunRow, TestRow } from '@/types'
-
-// Radix Select can't hold an empty value, so "no filter" needs its own.
-const ANY = 'any'
-
-type FilterProps = {
-  label: string
-  value: string
-  options: { value: string; label: string }[]
-  onChange: (value: string) => void
-}
-
-function Filter({ label, value, options, onChange }: FilterProps) {
-  return (
-    <Select value={value || ANY} onValueChange={(selected) => onChange(selected === ANY ? '' : selected)}>
-      <SelectTrigger size="sm" aria-label={label}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value={ANY}>Any {label.toLowerCase()}</SelectItem>
-        {options.map((option) => (
-          <SelectItem key={option.value} value={option.value}>
-            {option.label}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-  )
-}
+import { EXECUTION_FAILURE_KIND_LABEL, OUTCOME_LABEL, startedAtFormat } from '@/runs'
+import type { ExecutionFailureKind, Outcome, RunRow, TestRow } from '@/types'
 
 export default function ResultsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -48,6 +21,9 @@ export default function ResultsPage() {
     test_id: searchParams.get('test_id') ?? '',
     agent_version: searchParams.get('agent_version') ?? '',
     outcome: searchParams.get('outcome') ?? '',
+    // Filtered here rather than by the API; the dashboard links to these.
+    test_version: searchParams.get('test_version') ?? '',
+    execution_failure_kind: searchParams.get('execution_failure_kind') ?? '',
   }
   const setFilter = (name: keyof typeof filters, value: string) => {
     const next = new URLSearchParams(searchParams)
@@ -71,6 +47,11 @@ export default function ResultsPage() {
   }, [searchParams])
 
   const outcomes = Object.entries(OUTCOME_LABEL) as [Outcome, string][]
+  const shownRuns = runs?.filter(
+    (run) =>
+      (!filters.test_version || String(run.test_version) === filters.test_version) &&
+      (!filters.execution_failure_kind || run.execution_failure_kind === filters.execution_failure_kind),
+  )
   return (
     <section className="space-y-4">
       <h1 className="text-xl font-semibold">Results</h1>
@@ -93,10 +74,20 @@ export default function ResultsPage() {
           options={outcomes.map(([value, label]) => ({ value, label }))}
           onChange={(value) => setFilter('outcome', value)}
         />
+        {filters.test_version && (
+          <Button variant="outline" size="sm" onClick={() => setFilter('test_version', '')}>
+            Test version {filters.test_version} ✕
+          </Button>
+        )}
+        {filters.execution_failure_kind && (
+          <Button variant="outline" size="sm" onClick={() => setFilter('execution_failure_kind', '')}>
+            {EXECUTION_FAILURE_KIND_LABEL[filters.execution_failure_kind as ExecutionFailureKind]} ✕
+          </Button>
+        )}
       </div>
       {loadError && <p className="text-sm text-destructive">Couldn't load results: {loadError}</p>}
-      {runs && runs.length === 0 && <p className="text-sm text-muted-foreground">No runs match these filters.</p>}
-      {runs && runs.length > 0 && (
+      {shownRuns && shownRuns.length === 0 && <p className="text-sm text-muted-foreground">No runs match these filters.</p>}
+      {shownRuns && shownRuns.length > 0 && (
         <Table>
           <TableHeader>
             <TableRow>
@@ -108,7 +99,7 @@ export default function ResultsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {runs.map((run) => (
+            {shownRuns.map((run) => (
               <TableRow key={run.id} onClick={() => navigate(`/runs/${run.id}`)} className="cursor-pointer">
                 <TableCell className="font-mono">
                   <Link to={`/runs/${run.id}`}>{run.id}</Link>
