@@ -1,6 +1,6 @@
 import asyncio
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from swarms.generate import (
     describe_agent_tools,
@@ -9,54 +9,51 @@ from swarms.generate import (
     instructions_of_agent_version,
 )
 from swarms.models import Scenario
-from swarms.split import split_test_count_across_policies
+
+# Past about 3, scenarios for one policy start repeating each other.
+MAX_TESTS_PER_POLICY = 3
+MAX_TESTS_PER_SWARM = 40
+
+
+class PolicyTestCount(BaseModel):
+    policy: str
+    count: int = Field(ge=1, le=MAX_TESTS_PER_POLICY)
 
 
 class SwarmProposal(BaseModel):
     agent_version: str
+    # Only the policies the reviewer chose; each has at least one test.
     policies: list[str]
     scenarios: list[Scenario]
     warnings: list[str]
 
 
-def warnings_for_proposal(
-    counts: dict[str, int], scenarios_by_policy: list[list[Scenario]]
-) -> list[str]:
-    untested = [policy for policy, count in counts.items() if count == 0]
-    short = [
-        policy
-        for (policy, count), scenarios in zip(
-            counts.items(), scenarios_by_policy, strict=True
-        )
-        if 0 < len(scenarios) < count
-    ]
-    warnings = []
-    if untested:
-        warnings.append(
-            f"{len(untested)} of {len(counts)} policies have no tests. Ask for at least "
-            f"{len(counts)} tests to cover every policy."
-        )
-    if short:
-        warnings.append(f"Fewer scenarios than asked for: {'; '.join(short)}")
-    return warnings
-
-
-async def propose_swarm(agent_version: str, test_count: int) -> SwarmProposal:
-    """Generates a swarm for the reviewer to edit; nothing is saved."""
-    instructions = instructions_of_agent_version(agent_version)
-    policies = await extract_policies_from_agent_instructions(
-        instructions, describe_agent_tools(agent_version)
+async def find_policies_of_agent_version(agent_version: str) -> list[str]:
+    return await extract_policies_from_agent_instructions(
+        instructions_of_agent_version(agent_version),
+        describe_agent_tools(agent_version),
     )
-    counts = split_test_count_across_policies(test_count, policies)
+
+
+async def propose_swarm(
+    agent_version: str, test_counts: list[PolicyTestCount]
+) -> SwarmProposal:
+    """Writes the chosen number of tests for each chosen policy; nothing is saved."""
+    instructions = instructions_of_agent_version(agent_version)
     scenarios_by_policy = await asyncio.gather(
         *(
-            generate_scenarios_for_policy(policy, instructions, count)
-            for policy, count in counts.items()
+            generate_scenarios_for_policy(chosen.policy, instructions, chosen.count)
+            for chosen in test_counts
         )
     )
+    short = [
+        chosen.policy
+        for chosen, scenarios in zip(test_counts, scenarios_by_policy, strict=True)
+        if len(scenarios) < chosen.count
+    ]
     return SwarmProposal(
         agent_version=agent_version,
-        policies=policies,
+        policies=[chosen.policy for chosen in test_counts],
         scenarios=[s for scenarios in scenarios_by_policy for s in scenarios],
-        warnings=warnings_for_proposal(counts, scenarios_by_policy),
+        warnings=[f"Fewer tests than asked for: {'; '.join(short)}"] if short else [],
     )

@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import NoResultFound
 
 from api.schemas import (
+    FindPoliciesRequest,
+    FoundPolicies,
     GenerateSwarmRequest,
     SaveSwarmRequest,
     SwarmDetail,
@@ -12,7 +14,11 @@ from regression_tests.crud import list_latest_tests
 from swarms.crud import get_swarm, list_swarms, save_swarm_with_tests
 from swarms.generate import GenerationError
 from swarms.models import Swarm
-from swarms.propose import SwarmProposal, propose_swarm
+from swarms.propose import (
+    SwarmProposal,
+    find_policies_of_agent_version,
+    propose_swarm,
+)
 
 router = APIRouter(prefix="/api/swarms")
 
@@ -27,11 +33,21 @@ def build_swarm_row(swarm: Swarm) -> SwarmRow:
     )
 
 
+@router.post("/policies")
+async def find_policies(request: FindPoliciesRequest) -> FoundPolicies:
+    """The policies in an agent version's instructions, for the reviewer to choose from."""
+    try:
+        policies = await find_policies_of_agent_version(request.agent_version)
+    except GenerationError as error:
+        raise HTTPException(status_code=502, detail=str(error))
+    return FoundPolicies(agent_version=request.agent_version, policies=policies)
+
+
 @router.post("/generate")
 async def generate_swarm_proposal(request: GenerateSwarmRequest) -> SwarmProposal:
-    """Returns scenarios for the reviewer to edit; nothing is saved."""
+    """Returns tests for the reviewer to edit; nothing is saved."""
     try:
-        return await propose_swarm(request.agent_version, request.test_count)
+        return await propose_swarm(request.agent_version, request.test_counts)
     except GenerationError as error:
         raise HTTPException(status_code=502, detail=str(error))
 
