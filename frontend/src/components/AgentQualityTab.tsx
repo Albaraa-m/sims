@@ -6,7 +6,7 @@ import { buildSuiteRows, MIN_RUNS_TO_RELY_ON, resultsUrl } from '@/dashboard'
 import type { RunRow } from '@/types'
 
 // The agent read as a test suite: each test counts once per version, by its runs' status.
-export default function AgentQualityTab({ runs }: { runs: RunRow[] }) {
+export default function AgentQualityTab({ runs, scope }: { runs: RunRow[]; scope: string }) {
   const agentVersions = [...new Set(runs.map((run) => run.agent_version))].sort()
   const rows = buildSuiteRows(runs, agentVersions)
   const hasChange = agentVersions.length >= 2
@@ -74,7 +74,7 @@ export default function AgentQualityTab({ runs }: { runs: RunRow[] }) {
           Each test counts once per agent version, at its latest version. Passing: every graded run passed. Flaky: some
           passed. Failing: none did. "Few runs" marks fewer than {MIN_RUNS_TO_RELY_ON} graded runs, too few to rely on.
           Only passes and fails count; execution failures and inconclusive runs are on System health.{' '}
-          <Link to={resultsUrl({ outcome: 'fail' })} className="underline">
+          <Link to={resultsUrl({ scope, outcome: 'fail' })} className="underline">
             See every failed run
           </Link>
           .
