@@ -53,3 +53,34 @@ class Simulation(SQLModel, table=True):
     def room_name(self) -> str:
         # One room per attempt, so a retry never shares a room with a dead attempt's agents.
         return f"sim-{self.id}-{self.attempt}"
+
+
+class WorkerProcess(SQLModel, table=True):
+    """A running worker, so the website can list workers and stop one to test recovery."""
+
+    id: str = Field(primary_key=True)
+    host: str
+    pid: int
+    max_calls: int
+    calls_running: int = 0
+    started_at: datetime = Field(default_factory=now)
+    # Refreshed every loop; a worker silent for long is dead even if its row remains.
+    heartbeat_at: datetime = Field(default_factory=now)
+
+
+class QueueSettings(SQLModel, table=True):
+    """One row of settings every worker reads while running."""
+
+    id: int = Field(default=1, primary_key=True)
+    # Share of attempts that fail before placing a call, to show retries working.
+    fail_rate: float = 0.0
+
+
+class RefusedStart(SQLModel, table=True):
+    """A start the queue refused; kept so refusals can be counted, not just shown once."""
+
+    id: str = Field(default_factory=new_id, primary_key=True)
+    refused_at: datetime = Field(default_factory=now)
+    requested: int
+    already_active: int
+    swarm_id: str | None = None

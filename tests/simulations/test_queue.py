@@ -14,8 +14,11 @@ from simulations.queue import (
     claim_next_run,
     fail_attempt,
     finish_attempt_with_evidence,
+    get_fail_rate,
+    list_refused_starts,
     reap_expired_leases,
     renew_lease,
+    set_fail_rate,
 )
 
 
@@ -111,3 +114,21 @@ def test_cancel_stops_waiting_and_running_calls():
         SimulationStatus.CANCELLED
     }
     assert not finish_attempt_with_evidence(running.id, 1, {}, None)
+
+
+def test_a_refused_start_is_recorded():
+    queue(MAX_QUEUED_RUNS)
+
+    with pytest.raises(QueueFullError):
+        queue(1)
+
+    [refused] = list_refused_starts(now() - timedelta(minutes=1))
+    assert (refused.requested, refused.already_active) == (1, MAX_QUEUED_RUNS)
+
+
+def test_the_fail_rate_is_shared_through_the_database():
+    assert get_fail_rate() == 0.0
+
+    set_fail_rate(0.3)
+
+    assert get_fail_rate() == 0.3

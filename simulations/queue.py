@@ -5,7 +5,7 @@ a worker that comes back late can't overwrite a retry or a cancel.
 """
 
 import os
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import NamedTuple
 
 from sqlalchemy import CursorResult, func, update
@@ -13,7 +13,12 @@ from sqlmodel import Session, col, select
 
 from core import db
 from core.config import now
-from simulations.models import Simulation, SimulationStatus
+from simulations.models import (
+    QueueSettings,
+    RefusedStart,
+    Simulation,
+    SimulationStatus,
+)
 
 # Overridable from the environment, so a load test can show admission at a small cap.
 MAX_QUEUED_RUNS = int(os.getenv("SIMS_MAX_QUEUED_RUNS", "50"))
@@ -52,6 +57,12 @@ def admit_runs(
     with Session(db.engine) as session:
         active = count_active_runs(session)
         if active + len(requests) > MAX_QUEUED_RUNS:
+            session.add(
+                RefusedStart(
+                    requested=len(requests), already_active=active, swarm_id=swarm_id
+                )
+            )
+            session.commit()
             raise QueueFullError(
                 f"{len(requests)} runs would exceed the queue limit of "
                 f"{MAX_QUEUED_RUNS} ({active} already waiting or running)"
@@ -258,3 +269,27 @@ def cancel_runs(swarm_id: str) -> list[str]:
             session.add(simulation)
         session.commit()
     return rooms
+
+
+def get_fail_rate() -> float:
+    with Session(db.engine) as session:
+        settings = session.get(QueueSettings, 1)
+        return settings.fail_rate if settings else 0.0
+
+
+def set_fail_rate(fail_rate: float) -> None:
+    with Session(db.engine) as session:
+        settings = session.get(QueueSettings, 1) or QueueSettings()
+        settings.fail_rate = fail_rate
+        session.add(settings)
+        session.commit()
+
+
+def list_refused_starts(since: datetime) -> list[RefusedStart]:
+    with Session(db.engine) as session:
+        query = (
+            select(RefusedStart)
+            .where(col(RefusedStart.refused_at) >= since)
+            .order_by(col(RefusedStart.refused_at).desc())
+        )
+        return list(session.exec(query))
