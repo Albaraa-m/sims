@@ -69,7 +69,14 @@ def list_runs(
         build_run_row(simulation, test)
         for simulation, test in list_test_runs(lineage_id, agent_version)
     ]
-    return [row for row in rows if outcome is None or row.outcome == outcome]
+    return [row for row in rows if outcome is None or has_outcome(row, outcome)]
+
+
+def has_outcome(row: RunRow, outcome: Outcome) -> bool:
+    """A run that couldn't run has no grade, but counts as an execution failure."""
+    if outcome == Outcome.EXECUTION_FAILED and row.status == SimulationStatus.FAILED:
+        return True
+    return row.outcome == outcome
 
 
 def get_test_or_404(test_id: str) -> Test:

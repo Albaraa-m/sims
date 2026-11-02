@@ -150,3 +150,15 @@ def test_a_retried_run_shows_its_attempts_and_only_the_last_grade(client):
 
     assert (run["status"], run["attempt"]) == ("queued", 1)
     assert [entry["status"] for entry in run["attempts"]] == ["failed"]
+
+
+def test_a_run_that_could_not_run_is_listed_as_an_execution_failure(
+    client, source_conversation, spec
+):
+    test = create_test_from_spec(source_conversation, "Unconfirmed", spec)
+    broken = create_simulation("v2", test.id)
+    update_simulation(broken.id, status=SimulationStatus.FAILED, error="timeout")
+
+    rows = client.get("/api/runs", params={"outcome": "execution_failed"}).json()
+
+    assert [row["id"] for row in rows] == [broken.id]
