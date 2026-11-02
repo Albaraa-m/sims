@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from livekit.agents import AgentServer, JobContext, cli
 
 from agents.booking.agent import BookingAgent
-from agents.booking.store import default_store
+from agents.booking.planted_bugs import store_for_agent_version
 from agents.dispatch import BOOKING_AGENT
 from agents.voice import start_voice_session
 from simulations.evidence import write_evidence
@@ -37,7 +37,7 @@ async def entrypoint(ctx: JobContext):
     settings = json.loads(ctx.job.metadata or "{}")
     version = settings.get("version", os.getenv("AGENT_VERSION", "v2"))
     session = await start_voice_session(
-        ctx, BookingAgent(default_store(), version), VOICE, record=True
+        ctx, BookingAgent(store_for_agent_version(version), version), VOICE, record=True
     )
     await session.generate_reply(instructions="Greet the caller and offer your help.")
 
