@@ -7,11 +7,11 @@ import { type ComparisonRow, resultsUrl } from '@/dashboard'
 
 const ROWS_SHOWN_BEFORE_SHOW_ALL = 10
 
-export default function StillFailingTable({ rows }: { rows: ComparisonRow[] }) {
+export default function FailuresTable({ rows }: { rows: ComparisonRow[] }) {
   const [isShowingAll, setIsShowingAll] = useState(false)
   const navigate = useNavigate()
 
-  // Newest agent version first, so "what still fails now" is at the top.
+  // Newest agent version first, so failures of the current agent are at the top.
   const failingCells = rows
     .flatMap((row) =>
       Object.entries(row.cells).map(([agentVersion, cell]) => ({ row, agentVersion, cell })),
@@ -25,13 +25,13 @@ export default function StillFailingTable({ rows }: { rows: ComparisonRow[] }) {
 
   return (
     <>
-      <Table className="table-fixed">
+      <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-64">Test</TableHead>
-            <TableHead className="w-16">Agent</TableHead>
-            <TableHead className="w-16">Fails</TableHead>
-            <TableHead>Latest reason</TableHead>
+            <TableHead>Test</TableHead>
+            <TableHead>Agent</TableHead>
+            <TableHead>Fails</TableHead>
+            <TableHead>Why it failed</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -54,19 +54,17 @@ export default function StillFailingTable({ rows }: { rows: ComparisonRow[] }) {
                   )
                 }
               >
-                <TableCell className="truncate">
+                <TableCell className="align-top">
                   {row.testName}{' '}
                   <span className="text-muted-foreground">
                     v{row.testVersion} · <span className="font-mono">{row.testId}</span>
                   </span>
                 </TableCell>
-                <TableCell>{agentVersion}</TableCell>
-                <TableCell className="tabular-nums">
+                <TableCell className="align-top">{agentVersion}</TableCell>
+                <TableCell className="align-top tabular-nums">
                   {fail}/{pass + fail}
                 </TableCell>
-                <TableCell className="truncate" title={latestFailedRun?.reason ?? undefined}>
-                  {latestFailedRun?.reason}
-                </TableCell>
+                <TableCell className="whitespace-normal">{latestFailedRun?.reason}</TableCell>
               </TableRow>
             )
           })}

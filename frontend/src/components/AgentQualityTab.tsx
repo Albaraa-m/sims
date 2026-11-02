@@ -1,6 +1,6 @@
 import { Link } from 'react-router'
 
-import StillFailingTable from '@/components/StillFailingTable'
+import FailuresTable from '@/components/FailuresTable'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
   type ComparisonCell,
@@ -102,8 +102,13 @@ export default function AgentQualityTab({ runs, judge }: { runs: RunRow[]; judge
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-base font-semibold">Still failing</h2>
-        <StillFailingTable rows={rows} />
+        <div>
+          <h2 className="text-base font-semibold">Failures</h2>
+          <p className="text-sm text-muted-foreground">
+            Each test and agent version with failed runs. When a row has several, the most recent one explains it.
+          </p>
+        </div>
+        <FailuresTable rows={rows} />
       </div>
     </>
   )
