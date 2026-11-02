@@ -1,6 +1,6 @@
 # Evaluator benchmark cases
 
-Each case is what `evaluate_simulation` reads, plus the right answer, written before grading.
+Each case is what `evaluate_simulation` reads, plus the right answer, written before grading. Folders are named `<number>_<expected outcome>_<what happens>`.
 
 | File | Holds |
 |---|---|
