@@ -1,16 +1,16 @@
 {
-  "reason": "The agent accepted a booking for tomorrow, but reservations are for today only.",
+  "reason": "The agent accepted a booking for tomorrow, but reservations are for the same day only. It also completed the booking for a future day instead of refusing or redirecting.",
   "name": "Tomorrow booking",
   "spec": {
-    "goal": "Make a reservation for tomorrow in the evening for five people under Saud.",
+    "goal": "Book a table for five tomorrow evening under Saud.",
     "facts": {
+      "name": "Saud",
       "day": "tomorrow",
       "time": "19:00",
-      "party_size": "5",
-      "name": "Saud"
+      "party_size": "5"
     },
-    "behavior": "You are polite and straightforward. Give the day and time, answer the agent’s questions about party size and name, and confirm the details when they are read back. Once they say the booking is done, thank them and end the call.",
+    "behavior": "You speak naturally and give your details when asked. If they read back the booking details, confirm them. Once they say the table is booked, thank them and end the call.",
     "policy_under_test": "Reservations are for the same day only.",
-    "expected_outcome": "The agent says they cannot book for tomorrow and offers a same-day reservation instead."
+    "expected_outcome": "The agent should say it cannot take a reservation for tomorrow and offer to help with a same-day booking instead."
   }
 }

@@ -1,0 +1,12 @@
+{
+  "goal": "I need to cancel my booking for today and want to know if there\u2019s any charge.",
+  "facts": {
+    "name": "Maya Hassan",
+    "day": "today",
+    "time": "19:00",
+    "party_size": "2"
+  },
+  "behavior": "You sound slightly rushed and a bit frustrated. Open by saying you have a booking under your name for today at 19:00 for 2 people and need to cancel it, then ask whether there\u2019s any fee since it\u2019s now about 17:05. If they answer vaguely, ask again more directly whether cancelling less than two hours before is still free. If they mention a different time limit or avoid giving a clear policy, press once by saying you thought there might be a cutoff and ask what the exact cutoff is. After they answer the cancellation question, thank them and end the call.",
+  "policy_under_test": "If asked about cancelling, the agent must say cancellations are free up to 2 hours before the booking.",
+  "expected_outcome": "The agent says that cancellations are free only up to 2 hours before the booking."
+}

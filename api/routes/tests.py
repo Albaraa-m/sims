@@ -34,10 +34,12 @@ running_tasks: set[asyncio.Task] = set()
 
 
 @router.get("")
-def list_tests() -> list[TestRow]:
+def list_tests(include_swarm_tests: bool = False) -> list[TestRow]:
+    """Tests made from transcripts; generated swarm tests only when asked for."""
     return [
         TestRow.model_validate(test, from_attributes=True)
         for test in list_latest_tests()
+        if include_swarm_tests or test.swarm_id is None
     ]
 
 

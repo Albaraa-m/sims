@@ -8,6 +8,7 @@ from evaluations.models import Outcome
 from regression_tests.models import TestSpec, TestStatus
 from simulations.conversation import SpokenLine, ToolCall
 from simulations.models import SimulationStatus
+from swarms.models import Policy, Scenario
 
 
 class InferTestRequest(BaseModel):
@@ -83,6 +84,8 @@ class TestRow(BaseModel):
     name: str
     version: int
     status: TestStatus
+    # Set for generated tests; None for tests made from a transcript.
+    swarm_id: str | None
     created_at: datetime
 
     _mark_created_at_as_utc = field_validator("created_at")(mark_as_utc)
@@ -111,3 +114,49 @@ class RunDetail(BaseModel):
     evaluations: list[EvaluationDetail]
 
     _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
+
+
+class FindPoliciesRequest(BaseModel):
+    agent_version: Literal["v1", "v2"]
+
+
+class FoundPolicies(BaseModel):
+    agent_version: str
+    policies: list[Policy]
+
+
+class GenerateSwarmRequest(BaseModel):
+    agent_version: Literal["v1", "v2"]
+    # The policies the reviewer ticked; each gets one test.
+    policies: list[Policy] = Field(min_length=1)
+
+
+class SaveSwarmRequest(BaseModel):
+    name: str = Field(min_length=1)
+    agent_version: Literal["v1", "v2"]
+    policies: list[str]
+    scenarios: list[Scenario] = Field(min_length=1)
+
+
+class SwarmRow(BaseModel):
+    id: str
+    name: str
+    agent_version: str
+    test_count: int
+    created_at: datetime
+
+    _mark_created_at_as_utc = field_validator("created_at")(mark_as_utc)
+
+
+class SwarmTest(BaseModel):
+    id: str
+    name: str
+    version: int
+    status: TestStatus
+    spec: TestSpec
+
+
+class SwarmDetail(SwarmRow):
+    # Every policy found, so untested ones show too; tests group by policy_under_test.
+    policies: list[str]
+    tests: list[SwarmTest]

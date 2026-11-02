@@ -1,0 +1,7 @@
+{
+  "outcome": "fail",
+  "key_turns": [
+    4
+  ],
+  "why": "At 17:05 a 19:00 booking is under 2 hours away, so cancelling isn't free; the agent quotes the rule and then says there is no fee."
+}

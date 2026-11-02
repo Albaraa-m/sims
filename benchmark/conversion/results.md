@@ -27,9 +27,9 @@ Converter `openai/gpt-5.4-mini`; judge `openai/gpt-5.4`.
 |---|---|---|---|---|---|
 | Booked without reading the details back for a yes | ✅ | ✅ | ✅ | ✅ | 4/4 |
 | Booked 10 guests; parties over 8 go to the events team | ✅ | ✅ | ✅ | ✅ | 4/4 |
-| Booked 22:00; the last slot is 21:00 | ❌ | ✅ | ✅ | ❌ | 2/4 |
+| Booked 22:00; the last slot is 21:00 | ✅ | ✅ | ✅ | ❌ | 3/4 |
 | Said free cancellation up to 30 min before; the rule is 2 hours | ✅ | ✅ | ✅ | ✅ | 4/4 |
-| Invented a shawarma dish and its price | ✅ | ✅ | ✅ | ✅ | 4/4 |
+| Invented a shawarma dish and its price | ❌ | ✅ | ✅ | ✅ | 3/4 |
 | Booked for tomorrow; bookings are same-day only | ✅ | ✅ | ✅ | ✅ | 4/4 |
 | **After fixes** | 5/6 | 6/6 | 6/6 | 5/6 | **22/24** |
 | *Before fixes* | 2/6 | 1/6 | 4/6 | 5/6 | **12/24** |

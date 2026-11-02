@@ -78,14 +78,15 @@ def edit_test(test_id: str, name: str | None = None, **changes) -> Test:
             # Editing an older version still yields a new, unique latest version.
             version=latest_version(current.lineage_id) + 1,
             source_conversation_id=current.source_conversation_id,
+            swarm_id=current.swarm_id,
             spec=spec.model_dump(),
             inferred=current.inferred,
         )
     )
 
 
-def list_latest_tests() -> list[Test]:
-    """The latest version of each test, newest test first."""
+def list_latest_tests(swarm_id: str | None = None) -> list[Test]:
+    """The latest version of each test, newest test first; only a swarm's if given."""
     with Session(db.engine) as session:
         latest = (
             select(Test.lineage_id, func.max(Test.version).label("version"))
@@ -101,6 +102,8 @@ def list_latest_tests() -> list[Test]:
             )
             .order_by(col(Test.created_at).desc())
         )
+        if swarm_id is not None:
+            query = query.where(Test.swarm_id == swarm_id)
         return list(session.exec(query))
 
 

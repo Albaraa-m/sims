@@ -9,9 +9,10 @@ type TestFieldsEditorProps = {
   onChange: (fields: TestFields) => void
   // What the AI suggested, to label each field; null when it suggested nothing.
   aiFields: TestFields | null
+  aiLabel?: string
 }
 
-export default function TestFieldsEditor({ fields, onChange, aiFields }: TestFieldsEditorProps) {
+export default function TestFieldsEditor({ fields, onChange, aiFields, aiLabel }: TestFieldsEditorProps) {
   function updateField<K extends keyof TestFields>(field: K, value: TestFields[K]) {
     onChange({ ...fields, [field]: value })
   }
@@ -24,20 +25,21 @@ export default function TestFieldsEditor({ fields, onChange, aiFields }: TestFie
 
   return (
     <>
-      <InferredField id="name" label="Name" {...inferenceOf('name')}>
+      <InferredField aiLabel={aiLabel} id="name" label="Name" {...inferenceOf('name')}>
         <Input id="name" value={fields.name} onChange={(event) => updateField('name', event.target.value)} />
       </InferredField>
-      <InferredField id="goal" label="Goal" {...inferenceOf('goal')}>
+      <InferredField aiLabel={aiLabel} id="goal" label="Goal" {...inferenceOf('goal')}>
         <Textarea id="goal" rows={2} value={fields.goal} onChange={(event) => updateField('goal', event.target.value)} />
       </InferredField>
       <InferredField
+        aiLabel={aiLabel}
         label="Facts"
         aiVersion={aiFields && factsAsText(aiFields.facts)}
         isEdited={aiFields !== null && JSON.stringify(fields.facts) !== JSON.stringify(aiFields.facts)}
       >
         <FactsEditor rows={fields.facts} onChange={(rows) => updateField('facts', rows)} />
       </InferredField>
-      <InferredField id="behavior" label="Behavior" {...inferenceOf('behavior')}>
+      <InferredField aiLabel={aiLabel} id="behavior" label="Behavior" {...inferenceOf('behavior')}>
         <Textarea
           id="behavior"
           rows={3}
@@ -45,7 +47,7 @@ export default function TestFieldsEditor({ fields, onChange, aiFields }: TestFie
           onChange={(event) => updateField('behavior', event.target.value)}
         />
       </InferredField>
-      <InferredField id="policy-under-test" label="Policy under test" {...inferenceOf('policy_under_test')}>
+      <InferredField aiLabel={aiLabel} id="policy-under-test" label="Policy under test" {...inferenceOf('policy_under_test')}>
         <Textarea
           id="policy-under-test"
           rows={2}
@@ -53,7 +55,7 @@ export default function TestFieldsEditor({ fields, onChange, aiFields }: TestFie
           onChange={(event) => updateField('policy_under_test', event.target.value)}
         />
       </InferredField>
-      <InferredField id="expected-outcome" label="Expected outcome" {...inferenceOf('expected_outcome')}>
+      <InferredField aiLabel={aiLabel} id="expected-outcome" label="Expected outcome" {...inferenceOf('expected_outcome')}>
         <Textarea
           id="expected-outcome"
           rows={2}

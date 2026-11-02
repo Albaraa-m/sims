@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { listRuns, listTestVersions, markTestReady, readTest } from '@/api'
+import { listRuns, listTestVersions, markTestReady, readSwarm, readTest } from '@/api'
 import EditTestDialog from '@/components/EditTestDialog'
 import RunControls from '@/components/RunControls'
 import OutcomeSummary from '@/components/OutcomeSummary'
@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { isAwaitingGrade, TEST_STATUS_LABEL } from '@/runs'
-import type { RunRow, TestDetail, TestRow } from '@/types'
+import type { RunRow, SwarmDetail, TestDetail, TestRow } from '@/types'
 
 const POLL_INTERVAL_MS = 3000
 // Started runs take a moment to appear, so keep polling briefly even if none is running yet.
@@ -37,6 +37,7 @@ export default function TestPage() {
   const { testId } = useParams()
   const [test, setTest] = useState<TestDetail | null>(null)
   const [versions, setVersions] = useState<TestRow[]>([])
+  const [swarm, setSwarm] = useState<SwarmDetail | null>(null)
   const [runs, setRuns] = useState<RunRow[]>([])
   const [lastStartedAt, setLastStartedAt] = useState(0)
   const [now, setNow] = useState(() => Date.now())
@@ -49,6 +50,11 @@ export default function TestPage() {
     readTest(testId).then(setTest, (error: Error) => setLoadError(error.message))
     listTestVersions(testId).then(setVersions, (error: Error) => setLoadError(error.message))
   }, [testId])
+
+  const swarmId = test?.swarm_id
+  useEffect(() => {
+    if (swarmId) readSwarm(swarmId).then(setSwarm, (error: Error) => setLoadError(error.message))
+  }, [swarmId])
 
   const loadRuns = useCallback(() => {
     if (testId) listRuns(testId).then(setRuns, (error: Error) => setLoadError(error.message))
@@ -74,6 +80,7 @@ export default function TestPage() {
 
   const { spec, inferred } = test
   const latestVersion = versions.at(-1)
+  const aiLabel = test.swarm_id ? 'Generated' : 'Inferred'
   return (
     <section className="space-y-6">
       <div className="space-y-2">
@@ -102,6 +109,14 @@ export default function TestPage() {
             </SelectContent>
           </Select>
           <span className="font-mono">{test.id}</span>
+          {swarm && (
+            <span>
+              · From swarm{' '}
+              <Link to={`/swarms/${swarm.id}`} className="underline">
+                {swarm.name}
+              </Link>
+            </span>
+          )}
         </div>
         {latestVersion && latestVersion.id !== test.id && (
           <p className="text-sm text-muted-foreground">
@@ -146,14 +161,15 @@ export default function TestPage() {
           <h2 className="text-base font-semibold">Scenario</h2>
           <p className="text-sm text-muted-foreground">What the simulated caller is told.</p>
         </div>
-        <SpecField label="Goal" value={spec.goal} inferredValue={inferred?.goal} />
+        <SpecField aiLabel={aiLabel} label="Goal" value={spec.goal} inferredValue={inferred?.goal} />
         <SpecField
+          aiLabel={aiLabel}
           label="Facts"
           value={<FactsList facts={spec.facts} />}
           inferredValue={inferred && <FactsList facts={inferred.facts} />}
           isEdited={inferred !== null && JSON.stringify(spec.facts) !== JSON.stringify(inferred.facts)}
         />
-        <SpecField label="Behavior" value={spec.behavior} inferredValue={inferred?.behavior} />
+        <SpecField aiLabel={aiLabel} label="Behavior" value={spec.behavior} inferredValue={inferred?.behavior} />
       </section>
 
       <section className="space-y-4 rounded-lg border bg-muted/40 p-4">
@@ -162,11 +178,13 @@ export default function TestPage() {
           <p className="text-sm text-muted-foreground">Hidden from the caller. Used to grade each call.</p>
         </div>
         <SpecField
+          aiLabel={aiLabel}
           label="Policy under test"
           value={spec.policy_under_test}
           inferredValue={inferred?.policy_under_test}
         />
         <SpecField
+          aiLabel={aiLabel}
           label="Expected outcome"
           value={spec.expected_outcome}
           inferredValue={inferred?.expected_outcome}

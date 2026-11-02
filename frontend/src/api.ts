@@ -1,4 +1,19 @@
-import type { CreateTestRequest, EvaluationDetail, InferredTest, RunDetail, RunRow, TestDetail, TestRow, TestSpec } from '@/types'
+import type {
+  CreateTestRequest,
+  EvaluationDetail,
+  FoundPolicies,
+  InferredTest,
+  Policy,
+  RunDetail,
+  RunRow,
+  SaveSwarmRequest,
+  SwarmDetail,
+  SwarmProposal,
+  SwarmRow,
+  TestDetail,
+  TestRow,
+  TestSpec,
+} from '@/types'
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -11,8 +26,8 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json()
 }
 
-export function listTests(): Promise<TestRow[]> {
-  return requestJson('/api/tests')
+export function listTests(includeSwarmTests = false): Promise<TestRow[]> {
+  return requestJson(`/api/tests?include_swarm_tests=${includeSwarmTests}`)
 }
 
 export function readTest(testId: string): Promise<TestDetail> {
@@ -70,4 +85,30 @@ export type RunFilters = { test_id?: string; agent_version?: string; outcome?: s
 export function listRunsOfAllTests(filters: RunFilters): Promise<RunRow[]> {
   const definedFilters = Object.entries(filters).filter((entry): entry is [string, string] => Boolean(entry[1]))
   return requestJson(`/api/runs?${new URLSearchParams(definedFilters)}`)
+}
+
+export function findPolicies(agentVersion: string): Promise<FoundPolicies> {
+  return requestJson('/api/swarms/policies', {
+    method: 'POST',
+    body: JSON.stringify({ agent_version: agentVersion }),
+  })
+}
+
+export function generateSwarm(agentVersion: string, policies: Policy[]): Promise<SwarmProposal> {
+  return requestJson('/api/swarms/generate', {
+    method: 'POST',
+    body: JSON.stringify({ agent_version: agentVersion, policies }),
+  })
+}
+
+export function saveSwarm(request: SaveSwarmRequest): Promise<SwarmRow> {
+  return requestJson('/api/swarms', { method: 'POST', body: JSON.stringify(request) })
+}
+
+export function listSwarms(): Promise<SwarmRow[]> {
+  return requestJson('/api/swarms')
+}
+
+export function readSwarm(swarmId: string): Promise<SwarmDetail> {
+  return requestJson(`/api/swarms/${swarmId}`)
 }
