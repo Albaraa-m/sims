@@ -1,0 +1,20 @@
+{
+  "chat_history": {
+    "items": [
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Hello, thank you for calling Sawt Bistro. How can I help you today?"
+        ]
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Hello? Are you there?"
+        ]
+      }
+    ]
+  }
+}

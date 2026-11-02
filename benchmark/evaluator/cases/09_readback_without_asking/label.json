@@ -1,0 +1,8 @@
+{
+  "outcome": "fail",
+  "key_turns": [
+    3,
+    4
+  ],
+  "why": "Repeats the details but never asks the caller to confirm before booking."
+}

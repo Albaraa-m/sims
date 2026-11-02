@@ -1,0 +1,5 @@
+{
+  "outcome": "execution_failed",
+  "key_turns": [],
+  "why": "The call finished but no session report was saved."
+}

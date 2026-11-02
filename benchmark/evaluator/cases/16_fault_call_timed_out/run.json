@@ -1,0 +1,8 @@
+{
+  "spec": "confirmation",
+  "agent_version": "v1",
+  "status": "failed",
+  "has_recording": true,
+  "error": "timed out after 180s",
+  "judge_fails": false
+}

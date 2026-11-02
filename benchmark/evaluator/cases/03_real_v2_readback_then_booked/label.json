@@ -1,0 +1,9 @@
+{
+  "outcome": "pass",
+  "key_turns": [
+    3,
+    4,
+    5
+  ],
+  "why": "Reads back name, size and time, asks, books only after the yes."
+}

@@ -1,0 +1,292 @@
+{
+  "chat_history": {
+    "items": [
+      {
+        "id": "item_3b1b90cf622d",
+        "type": "agent_handoff",
+        "new_agent_id": "booking_agent",
+        "created_at": 1793573487.262222
+      },
+      {
+        "id": "item_e7df9b7bd135",
+        "type": "agent_config_update",
+        "instructions": "You are the phone host for Sawt Bistro, a restaurant in Riyadh.\nYou answer questions about the restaurant and help callers with reservations.\n\nReply in plain spoken sentences, one to three at a time. No markdown, lists or emojis.\nSay prices in riyals and times the way a person would say them out loud.\n\nAnswer only from the knowledge base below. The menu is complete: if a dish isn't on it,\nwe don't serve it. For anything else not covered, say you don't know and offer to have\nthe restaurant call back. Never invent menu items, prices or policies.\n\nBookings are for today only, on the hour, from 13:00 to 21:00.\nAlways check availability before booking.\n\n# Knowledge base\n\n# Sawt Bistro\n\n## Location and contact\n- 12 Olaya Street, Riyadh\n- Phone: 011 555 0142\n\n## Opening hours\n- Sunday to Thursday: 12:00 to 23:00\n- Friday: 13:00 to 23:30\n- Saturday: 12:00 to 23:30\n- Last seating is one hour before closing.\n\n## Menu\n- Starters: hummus (28 SAR), lentil soup (24 SAR), fattoush salad (32 SAR)\n- Mains: grilled chicken (68 SAR), lamb kabsa (89 SAR), grilled hammour (95 SAR), vegetable tagine (62 SAR)\n- Desserts: kunafa (38 SAR), date pudding (34 SAR)\n- Drinks: fresh lemon mint (18 SAR), Saudi coffee (14 SAR), still or sparkling water (8 SAR)\n- Vegetarian options: hummus, lentil soup, fattoush salad, vegetable tagine\n- No pork and no alcohol are served.\n\n## Reservation policies\n- Reservations are for the same day only.\n- Tables are for 1 to 8 guests. Parties of more than 8 must be referred to the events team at events@sawtbistro.example.\n- Reservations are held for 15 minutes after the booked time.\n- Cancellations are free up to 2 hours before the booking.\n\n\n# Booking confirmation\n\nBefore calling create_booking, read back the name, time and party size, and ask the caller\nto confirm. Only book after they say yes. If they correct something, read it back again.\n",
+        "tools_added": [
+          "check_availability",
+          "create_booking"
+        ],
+        "created_at": 1793573487.267572
+      },
+      {
+        "id": "item_61b0f4ec41ba",
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Hello, thank you for calling Sawt Bistro. How can I help you today?"
+        ],
+        "interrupted": false,
+        "extra": {
+          "livekit": {
+            "inference_deployment": "livekit_gemma_durian",
+            "inference_tier_requested": "standard",
+            "inference_tier_granted": "standard",
+            "inference_tier_billed": "standard"
+          }
+        },
+        "metrics": {
+          "started_speaking_at": 1793573489.589771,
+          "stopped_speaking_at": 1793573492.6559,
+          "llm_node_ttft": 0.6640325000043958,
+          "llm_node_tps": 496.50549774685874,
+          "llm_node_ttfs": 0.6874746670073364,
+          "tts_node_ttfb": 1.0083653329929803,
+          "playback_latency": 0.0003361701965332031,
+          "llm_metadata": {
+            "model_name": "google/gemma-4-31b-it",
+            "model_provider": "livekit"
+          },
+          "tts_metadata": {
+            "model_name": "fishaudio/s2.1-pro",
+            "model_provider": "livekit"
+          }
+        },
+        "created_at": 1793573487.9210382
+      },
+      {
+        "id": "item_c133befe5a9d",
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Hi, I'd like to book a table for 4 people today at 7 PM under the name Dana."
+        ],
+        "interrupted": false,
+        "transcript_confidence": 0.9897924444444445,
+        "extra": {},
+        "metrics": {
+          "stt_metadata": {
+            "model_name": "assemblyai/universal-3-6-pro",
+            "model_provider": "livekit"
+          },
+          "started_speaking_at": 1793573495.3421452,
+          "stopped_speaking_at": 1793573499.451514,
+          "transcription_delay": 0.6165730953216553,
+          "end_of_turn_delay": 0.6298871040344238,
+          "on_user_turn_completed_delay": 0.00011054097558371723
+        },
+        "created_at": 1793573500.068158
+      },
+      {
+        "id": "item_d489dda67e35/fnc_0",
+        "type": "function_call",
+        "call_id": "call_e38b9bccc18940b3b4de86cf",
+        "arguments": "{\"slot\": \"19:00\"}",
+        "name": "check_availability",
+        "created_at": 1793573500.451936,
+        "extra": {
+          "livekit": {
+            "inference_deployment": "livekit_gemma_durian",
+            "inference_tier_requested": "standard",
+            "inference_tier_granted": "standard",
+            "inference_tier_billed": "standard"
+          }
+        }
+      },
+      {
+        "id": "item_ce40182dbc6c",
+        "type": "function_call_output",
+        "name": "check_availability",
+        "call_id": "call_e38b9bccc18940b3b4de86cf",
+        "output": "{'available': True, 'other_times_today': ['13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '21:00']}",
+        "is_error": false,
+        "created_at": 1793573500.453884,
+        "reply_required": true
+      },
+      {
+        "id": "item_d23929b67c4f",
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "I have availability for that time. Just to confirm, I have a booking for Dana, four people, at seven PM. Is that correct?"
+        ],
+        "interrupted": false,
+        "extra": {
+          "livekit": {
+            "inference_deployment": "livekit_gemma_durian",
+            "inference_tier_requested": "standard",
+            "inference_tier_granted": "standard",
+            "inference_tier_billed": "standard"
+          }
+        },
+        "metrics": {
+          "started_speaking_at": 1793573502.025252,
+          "stopped_speaking_at": 1793573510.873355,
+          "llm_node_ttft": 0.5353227500163484,
+          "llm_node_tps": 204.34744132579823,
+          "llm_node_ttfs": 0.6621226250135805,
+          "tts_node_ttfb": 0.9049256670114119,
+          "playback_latency": 0.0002281665802001953,
+          "e2e_latency": 2.5737380981445312,
+          "llm_metadata": {
+            "model_name": "google/gemma-4-31b-it",
+            "model_provider": "livekit"
+          },
+          "tts_metadata": {
+            "model_name": "fishaudio/s2.1-pro",
+            "model_provider": "livekit"
+          }
+        },
+        "created_at": 1793573500.462639
+      },
+      {
+        "id": "item_2c3eca38a21f",
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Yes, that's correct."
+        ],
+        "interrupted": false,
+        "transcript_confidence": 0.9997286666666666,
+        "extra": {},
+        "metrics": {
+          "stt_metadata": {
+            "model_name": "assemblyai/universal-3-6-pro",
+            "model_provider": "livekit"
+          },
+          "started_speaking_at": 1793573513.3919733,
+          "stopped_speaking_at": 1793573514.3510468,
+          "transcription_delay": 0.5458292961120605,
+          "end_of_turn_delay": 0.5537810325622559,
+          "on_user_turn_completed_delay": 9.108299855142832e-05
+        },
+        "created_at": 1793573514.896926
+      },
+      {
+        "id": "item_91bc4bc2f8e7/fnc_0",
+        "type": "function_call",
+        "call_id": "call_c27cd50a6b744ceb97f569e9",
+        "arguments": "{\"name\": \"Dana\", \"party_size\": 4, \"slot\": \"19:00\"}",
+        "name": "create_booking",
+        "created_at": 1793573515.354521,
+        "extra": {
+          "livekit": {
+            "inference_deployment": "livekit_gemma_durian",
+            "inference_tier_requested": "standard",
+            "inference_tier_granted": "standard",
+            "inference_tier_billed": "standard"
+          }
+        }
+      },
+      {
+        "id": "item_dea86ba66dc3",
+        "type": "function_call_output",
+        "name": "create_booking",
+        "call_id": "call_c27cd50a6b744ceb97f569e9",
+        "output": "{'booking_id': 'B001'}",
+        "is_error": false,
+        "created_at": 1793573515.357843,
+        "reply_required": true
+      },
+      {
+        "id": "item_93d7060b4be3",
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Your reservation is confirmed. We look forward to seeing you at seven PM."
+        ],
+        "interrupted": false,
+        "extra": {
+          "livekit": {
+            "inference_deployment": "livekit_gemma_durian",
+            "inference_tier_requested": "standard",
+            "inference_tier_granted": "standard",
+            "inference_tier_billed": "standard"
+          }
+        },
+        "metrics": {
+          "started_speaking_at": 1793573516.563769,
+          "stopped_speaking_at": 1793573520.927546,
+          "llm_node_ttft": 0.43941458300105296,
+          "llm_node_tps": 2515.5255077308616,
+          "llm_node_ttfs": 0.44592266602558084,
+          "tts_node_ttfb": 0.753319458977785,
+          "playback_latency": 0.0001480579376220703,
+          "e2e_latency": 2.2127223014831543,
+          "llm_metadata": {
+            "model_name": "google/gemma-4-31b-it",
+            "model_provider": "livekit"
+          },
+          "tts_metadata": {
+            "model_name": "fishaudio/s2.1-pro",
+            "model_provider": "livekit"
+          }
+        },
+        "created_at": 1793573515.371116
+      },
+      {
+        "id": "item_93831ef05017",
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Thank you so much."
+        ],
+        "interrupted": false,
+        "transcript_confidence": 0.99759525,
+        "extra": {},
+        "metrics": {
+          "stt_metadata": {
+            "model_name": "assemblyai/universal-3-6-pro",
+            "model_provider": "livekit"
+          },
+          "started_speaking_at": 1793573523.09066,
+          "stopped_speaking_at": 1793573524.648982,
+          "transcription_delay": 0.0,
+          "end_of_turn_delay": 0.4339010715484619,
+          "on_user_turn_completed_delay": 0.00013691699132323265
+        },
+        "created_at": 1793573524.432703
+      },
+      {
+        "id": "item_79b1fb228c67",
+        "type": "message",
+        "role": "user",
+        "content": [
+          "See you then."
+        ],
+        "interrupted": false,
+        "transcript_confidence": 0.9881463333333333,
+        "extra": {},
+        "metrics": {
+          "stt_metadata": {
+            "model_name": "assemblyai/universal-3-6-pro",
+            "model_provider": "livekit"
+          },
+          "on_user_turn_completed_delay": 9.712501196190715e-05
+        },
+        "created_at": 1793573525.2659268
+      },
+      {
+        "id": "item_aafba97a2e09",
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Goodbye."
+        ],
+        "interrupted": false,
+        "transcript_confidence": 0.997062,
+        "extra": {},
+        "metrics": {
+          "stt_metadata": {
+            "model_name": "assemblyai/universal-3-6-pro",
+            "model_provider": "livekit"
+          },
+          "started_speaking_at": 1793573525.539467,
+          "stopped_speaking_at": 1793573525.948341,
+          "transcription_delay": 0.5783140659332275,
+          "end_of_turn_delay": 0.5798690319061279,
+          "on_user_turn_completed_delay": 8.554200758226216e-05
+        },
+        "created_at": 1793573526.529726
+      }
+    ]
+  }
+}

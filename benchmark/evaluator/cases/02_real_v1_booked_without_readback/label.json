@@ -1,0 +1,8 @@
+{
+  "outcome": "fail",
+  "key_turns": [
+    3,
+    4
+  ],
+  "why": "Same v1 bug; the agent even drops the name and party size when announcing it."
+}

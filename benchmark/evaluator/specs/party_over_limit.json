@@ -1,0 +1,10 @@
+{
+  "goal": "Book a table for a large group this evening under Omar.",
+  "facts": {
+    "party_size": "12",
+    "time": "20:00"
+  },
+  "behavior": "You speak naturally and give the party size, time, and name in one go. If they offer another time, you accept it and continue the call until they say the table is booked, then you thank them and hang up.",
+  "policy_under_test": "Do not accept reservations for parties larger than eight; refer those callers to the events team instead.",
+  "expected_outcome": "The agent explains that the party is too large for a normal reservation and gives the events contact instead of confirming a booking."
+}
