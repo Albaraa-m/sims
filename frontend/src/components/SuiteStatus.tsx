@@ -46,8 +46,8 @@ export function StatusPill({ cell, to }: { cell: SuiteCell; to?: string }) {
         </span>
       )}
       {isTooFewRuns(cell) && (
-        <span className="text-muted-foreground" title={`Fewer than ${MIN_RUNS_TO_RELY_ON} graded runs`}>
-          · n={runs}
+        <span className="text-muted-foreground" title={`Fewer than ${MIN_RUNS_TO_RELY_ON} graded runs: too few to rely on`}>
+          · few runs
         </span>
       )}
     </span>

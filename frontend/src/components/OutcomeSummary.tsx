@@ -4,7 +4,8 @@ import { suiteStatusOf } from '@/dashboard'
 import { OUTCOME_BADGE_VARIANT, OUTCOME_LABEL } from '@/runs'
 import type { Outcome, RunRow } from '@/types'
 
-const OUTCOMES: Outcome[] = ['pass', 'fail', 'inconclusive', 'execution_failed']
+// Pass and fail are in the status pill's ratio; only the runs it leaves out get badges.
+const OTHER_OUTCOMES: Outcome[] = ['inconclusive', 'execution_failed']
 
 type OutcomeSummaryProps = {
   runs: RunRow[]
@@ -36,7 +37,7 @@ export default function OutcomeSummary({ runs, testId, testVersion }: OutcomeSum
               <span className="font-medium">Agent {agentVersion}</span>
               <StatusPill cell={{ pass, fail, status: suiteStatusOf(pass, fail), testId }} />
               <span className="flex flex-wrap items-center gap-1.5">
-                {OUTCOMES.filter((outcome) => count(outcome) > 0).map((outcome) => (
+                {OTHER_OUTCOMES.filter((outcome) => count(outcome) > 0).map((outcome) => (
                   <Badge key={outcome} variant={OUTCOME_BADGE_VARIANT[outcome]}>
                     {count(outcome)} {OUTCOME_LABEL[outcome]}
                   </Badge>
@@ -47,7 +48,7 @@ export default function OutcomeSummary({ runs, testId, testVersion }: OutcomeSum
         })}
       </div>
       <p className="text-xs text-muted-foreground">
-        Covers only this test's policy. Passing: every graded run passed; Flaky: some did; Failing: none did. Small
+        Covers only this test's policy. The ratio is runs passed out of runs passed or failed. Passing: all passed; Flaky: some did; Failing: none did. Small
         samples can't show a version is better overall, and inconclusive runs and execution failures say nothing about
         the agent.
       </p>

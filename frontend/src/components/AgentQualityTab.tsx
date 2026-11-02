@@ -72,7 +72,7 @@ export default function AgentQualityTab({ runs }: { runs: RunRow[] }) {
         </Table>
         <p className="text-xs text-muted-foreground">
           Each test counts once per agent version, at its latest version. Passing: every graded run passed. Flaky: some
-          passed. Failing: none did. n=1 or 2 marks fewer than {MIN_RUNS_TO_RELY_ON} graded runs, too few to rely on.
+          passed. Failing: none did. "Few runs" marks fewer than {MIN_RUNS_TO_RELY_ON} graded runs, too few to rely on.
           Only passes and fails count; execution failures and inconclusive runs are on System health.{' '}
           <Link to={resultsUrl({ outcome: 'fail' })} className="underline">
             See every failed run
