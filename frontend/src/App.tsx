@@ -1,4 +1,4 @@
-import { BrowserRouter, NavLink, Route, Routes } from 'react-router'
+import { BrowserRouter, Link, Navigate, NavLink, Route, Routes, useLocation, useParams } from 'react-router'
 
 import DashboardPage from '@/pages/DashboardPage'
 import NewSwarmPage from '@/pages/NewSwarmPage'
@@ -9,16 +9,33 @@ import SwarmsPage from '@/pages/SwarmsPage'
 import TestPage from '@/pages/TestPage'
 import TestsPage from '@/pages/TestsPage'
 
+// Old links (/runs/:id, /results) still work after the rename to simulations.
+function RedirectOldSimulationLink() {
+  const { runId } = useParams()
+  return <Navigate to={`/simulations/${runId}`} replace />
+}
+
+function RedirectOldResultsLink() {
+  return <Navigate to={`/simulations${useLocation().search}`} replace />
+}
+
 export default function App() {
   return (
     <BrowserRouter>
       <header className="border-b bg-card">
         <nav className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-6 text-sm">
-          <span className="font-semibold tracking-tight">Sims</span>
+          {/* The brand, set apart from the tabs so it doesn't read as one. */}
+          <Link to="/" className="flex items-center gap-2 pr-6 text-base font-semibold tracking-tight">
+            <span className="flex size-6 items-center justify-center rounded-md bg-primary text-xs font-bold text-primary-foreground">
+              S
+            </span>
+            Sims
+          </Link>
+          <span className="-ml-6 h-6 w-px bg-border" />
           {[
-            { to: '/', label: 'Tests' },
+            { to: '/', label: 'Regression tests' },
             { to: '/swarms', label: 'Swarms' },
-            { to: '/results', label: 'Results' },
+            { to: '/simulations', label: 'Simulations' },
             { to: '/dashboard', label: 'Dashboard' },
           ].map(({ to, label }) => (
             <NavLink
@@ -42,8 +59,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<TestsPage />} />
           <Route path="/tests/:testId" element={<TestPage />} />
-          <Route path="/runs/:runId" element={<RunPage />} />
-          <Route path="/results" element={<ResultsPage />} />
+          <Route path="/simulations" element={<ResultsPage />} />
+          <Route path="/simulations/:runId" element={<RunPage />} />
+          <Route path="/runs/:runId" element={<RedirectOldSimulationLink />} />
+          <Route path="/results" element={<RedirectOldResultsLink />} />
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/swarms" element={<SwarmsPage />} />
           <Route path="/swarms/new" element={<NewSwarmPage />} />

@@ -54,7 +54,7 @@ export default function DashboardPage() {
   return (
     <section className="space-y-4">
       <h1 className="text-xl font-semibold">Dashboard</h1>
-      {loadError && <p className="text-sm text-destructive">Couldn't load runs: {loadError}</p>}
+      {loadError && <p className="text-sm text-destructive">Couldn't load simulations: {loadError}</p>}
       {runs && (
         <Tabs value={tab} onValueChange={(value) => setParam('tab', value)}>
           <TabsList>

@@ -139,7 +139,7 @@ export default function TestPage() {
         </div>
         {latestVersion && latestVersion.id !== test.id && (
           <p className="text-sm text-muted-foreground">
-            This is v{test.version}, kept for its runs. The latest is{' '}
+            This is v{test.version}, kept for its simulations. The latest is{' '}
             <Link to={`/tests/${latestVersion.id}`} className="underline">
               v{latestVersion.version}
             </Link>
@@ -169,7 +169,7 @@ export default function TestPage() {
             <AlertDialogTitle>Promote to regression test?</AlertDialogTitle>
             <AlertDialogDescription>
               It moves into the regression suite: it's listed on Tests and counted with the regression tests on
-              Results and the dashboard. Its swarm runs come with it as evidence. This can't be undone.
+              Simulations and the dashboard. Its swarm simulations come with it as evidence. This can't be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -233,7 +233,7 @@ export default function TestPage() {
       </section>
 
       <div className="space-y-3">
-        <h2 className="text-base font-semibold">Runs</h2>
+        <h2 className="text-base font-semibold">Simulations</h2>
         {test.status === 'ready' && latestVersion?.id === test.id && (
           <RunControls
             startRuns={(agentVersions, runsPerVersion) => startRuns(test.id, agentVersions, runsPerVersion)}
@@ -246,7 +246,7 @@ export default function TestPage() {
           />
         )}
         {latestVersion && latestVersion.id !== test.id && (
-          <p className="text-sm text-muted-foreground">Runs use the latest version.</p>
+          <p className="text-sm text-muted-foreground">New simulations use the latest version.</p>
         )}
         <OutcomeSummary runs={runs} testId={test.id} testVersion={test.version} />
         <RunsTable runs={runs} viewedTestId={test.id} now={now} />

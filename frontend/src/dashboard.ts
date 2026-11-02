@@ -20,7 +20,7 @@ export type SuiteCell = {
   testId: string | null
 }
 
-export type SuiteChange = 'Broke' | 'Worse' | 'Better' | 'Fixed' | 'No change' | 'Too few runs' | "Can't compare"
+export type SuiteChange = 'Broke' | 'Worse' | 'Better' | 'Fixed' | 'No change' | 'Too few simulations' | "Can't compare"
 
 export type SuiteRow = {
   lineageId: string
@@ -53,7 +53,7 @@ const STATUS_RANK: Record<SuiteStatus, number> = {
 
 export function changeBetween(before: SuiteCell, after: SuiteCell): SuiteChange {
   if (before.status === 'no_data' || after.status === 'no_data') return "Can't compare"
-  if (isTooFewRuns(before) || isTooFewRuns(after)) return 'Too few runs'
+  if (isTooFewRuns(before) || isTooFewRuns(after)) return 'Too few simulations'
   if (after.status === before.status) return 'No change'
   if (after.status === 'passing') return 'Fixed'
   if (before.status === 'passing') return 'Broke'
@@ -61,7 +61,7 @@ export function changeBetween(before: SuiteCell, after: SuiteCell): SuiteChange 
 }
 
 // Changes first, bad then good, as they're what a comparison is for; then the rest.
-const CHANGE_ORDER: SuiteChange[] = ['Broke', 'Worse', 'Fixed', 'Better', 'No change', 'Too few runs', "Can't compare"]
+const CHANGE_ORDER: SuiteChange[] = ['Broke', 'Worse', 'Fixed', 'Better', 'No change', 'Too few simulations', "Can't compare"]
 
 export function buildSuiteRows(runs: RunRow[], agentVersions: string[]): SuiteRow[] {
   const latestVersion = new Map<string, RunRow>()
@@ -121,5 +121,5 @@ export function ledgerBucketOf(run: RunRow, now: number): LedgerBucket {
 }
 
 export function resultsUrl(filters: Record<string, string | number>): string {
-  return `/results?${new URLSearchParams(Object.entries(filters).map(([key, value]) => [key, String(value)]))}`
+  return `/simulations?${new URLSearchParams(Object.entries(filters).map(([key, value]) => [key, String(value)]))}`
 }

@@ -57,7 +57,7 @@ export default function ResultsPage() {
   )
   return (
     <section className="space-y-4">
-      <h1 className="text-xl font-semibold">Results</h1>
+      <h1 className="text-xl font-semibold">Simulations</h1>
       <div className="flex flex-wrap items-center gap-2">
         <ScopeSelect
           value={scope}
@@ -85,7 +85,7 @@ export default function ResultsPage() {
           onChange={(value) => setFilter('agent_version', value)}
         />
         <Filter
-          label="Outcome"
+          label="Verdict"
           value={filters.outcome}
           options={outcomes.map(([value, label]) => ({ value, label }))}
           onChange={(value) => setFilter('outcome', value)}
@@ -102,23 +102,23 @@ export default function ResultsPage() {
         )}
       </div>
       {loadError && <p className="text-sm text-destructive">Couldn't load results: {loadError}</p>}
-      {shownRuns && shownRuns.length === 0 && <p className="text-sm text-muted-foreground">No runs match these filters.</p>}
+      {shownRuns && shownRuns.length === 0 && <p className="text-sm text-muted-foreground">No simulations match these filters.</p>}
       {shownRuns && shownRuns.length > 0 && (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Run</TableHead>
+              <TableHead>Simulation</TableHead>
               <TableHead>When</TableHead>
               <TableHead>Test</TableHead>
               <TableHead>Agent</TableHead>
-              <TableHead>Outcome</TableHead>
+              <TableHead>Verdict</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {shownRuns.map((run) => (
-              <TableRow key={run.id} onClick={() => navigate(`/runs/${run.id}`)} className="cursor-pointer">
+              <TableRow key={run.id} onClick={() => navigate(`/simulations/${run.id}`)} className="cursor-pointer">
                 <TableCell className="font-mono">
-                  <Link to={`/runs/${run.id}`}>{run.id}</Link>
+                  <Link to={`/simulations/${run.id}`}>{run.id}</Link>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{startedAtFormat.format(new Date(run.started_at))}</TableCell>
                 <TableCell>
