@@ -58,16 +58,6 @@ export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: nu
           />
           <Count label="Not Graded" value={ungradedRuns.length} />
         </div>
-        <p className="text-xs text-muted-foreground">
-          {runs.length} runs in total. Completed runs got a verdict (Pass, Fail or Inconclusive); execution failures
-          broke before the agent could be judged.
-        </p>
-        {ungradedRuns.length > 0 && (
-          <p className="text-xs text-muted-foreground">
-            Runs that finished without a verdict, usually from before grading existed. Grade them with{' '}
-            <code>sims evaluate &lt;run id&gt;</code>.
-          </p>
-        )}
       </div>
 
       <div className="space-y-2">
