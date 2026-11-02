@@ -25,7 +25,8 @@ Caller fields:
   situation depends on. Use the keys name, time, party_size and day where they
   apply. Times as 24-hour HH:MM, party size as a number. Keep days relative to the
   call ("today", "tomorrow"), never a weekday or a date, so the test means the same
-  whenever it runs. Only the caller's own details, never the restaurant's (address,
+  whenever it runs. If the situation depends on the time of the call, include it as
+  current_time. Only the caller's own details, never the restaurant's (address,
   phone, menu, rules).
 - behavior: how the caller acts, written to the caller as "you": speaking style,
   how they hand over details, how they answer questions, when they hang up. Include
