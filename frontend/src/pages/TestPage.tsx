@@ -141,10 +141,10 @@ export default function TestPage() {
         />
       )}
 
-      <div className="space-y-4">
+      <section className="space-y-4 rounded-lg border p-4">
         <div>
-          <h2 className="text-base font-semibold">Caller sees</h2>
-          <p className="text-sm text-muted-foreground">The digital human acts on these and nothing else.</p>
+          <h2 className="text-base font-semibold">Scenario</h2>
+          <p className="text-sm text-muted-foreground">What the simulated caller is told.</p>
         </div>
         <SpecField label="Goal" value={spec.goal} inferredValue={inferred?.goal} />
         <SpecField
@@ -154,15 +154,12 @@ export default function TestPage() {
           isEdited={inferred !== null && JSON.stringify(spec.facts) !== JSON.stringify(inferred.facts)}
         />
         <SpecField label="Behavior" value={spec.behavior} inferredValue={inferred?.behavior} />
-      </div>
+      </section>
 
-      <div className="space-y-4">
+      <section className="space-y-4 rounded-lg border bg-muted/40 p-4">
         <div>
-          <h2 className="text-base font-semibold">Graded on</h2>
-          <p className="text-sm text-muted-foreground">
-            Hidden from the caller. After each call an LLM judge grades the agent against these and cites the turns
-            that prove its verdict.
-          </p>
+          <h2 className="text-base font-semibold">Evaluation criteria</h2>
+          <p className="text-sm text-muted-foreground">Hidden from the caller. Used to grade each call.</p>
         </div>
         <SpecField
           label="Policy under test"
@@ -174,7 +171,7 @@ export default function TestPage() {
           value={spec.expected_outcome}
           inferredValue={inferred?.expected_outcome}
         />
-      </div>
+      </section>
 
       <div className="space-y-3">
         <h2 className="text-base font-semibold">Runs</h2>
