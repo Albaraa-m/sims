@@ -1,4 +1,4 @@
-# Technical Design (TDD): Task 3 — Swarm Generation (M14)
+# Technical Design (TDD): Task 3 — Swarm Generation (M14) and Reliable Queue (M16)
 
 **Done when:** a reviewer creates a swarm in the browser (agent version, then which policies to test), reviews the generated tests, one per policy, edits or removes some, and saves. The swarm and its Ready tests are stored; nothing runs. Running a swarm (queue, admission cap, retries) is a later milestone.
 
