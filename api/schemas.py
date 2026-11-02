@@ -84,6 +84,8 @@ class TestRow(BaseModel):
     name: str
     version: int
     status: TestStatus
+    # Set for generated tests; None for tests made from a transcript.
+    swarm_id: str | None
     created_at: datetime
 
     _mark_created_at_as_utc = field_validator("created_at")(mark_as_utc)

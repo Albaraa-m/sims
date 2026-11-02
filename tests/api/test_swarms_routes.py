@@ -54,3 +54,11 @@ def test_saved_swarm_lists_its_policies_and_tests(client, spec):
 
 def test_read_unknown_swarm_is_404(client):
     assert client.get("/api/swarms/missing").status_code == 404
+
+
+def test_tests_list_hides_swarm_tests_unless_asked(client, spec):
+    client.post("/api/swarms", json=swarm_body(spec))
+
+    assert client.get("/api/tests").json() == []
+    swarm_tests = client.get("/api/tests", params={"include_swarm_tests": True}).json()
+    assert [t["name"] for t in swarm_tests] == ["Says yes at once"]
