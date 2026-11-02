@@ -2,7 +2,7 @@
 
 import os
 import signal
-import socket
+import subprocess
 from datetime import timedelta
 
 from fastapi import APIRouter, HTTPException
@@ -94,6 +94,18 @@ def read_queue_state() -> QueueState:
     )
 
 
+def is_sims_worker_process(pid: int) -> bool:
+    """Guards the kill: the process must exist here and be a sims worker. Hostnames
+    can't be compared, as macOS reports different ones to different processes."""
+    command = subprocess.run(
+        ["ps", "-o", "command=", "-p", str(pid)],
+        check=False,
+        capture_output=True,
+        text=True,
+    ).stdout
+    return "sims" in command and "worker" in command
+
+
 @router.post("/workers/{worker_id}/kill")
 def kill_worker(worker_id: str) -> None:
     """Kills the worker's process outright, as a crash would; its calls are recovered."""
@@ -103,9 +115,10 @@ def kill_worker(worker_id: str) -> None:
         raise HTTPException(
             status_code=404, detail=f"worker {worker_id} is not running"
         )
-    if worker.host != socket.gethostname():
+    if not is_sims_worker_process(worker.pid):
         raise HTTPException(
-            status_code=409, detail="the worker runs on another machine"
+            status_code=409,
+            detail=f"process {worker.pid} isn't a sims worker on this machine",
         )
     os.kill(worker.pid, signal.SIGKILL)
     unregister_worker(worker.id)

@@ -1,7 +1,10 @@
+import os
+
 import pytest
 from fastapi.testclient import TestClient
 
 from api.app import create_app
+from api.routes.system import is_sims_worker_process
 from simulations.queue import RunRequest, admit_runs
 from simulations.worker_registry import register_worker
 
@@ -42,3 +45,8 @@ def test_killing_an_unknown_worker_is_404(client, monkeypatch):
     monkeypatch.setenv("SIMS_FAULT_INJECTION", "1")
 
     assert client.post("/api/system/workers/missing/kill").status_code == 404
+
+
+def test_only_a_sims_worker_process_can_be_killed():
+    assert not is_sims_worker_process(os.getpid())  # pytest, not a worker
+    assert not is_sims_worker_process(999_999)  # no such process
