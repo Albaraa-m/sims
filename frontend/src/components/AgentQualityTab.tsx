@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 
+import StillFailingTable from '@/components/StillFailingTable'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
   type ComparisonCell,
@@ -26,7 +27,6 @@ export default function AgentQualityTab({ runs, judge }: { runs: RunRow[]; judge
   const judgedRuns = runsGradedOnAgentBehavior(runs, judge)
   const agentVersions = [...new Set(judgedRuns.map((run) => run.agent_version))].sort()
   const rows = groupRunsIntoComparisonRows(judgedRuns, agentVersions)
-  const failedRuns = judgedRuns.filter((run) => run.outcome === 'fail')
   const [before, after] = agentVersions
 
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">No graded runs for this judge yet.</p>
@@ -102,28 +102,8 @@ export default function AgentQualityTab({ runs, judge }: { runs: RunRow[]; judge
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-base font-semibold">Why runs failed</h2>
-        {failedRuns.length === 0 && <p className="text-sm text-muted-foreground">No failed runs.</p>}
-        {rows.map((row) => {
-          const failedRunsOfRow = failedRuns.filter((run) => run.test_id === row.testId)
-          if (failedRunsOfRow.length === 0) return null
-          return (
-            <div key={row.testId} className="space-y-1 text-sm">
-              <h3 className="font-medium">
-                {row.testName} <span className="text-muted-foreground">v{row.testVersion}</span>
-              </h3>
-              <ul className="space-y-1">
-                {failedRunsOfRow.map((run) => (
-                  <li key={run.id}>
-                    <Link to={`/runs/${run.id}`} className="hover:underline">
-                      <span className="text-muted-foreground">Agent {run.agent_version}:</span> {run.reason}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )
-        })}
+        <h2 className="text-base font-semibold">Still failing</h2>
+        <StillFailingTable rows={rows} />
       </div>
     </>
   )
