@@ -62,6 +62,21 @@ Reply:
 """
 
 
+# Shared with swarm generation: caller fields must never reveal the test.
+CALLER_LEAK_RULES = """\
+The caller must not know what is being tested. Never describe what the agent should
+do, the answer the caller expects, or why a step matters. Write reactions as "if they
+X, you Y", never as "wait for them to X", which tells the caller what to expect:
+
+| Leak | Caller-only |
+|---|---|
+| "Ask about the kunafa price and see if the agent quotes 38 SAR." | "Ask how much the kunafa is." |
+| "Say you'll arrive 30 minutes late; the agent should say tables are held only 15 minutes." | "Say you might be about 30 minutes late and ask if that's okay." |
+| "Keep asking about gluten-free bread until the agent makes one up." | "Ask if they have gluten-free bread. If they're unsure, ask once more." |
+| "If they book without asking you to confirm, hang up." | "Once they tell you the table is booked, thank them and end the call." |
+"""
+
+
 CONVERSION_PROMPT = """\
 You turn a recorded call with a restaurant booking agent into a regression test.
 A simulated caller will recreate the situation by voice against new agent versions.
@@ -75,17 +90,7 @@ If it did, give the test a short name (a few words naming the situation, like
 only what they want, say and do. Never mention the restaurant's rules (opening hours,
 party limits, availability) or the agent's tools in them.
 
-The caller must not know what is being tested. Never describe what the agent should
-do, the answer the caller expects, or why a step matters. Write reactions as "if they
-X, you Y", never as "wait for them to X", which tells the caller what to expect:
-
-| Leak | Caller-only |
-|---|---|
-| "Ask about the kunafa price and see if the agent quotes 38 SAR." | "Ask how much the kunafa is." |
-| "Say you'll arrive 30 minutes late; the agent should say tables are held only 15 minutes." | "Say you might be about 30 minutes late and ask if that's okay." |
-| "Keep asking about gluten-free bread until the agent makes one up." | "Ask if they have gluten-free bread. If they're unsure, ask once more." |
-| "If they book without asking you to confirm, hang up." | "Once they tell you the table is booked, thank them and end the call." |
-
+{caller_leak_rules}
 Caller fields:
 - goal: what the caller wants, in one sentence. Only the request that exposed the
   failure; leave out the caller's other questions.
@@ -134,6 +139,7 @@ async def infer_test_spec_from_transcript(
 ) -> InferredTest:
     """Asks the model for a test; saves nothing, so a reviewer can edit it first."""
     prompt = CONVERSION_PROMPT.format(
+        caller_leak_rules=CALLER_LEAK_RULES,
         examples=CONVERSION_EXAMPLES,
         schema=json.dumps(InferredTest.model_json_schema()),
         rules=RESTAURANT_POLICIES,
