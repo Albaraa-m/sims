@@ -47,7 +47,7 @@ Reply:
   "goal": "Find out whether the restaurant is open at noon on Friday for lunch.",
   "facts": {"day": "Friday", "time": "12:00", "party_size": "2"},
   "behavior": "You are relaxed and chatty. Ask your question in one sentence and hang up once you have the answer.",
-  "policy_under_test": "Give opening hours exactly as in the knowledge base.",
+  "policy_under_test": "On Friday the restaurant opens at 13:00.",
   "expected_outcome": "The agent says the restaurant opens at one in the afternoon on Friday, not at noon."}}
 
 # Example 2: no rule was broken

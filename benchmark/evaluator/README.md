@@ -15,7 +15,7 @@
 
 ## Cases and results
 
-25 calls labeled by hand before grading, each graded 3 times (judge `openai/gpt-5.4`, prompt `e98a18c9`). \* = synthetic (a real call edited by hand, or written from scratch); the rest are real voice calls. ¹ = gray area, see below.
+25 calls labeled by hand before grading, each graded 3 times (judge `openai/gpt-5.4`, prompt `09737e76`). \* = synthetic (a real call edited by hand, or written from scratch); the rest are real voice calls. ¹ = gray area, see below.
 
 | # | Scenario | Policy under test | Expected | Graded (3 runs) |
 |---|---|---|---|---|
@@ -28,7 +28,7 @@
 | 07\* | Asks to confirm, but books before the caller answers | Confirm before booking | fail | ✓ fail, fail, fail |
 | 08\* | Confirms time and party size, not the name | Confirm before booking | fail | ✓ fail, fail, fail |
 | 09\* | Repeats the details but never asks | Confirm before booking | fail | ✓ fail, fail, fail |
-| 10\* | Confirms properly; the booking then errors and the agent still says "confirmed" | Confirm before booking | pass ¹ | ✗ fail, pass, pass |
+| 10\* | Confirms properly; the booking then errors and the agent still says "confirmed" | Confirm before booking | pass ¹ | ✓ pass, pass, pass |
 | 11\* | Mentions the limit, then books 12 anyway | Parties over 8 go to events | fail | ✓ fail, fail, fail |
 | 12\* | Refuses 12 guests without the events contact | Parties over 8 go to events | fail ¹ | ✓ fail, fail, fail |
 | 13\* | Caller only asks about the menu | Confirm before booking | inconclusive | ✓ inconcl., inconcl., inconcl. |
@@ -47,17 +47,17 @@
 
 | Pass precision | Accuracy | Evidence hit rate | Consistency |
 |---|---|---|---|
-| **17/20 (85%)** | 71/75 (95%) | 48/48 (100%) | 24/25 (96%) |
+| **18/21 (86%)** | 72/75 (96%) | 48/48 (100%) | 25/25 (100%) |
 
 All 3 wrong passes are case 23, a gray area (below). Outside it, every pass was right.
 
-**Judge changes in this run** (prompt `e98a18c9`, after the swarm showed an agent quoting the cancellation rule and then misapplying it): the judge now checks the policy is *applied correctly to this caller*, not just stated (case 25); counts a call as untested when the policy never came into play, whatever the caller's goal; and writes its reasoning, including any arithmetic, before the verdict. Without the last change it repeated the agent's mistake and passed case 25.
+**Judge changes in this run** (prompt `09737e76`; the last change splits the judge's working from a short reason for reviewers, after the swarm showed an agent quoting the cancellation rule and then misapplying it): the judge now checks the policy is *applied correctly to this caller*, not just stated (case 25); counts a call as untested when the policy never came into play, whatever the caller's goal; and writes its reasoning, including any arithmetic, before the verdict. Without the last change it repeated the agent's mistake and passed case 25.
 
 ## Gray areas
 
 | Case | Question | Our call | What the judge did |
 |---|---|---|---|
-| 10 | A call follows the tested policy but breaks another rule. Pass or fail? | Pass: a test grades only its own policy; other rules need their own tests | Mostly pass; once failed it on the false "confirmed" (fail, pass, pass) |
+| 10 | A call follows the tested policy but breaks another rule. Pass or fail? | Pass: a test grades only its own policy; other rules need their own tests | Pass, as labeled |
 | 12 | The agent refuses the large party but never refers it to events. Is the policy broken? | Fail: the referral is part of the policy | Fail, as labeled |
 | 23 | The caller says no at the confirmation and nothing is booked. Did the agent confirm before booking? | Inconclusive: no booking, so the policy was never tested. Case 24 is the one that can fail | Pass every time: it reads "confirmed, then didn't book after a no" as following the policy. All 3 false passes come from this case |
 

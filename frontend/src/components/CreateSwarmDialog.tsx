@@ -77,14 +77,14 @@ export default function CreateSwarmDialog({ open, onOpenChange }: CreateSwarmDia
           <DialogTitle>Create swarm</DialogTitle>
           <DialogDescription>
             {policies === null
-              ? "Finds the policies in the agent's instructions; each policy you keep gets one test."
-              : `Policies found in ${agentVersion}'s instructions. Each ticked policy gets one test.`}
+              ? "Finds the restaurant's policies, the same for every agent version; each policy you keep gets one test."
+              : "Policies found in the restaurant's rules. Each ticked policy gets one test."}
           </DialogDescription>
         </DialogHeader>
 
         {policies === null ? (
           <div className="grid max-w-xs gap-2">
-            <Label htmlFor="swarm-agent-version">Agent version</Label>
+            <Label htmlFor="swarm-agent-version">Agent version to test</Label>
             <Select value={agentVersion} onValueChange={setAgentVersion}>
               <SelectTrigger id="swarm-agent-version" className="w-full">
                 <SelectValue />
@@ -121,7 +121,7 @@ export default function CreateSwarmDialog({ open, onOpenChange }: CreateSwarmDia
         {(isFinding || isGenerating) && (
           <p className="text-sm text-muted-foreground">
             {isFinding
-              ? `Reading ${agentVersion}'s instructions…`
+              ? "Reading the restaurant's rules…"
               : `Writing ${tickedPolicies.length} tests… this takes about half a minute.`}
           </p>
         )}

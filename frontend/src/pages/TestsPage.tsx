@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { TEST_STATUS_LABEL } from '@/runs'
+import { TEST_STATUS_BADGE_VARIANT, TEST_STATUS_LABEL } from '@/runs'
 import type { SwarmRow, TestRow } from '@/types'
 
 const createdAtFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
@@ -78,7 +78,7 @@ export default function TestsPage() {
                 <TableCell className="font-mono text-muted-foreground">{test.id}</TableCell>
                 <TableCell>v{test.version}</TableCell>
                 <TableCell>
-                  <Badge variant={test.status === 'ready' ? 'default' : 'secondary'}>{TEST_STATUS_LABEL[test.status]}</Badge>
+                  <Badge variant={TEST_STATUS_BADGE_VARIANT[test.status]}>{TEST_STATUS_LABEL[test.status]}</Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {createdAtFormat.format(new Date(test.created_at))}

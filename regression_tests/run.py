@@ -1,10 +1,9 @@
-import asyncio
+from collections.abc import Sequence
 
-from evaluations.evaluate import evaluate_simulation
 from regression_tests.crud import get_test
 from regression_tests.models import TestSpec, TestStatus
 from simulations.models import Simulation
-from simulations.runner import run_simulation
+from simulations.queue import RunRequest, admit_runs
 
 
 class TestNotReadyError(Exception):
@@ -24,26 +23,16 @@ def build_caller_scenario(spec: TestSpec) -> str:
     )
 
 
-async def run_and_evaluate_simulation(
-    agent_version: str, test_id: str, caller_scenario: str
-) -> Simulation:
-    simulation = await run_simulation(agent_version, test_id, caller_scenario)
-    await evaluate_simulation(simulation.id)
-    return simulation
-
-
-async def run_test_against_agent_version(
-    test_id: str, agent_version: str, runs: int = 1
+def queue_test_runs(
+    test_id: str, agent_versions: Sequence[str], runs_per_version: int = 1
 ) -> list[Simulation]:
+    """Queues the runs for workers to place; raises QueueFullError if they don't fit."""
     test = get_test(test_id)
     if test.status != TestStatus.READY:
         raise TestNotReadyError(f"test {test_id} is {test.status}; mark it ready first")
-    caller_scenario = build_caller_scenario(TestSpec.model_validate(test.spec))
-    return list(
-        await asyncio.gather(
-            *(
-                run_and_evaluate_simulation(agent_version, test.id, caller_scenario)
-                for _ in range(runs)
-            )
-        )
-    )
+    requests = [
+        RunRequest(agent_version, test.id)
+        for agent_version in agent_versions
+        for _ in range(runs_per_version)
+    ]
+    return admit_runs(requests, test.swarm_id)

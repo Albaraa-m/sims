@@ -4,9 +4,9 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy.exc import NoResultFound
 
-from api.schemas import EvaluationDetail, RunDetail, RunRow
+from api.schemas import AttemptLogEntry, EvaluationDetail, RunDetail, RunRow
 from evaluations.crud import (
-    latest_evaluation_of_simulation,
+    current_evaluation_of_simulation,
     list_evaluations_of_simulation,
 )
 from evaluations.evaluate import evaluate_simulation
@@ -16,7 +16,7 @@ from regression_tests.crud import get_test, list_test_runs
 from regression_tests.models import Test
 from simulations.conversation import conversation_of_simulation
 from simulations.crud import get_simulation
-from simulations.models import Simulation
+from simulations.models import Simulation, SimulationStatus
 
 router = APIRouter(prefix="/api/runs")
 
@@ -29,20 +29,26 @@ def get_simulation_or_404(run_id: str) -> Simulation:
 
 
 def build_run_row(simulation: Simulation, test: Test) -> RunRow:
-    evaluation = latest_evaluation_of_simulation(simulation.id)
-    execution_failure = (
-        find_execution_failure(simulation)
-        if evaluation and evaluation.outcome == Outcome.EXECUTION_FAILED
-        else None
+    evaluation = current_evaluation_of_simulation(simulation)
+    # A run that gave up has no grade, but still has a reason it couldn't run.
+    could_not_run = simulation.status == SimulationStatus.FAILED or (
+        evaluation is not None and evaluation.outcome == Outcome.EXECUTION_FAILED
     )
+    execution_failure = find_execution_failure(simulation) if could_not_run else None
     return RunRow(
         id=simulation.id,
         test_id=test.id,
+        test_lineage_id=test.lineage_id,
         test_name=test.name,
         test_version=test.version,
         agent_version=simulation.agent_version,
         status=simulation.status,
+        attempt=simulation.attempt,
+        attempts=[
+            AttemptLogEntry.model_validate(entry) for entry in simulation.attempts
+        ],
         started_at=simulation.started_at,
+        call_started_at=simulation.call_started_at,
         ended_at=simulation.ended_at,
         outcome=evaluation and evaluation.outcome,
         reason=evaluation and evaluation.reason,
@@ -64,7 +70,14 @@ def list_runs(
         build_run_row(simulation, test)
         for simulation, test in list_test_runs(lineage_id, agent_version)
     ]
-    return [row for row in rows if outcome is None or row.outcome == outcome]
+    return [row for row in rows if outcome is None or has_outcome(row, outcome)]
+
+
+def has_outcome(row: RunRow, outcome: Outcome) -> bool:
+    """A run that couldn't run has no grade, but counts as an execution failure."""
+    if outcome == Outcome.EXECUTION_FAILED and row.status == SimulationStatus.FAILED:
+        return True
+    return row.outcome == outcome
 
 
 def get_test_or_404(test_id: str) -> Test:
@@ -82,7 +95,13 @@ def read_run(run_id: str) -> RunDetail:
         id=simulation.id,
         agent_version=simulation.agent_version,
         status=simulation.status,
+        attempt=simulation.attempt,
+        max_attempts=simulation.max_attempts,
+        attempts=[
+            AttemptLogEntry.model_validate(entry) for entry in simulation.attempts
+        ],
         started_at=simulation.started_at,
+        call_started_at=simulation.call_started_at,
         ended_at=simulation.ended_at,
         error=simulation.error,
         test_id=test and test.id,

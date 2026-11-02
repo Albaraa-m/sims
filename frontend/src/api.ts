@@ -4,12 +4,15 @@ import type {
   FoundPolicies,
   InferredTest,
   Policy,
+  QueuedRuns,
+  QueueState,
   RunDetail,
   RunRow,
   SaveSwarmRequest,
   SwarmDetail,
   SwarmProposal,
   SwarmRow,
+  SwarmRunSummary,
   TestDetail,
   TestRow,
   TestSpec,
@@ -21,7 +24,10 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
   })
   if (!response.ok) {
-    throw new Error(`${init?.method ?? 'GET'} ${path} failed with ${response.status}`)
+    // FastAPI explains refusals (e.g. a full queue) in detail; show that when there is one.
+    const body = await response.json().catch(() => null)
+    const detail = typeof body?.detail === 'string' ? body.detail : null
+    throw new Error(detail ?? `${init?.method ?? 'GET'} ${path} failed with ${response.status}`)
   }
   return response.json()
 }
@@ -111,4 +117,35 @@ export function listSwarms(): Promise<SwarmRow[]> {
 
 export function readSwarm(swarmId: string): Promise<SwarmDetail> {
   return requestJson(`/api/swarms/${swarmId}`)
+}
+
+export function startSwarmRuns(swarmId: string, agentVersions: string[], runsPerTest: number): Promise<QueuedRuns> {
+  return requestJson(`/api/swarms/${swarmId}/runs`, {
+    method: 'POST',
+    body: JSON.stringify({ agent_versions: agentVersions, runs_per_version: runsPerTest }),
+  })
+}
+
+export function listSwarmRuns(swarmId: string): Promise<SwarmRunSummary[]> {
+  return requestJson(`/api/swarms/${swarmId}/swarm-runs`)
+}
+
+export function listRunsOfSwarmRun(swarmId: string, swarmRunId: string): Promise<RunRow[]> {
+  return requestJson(`/api/swarms/${swarmId}/runs?swarm_run_id=${swarmRunId}`)
+}
+
+export function cancelSwarmRun(swarmId: string, swarmRunId: string): Promise<null> {
+  return requestJson(`/api/swarms/${swarmId}/swarm-runs/${swarmRunId}/cancel`, { method: 'POST' })
+}
+
+export function readQueueState(): Promise<QueueState> {
+  return requestJson('/api/system/queue')
+}
+
+export function killWorker(workerId: string): Promise<null> {
+  return requestJson(`/api/system/workers/${workerId}/kill`, { method: 'POST' })
+}
+
+export function setFailRate(failRate: number): Promise<{ fail_rate: number }> {
+  return requestJson('/api/system/fail-rate', { method: 'PUT', body: JSON.stringify({ fail_rate: failRate }) })
 }

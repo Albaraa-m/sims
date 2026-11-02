@@ -1,6 +1,5 @@
 import { useState } from 'react'
 
-import { startRuns } from '@/api'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -9,15 +8,20 @@ import { Label } from '@/components/ui/label'
 const AGENT_VERSIONS = ['v1', 'v2']
 
 type RunControlsProps = {
-  testId: string
+  // Queues the runs; rejected when they don't fit in the queue.
+  startRuns: (agentVersions: string[], runsPerVersion: number) => Promise<unknown>
   onStarted: () => void
+  // How many tests each run per version covers: 1 for a test, all of them for a swarm.
+  testCount?: number
 }
 
-export default function RunControls({ testId, onStarted }: RunControlsProps) {
+export default function RunControls({ startRuns, onStarted, testCount = 1 }: RunControlsProps) {
   const [agentVersions, setAgentVersions] = useState<string[]>(AGENT_VERSIONS)
   const [runsPerVersion, setRunsPerVersion] = useState(1)
   const [isStarting, setIsStarting] = useState(false)
   const [startError, setStartError] = useState<string | null>(null)
+
+  const runCount = testCount * agentVersions.length * runsPerVersion
 
   function toggleAgentVersion(agentVersion: string, isChecked: boolean) {
     setAgentVersions(AGENT_VERSIONS.filter((v) => (v === agentVersion ? isChecked : agentVersions.includes(v))))
@@ -27,10 +31,10 @@ export default function RunControls({ testId, onStarted }: RunControlsProps) {
     setIsStarting(true)
     setStartError(null)
     try {
-      await startRuns(testId, agentVersions, runsPerVersion)
+      await startRuns(agentVersions, runsPerVersion)
       onStarted()
     } catch (error) {
-      setStartError(`Couldn't start the runs: ${(error as Error).message}`)
+      setStartError(`Not started: ${(error as Error).message}`)
     } finally {
       setIsStarting(false)
     }
@@ -61,7 +65,7 @@ export default function RunControls({ testId, onStarted }: RunControlsProps) {
           />
         </Label>
         <Button onClick={startSelectedRuns} disabled={agentVersions.length === 0 || isStarting}>
-          {isStarting ? 'Starting…' : `Run ${agentVersions.length * runsPerVersion} simulation${agentVersions.length * runsPerVersion === 1 ? '' : 's'}`}
+          {isStarting ? 'Queuing…' : `Run ${runCount} simulation${runCount === 1 ? '' : 's'}`}
         </Button>
       </div>
       {startError && <p className="text-sm text-destructive">{startError}</p>}

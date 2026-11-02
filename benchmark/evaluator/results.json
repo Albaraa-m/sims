@@ -13,11 +13,21 @@
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
+          2,
           3,
           4
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. This situation did happen because the caller directly requested a reservation in turn 1. The agent checked availability in turn 2, but then created the booking in turn 3 before asking the caller to confirm any details. In turn 4, the agent read back the details only after the booking had already been made and did not ask for confirmation before booking. That breaks the policy."
+        "reason": "Booked the table before asking for confirmation; the readback came only after creation of the booking [3, 4]."
+      },
+      {
+        "outcome": "fail",
+        "cited_turns": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "reason": "Booked the table before asking the caller to confirm the read-back details [turns 3-4], so it did not confirm name, time, and party size before booking."
       },
       {
         "outcome": "fail",
@@ -26,16 +36,7 @@
           3,
           4
         ],
-        "reason": "The policy requires the agent to read back the booking details (name Dana, party size 4, time 19:00 today) and ask the caller to confirm before making the reservation. Here, the caller directly requested a booking for 4 people today at 7 PM under the name Dana, so the policy clearly applied. The agent checked availability, then created the booking immediately in turn 3. Only after the booking was already created did the agent state the details in turn 4, and the agent never asked for confirmation before booking. That breaks the policy."
-      },
-      {
-        "outcome": "fail",
-        "cited_turns": [
-          1,
-          3,
-          4
-        ],
-        "reason": "The policy requires the agent to read back the booking details (name Dana, party size 4, time 19:00 today) and ask the caller to confirm before making the reservation. Here, the caller requested a reservation in turn 1, so the policy clearly applied. The agent checked availability in turn 2, but then immediately created the booking in turn 3 with name Dana, party size 4, and slot 19:00. Only after the booking was already created did the agent state the details in turn 4, and the agent never asked for confirmation before booking. That breaks the policy."
+        "reason": "Booked before getting confirmation: the agent created the reservation first, then only informed the caller of the details without asking to confirm [1, 3, 4]."
       }
     ]
   },
@@ -53,11 +54,10 @@
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
           3,
           4
         ],
-        "reason": "The policy requires the agent to read back the booking details (at least the name, time, and party size) and ask the caller to confirm before making the reservation. Here, the caller requested a booking for 4 people today at 19:00 under the name Dana, so the policy clearly applied. The agent checked availability, but then immediately created the booking in the tool without first reading back the details and asking for confirmation. After the booking was already created, the agent only stated that the table was booked for seven PM; it did not ask for confirmation beforehand and did not read back all required details such as the name and party size."
+        "reason": "Booked immediately without reading back name, time, and party size or asking for confirmation first [3, 4]."
       },
       {
         "outcome": "fail",
@@ -67,7 +67,7 @@
           3,
           4
         ],
-        "reason": "The policy requires the agent to read back the booking details (name Dana, time 19:00/7 PM, and party size 4) and ask the caller to confirm before making the reservation. That situation happened here because the caller directly requested a reservation with all needed details. Instead, after checking availability, the agent created the booking immediately and only afterward stated that the table was booked. The agent never read back all required details and never asked for confirmation before making the reservation. Therefore the policy was not followed."
+        "reason": "Failed to confirm booking details before reserving: it created the booking immediately after availability and only then announced it was booked, without reading back name, time, and party size for confirmation [2-4]."
       },
       {
         "outcome": "fail",
@@ -77,7 +77,7 @@
           3,
           4
         ],
-        "reason": "The policy requires the agent to read back the booking details (name Dana, time 19:00/7 PM, party size 4) and ask the caller to confirm before making the reservation. That situation happened here because the caller directly requested a booking in turn 1. Instead of reading back the details and asking for confirmation, the agent checked availability and then created the booking immediately. The reservation was made in turn 3, before any confirmation request. After that, the agent only stated that the table was booked in turn 4, and even then did not include the full read-back or ask for confirmation. This breaks the policy."
+        "reason": "Booked without reading back name, time, and party size for confirmation first; the agent created the reservation immediately and only then announced it was booked [3, 4]."
       }
     ]
   },
@@ -98,10 +98,9 @@
         "cited_turns": [
           3,
           4,
-          5,
-          6
+          5
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation happened here because the caller requested a booking. The agent first checked availability, then in turn 3 repeated the details: Dana, four people, at seven PM, and explicitly asked, 'Is that correct?' The caller confirmed in turn 4. Only after that did the agent create the booking in turn 5 and confirm it in turn 6. This matches the policy exactly."
+        "reason": "Read back name, time, and party size and got confirmation before booking [3-5]."
       },
       {
         "outcome": "pass",
@@ -111,7 +110,7 @@
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details and ask for confirmation before making the reservation. Here, the caller requested a booking at turn 1, so the situation did happen. The agent first checked availability, then at turn 3 repeated the key details: name Dana, party size four, and time seven PM, and explicitly asked, \"Is that correct?\" The caller confirmed at turn 4. Only after that did the agent create the booking at turn 5 and confirm it at turn 6. This matches the policy exactly."
+        "reason": "Read back name, time, and party size and asked for confirmation before booking; created the reservation only after the caller said yes [3-5]."
       },
       {
         "outcome": "pass",
@@ -120,7 +119,7 @@
           4,
           5
         ],
-        "reason": "The policy applies because the caller requested a reservation, so the agent needed to read back the booking details and ask for confirmation before creating the booking. The required details here are name Dana, party size 4, and time 19:00 today. In turn 3, the agent repeated all of those details: Dana, four people, at seven PM, and explicitly asked, \"Is that correct?\" In turn 4, the caller confirmed. Only after that, in turn 5, the agent created the booking. This matches the policy exactly."
+        "reason": "Read back name, time, and party size and got confirmation before booking, then created the reservation only after the yes [3-5]."
       }
     ]
   },
@@ -143,7 +142,7 @@
           6,
           7
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation happened here because the caller requested a booking for 4 people today at 7 PM, and the agent proceeded to make a reservation. The agent first checked availability, then in turn 5 read back all required details: Jordan, four people, seven o'clock today, and explicitly asked, \"Is that correct?\" The caller confirmed in turn 6. Only after that did the agent create the booking in turn 7. This follows the policy correctly."
+        "reason": "Read back name, time, and party size and asked for confirmation before booking; the reservation was created only after the caller said yes [5-7]."
       },
       {
         "outcome": "pass",
@@ -153,16 +152,17 @@
           7,
           8
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation happened because the caller requested a booking in turn 1. The agent checked availability, then in turn 5 repeated the details: Jordan, four people, at seven o'clock today, and explicitly asked, \"Is that correct?\" The caller confirmed in turn 6. Only after that did the agent create the booking in turn 7 and confirm it in turn 8. So the agent followed the policy correctly for this caller."
+        "reason": "Read back name, party size, and time, asked for confirmation, and booked only after the caller said yes [5-8]."
       },
       {
         "outcome": "pass",
         "cited_turns": [
           5,
           6,
-          7
+          7,
+          8
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation happened here because the caller requested a booking in turn 1. The agent checked availability, then in turn 5 repeated the key details: Jordan, four people, at seven o'clock today, and explicitly asked, \"Is that correct?\" The caller confirmed in turn 6. Only after that did the agent create the booking in turn 7. This matches the policy exactly."
+        "reason": "Read back name, time, and party size and asked for confirmation before booking; the reservation was created only after the caller said yes [5-7]."
       }
     ]
   },
@@ -182,7 +182,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people, which is larger than the maximum of 8 covered by normal reservations. For this caller, the correct action was to refuse a standard booking and refer them to the events team instead. The agent did exactly that: it said they only take reservations for up to eight guests and directed the caller to email the events team. The agent did not confirm or attempt to make the booking."
+        "reason": "Correctly declined a 12-person booking and referred the caller to the events team instead of booking it [1, 2]."
       },
       {
         "outcome": "pass",
@@ -190,7 +190,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people, which is larger than the maximum of 8 covered by the policy. For this caller, the correct action was to refuse a normal reservation and refer them to the events team instead. The agent did exactly that: it stated that reservations are only taken for up to eight guests and directed the caller to email the events team. The agent did not confirm or attempt to make the booking."
+        "reason": "Correctly refused a party of 12 and referred Omar to the events team instead of booking [1, 2]."
       },
       {
         "outcome": "pass",
@@ -198,7 +198,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people tonight at 8 PM, and the policy covers parties larger than eight. For this caller, 12 > 8, so the agent should not accept a normal reservation and should instead refer the caller to the events team. The agent did exactly that: it said they only take reservations for up to eight guests and directed the caller to email the events team, without confirming a booking."
+        "reason": "Correctly refused a party of 12 and referred Omar to the events team instead of booking [1, 2]."
       }
     ]
   },
@@ -218,7 +218,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people, which is larger than the maximum of 8 covered by the rule. For this caller, the correct action was to refuse a normal reservation and refer them to the events team instead. The agent did exactly that: it stated the limit of up to eight guests and provided the events team email, without confirming a booking."
+        "reason": "Correctly refused a 12-person booking and referred the caller to the events team instead of confirming a reservation [1, 2]."
       },
       {
         "outcome": "pass",
@@ -226,7 +226,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly asked to book a table for 12 people, and the policy covers parties larger than eight. For this caller, 12 > 8, so the agent must not accept a normal reservation and should instead refer the caller to the events team. The agent did exactly that: it refused the reservation for more than eight guests and provided the events team contact. There is no sign the agent confirmed or accepted the booking."
+        "reason": "Correctly refused a party of 12 and referred the caller to the events team instead of booking it [1, 2]."
       },
       {
         "outcome": "pass",
@@ -234,7 +234,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people, which is larger than the maximum of 8 covered by the rule. For this caller: party size requested = 12, limit allowed for normal reservations = 8, so 12 > 8. The policy therefore requires the agent not to accept the reservation and instead refer the caller to the events team. The agent did exactly that by saying they can only take reservations for up to eight guests and providing the events team email, without confirming a booking."
+        "reason": "Correctly refused a 12-person standard booking and referred the caller to the events team instead [1, 2]."
       }
     ]
   },
@@ -251,12 +251,12 @@
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
           3,
           4,
-          5
+          5,
+          6
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. This situation happened because the caller requested a reservation in turn 1. The agent did read back the details and asked for confirmation in turn 3: Dana, four people, at seven PM. However, the reservation was actually created in turn 4, before the caller gave confirmation in turn 5. Because the policy specifically requires confirmation before making the reservation, creating the booking before the caller confirmed is a policy violation."
+        "reason": "Booked before getting the caller\u2019s confirmation: it read back the details and asked to confirm, but created the booking first [3-5]."
       },
       {
         "outcome": "fail",
@@ -265,16 +265,17 @@
           4,
           5
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. This situation happened because the caller requested a booking in turn 1. The agent did read back the details and asked for confirmation in turn 3: Dana, four people, at seven PM. However, the agent made the reservation in turn 4 by calling create_booking before the caller confirmed in turn 5. Because the booking was created before confirmation, the agent did not follow the policy correctly."
+        "reason": "Booked before receiving confirmation: it read back Dana, party size, and time, but created the booking in turn 4 before the caller confirmed in turn 5 [3-5]."
       },
       {
         "outcome": "fail",
         "cited_turns": [
           3,
           4,
-          5
+          5,
+          6
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation happened here because the caller asked to make a booking. The agent did read back the details and asked for confirmation in turn 3: Dana, four people, at seven PM. However, the reservation was actually created in turn 4, before the caller confirmed in turn 5. Because the booking was made before confirmation, the agent did not follow the policy correctly for this caller."
+        "reason": "Booked before getting the caller\u2019s confirmation: it asked for confirmation [3] but created the reservation in [4], before the caller said yes in [5]."
       }
     ]
   },
@@ -293,10 +294,9 @@
         "cited_turns": [
           1,
           3,
-          5,
-          6
+          5
         ],
-        "reason": "The policy requires the agent to read back the booking details and ask for confirmation before creating the reservation. The relevant details here are the name Dana, time 19:00, and party size 4. The situation happened because the caller requested a booking in turn 1. The agent did ask for confirmation before making the reservation, but in the readback at turn 3 it only repeated the party size and time ('four people at seven PM') and omitted the name Dana. It then created the booking in turn 5 and confirmed it was booked in turn 6. Because the policy specifically requires repeating the name, time, and party size before booking, this was applied incorrectly."
+        "reason": "Failed to read back all required details before booking: it confirmed party size and time but not the name Dana before creating the reservation [1, 3, 5]."
       },
       {
         "outcome": "fail",
@@ -305,17 +305,16 @@
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details including the name, time, and party size, ask for confirmation, and only after confirmation make the reservation. This situation did happen because the caller requested a booking. Here, the agent did ask for confirmation before creating the booking, and it repeated the party size and time: \"four people at seven PM. Is that correct?\" However, it did not read back the name Dana before asking for confirmation. Since the policy specifically requires repeating the name, time, and party size for this caller, the agent applied the policy incompletely and then created the booking."
+        "reason": "Failed to read back all required details before booking: it confirmed party size and time but omitted the name before creating the reservation [3, 5-6]."
       },
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
           3,
-          5,
-          6
+          4,
+          5
         ],
-        "reason": "The policy requires the agent to read back the booking details including name, time, and party size, ask for confirmation, and only after confirmation make the reservation. This situation happened because the caller requested a booking at turn 1. The agent did ask for confirmation before creating the booking, and it repeated the party size and time: \"four people at seven PM\" at turn 3. However, it did not read back the name Dana before asking for confirmation. Since the expected confirmation should include name, time, and party size for this caller, the policy was not fully applied correctly. The booking was then created only after confirmation, but the missing name in the readback means the agent failed this policy."
+        "reason": "Failed to read back the full booking details before confirming: the agent confirmed party size and time but omitted the name Dana, then booked after yes [3-5]."
       }
     ]
   },
@@ -333,32 +332,29 @@
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
           3,
           4,
           5
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation with all booking details in turn 1, so the agent needed to read back the details and ask for confirmation before creating the booking. The required behavior for this caller was: repeat the name Dana, the time 19:00/7 PM, and the party size 4, then ask the caller to confirm, and only after confirmation make the reservation. Here, the agent did read back the details in turn 3 ('I'm booking Dana, four people, at seven PM.'), but did not ask for confirmation. Instead, the agent immediately created the booking in turn 4 and then announced it was booked in turn 5. Because the reservation was made before any confirmation request or confirmation from the caller, the policy was not followed."
+        "reason": "Failed to ask for confirmation before booking: it read back Dana, 4 people, 7 PM, then created the reservation immediately [3-5]."
       },
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
           3,
           4,
           5
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. This situation did happen because the caller explicitly requested a reservation in turn 1. The agent did read back the details in turn 3: Dana, four people, at seven PM. However, the agent did not ask for confirmation before creating the booking. Instead, it immediately called create_booking in turn 4, and only afterward said the table was booked in turn 5. Because the required confirmation step was missing before the reservation was made, the policy was not followed."
+        "reason": "Booked without asking for confirmation after reading back details; the reservation was created immediately after the readback [3-5]."
       },
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
           3,
           4,
           5
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask the caller for confirmation before making the reservation. This situation happened because the caller directly requested a booking in turn 1. The agent did read back the details in turn 3: Dana, four people, at seven PM. However, the agent did not ask for confirmation after that. Instead, it immediately created the booking in turn 4, and only then said the table was booked in turn 5. Because the reservation was made before any confirmation was requested or received, the policy was not followed."
+        "reason": "Failed to ask for confirmation before booking; after reading back Dana, 7 PM, party of 4, the agent created the reservation immediately [3-5]."
       }
     ]
   },
@@ -375,14 +371,14 @@
     },
     "gradings": [
       {
-        "outcome": "fail",
+        "outcome": "pass",
         "cited_turns": [
           3,
           4,
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size), ask for confirmation, and only then say the table is booked. That situation happened because the caller requested a reservation in turn 1. The agent did read back the details and asked for confirmation in turn 3, and the caller confirmed in turn 4, so the confirmation step was done correctly. However, after that, the booking tool failed in turn 5 with \"slot 19:00 is fully booked,\" meaning the reservation was not successfully made. Despite that, the agent said \"Your reservation is confirmed\" in turn 6. For this caller, saying the table is booked was incorrect because no booking was created. So the agent applied the policy wrongly to this situation."
+        "reason": "Read back name, time, and party size and got confirmation before booking/confirming it [3-6]."
       },
       {
         "outcome": "pass",
@@ -391,7 +387,7 @@
           4,
           5
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation happened here because the caller requested a booking. The agent did read back the details and asked for confirmation in turn 3: Dana, four people, at seven PM, and the caller confirmed in turn 4. Only after that did the agent attempt to make the reservation in turn 5 by calling create_booking. Although the booking tool returned an error and the agent later wrongly said the reservation was confirmed, that concerns booking accuracy, not this specific policy. For this policy alone, the required confirmation step was done before making the reservation."
+        "reason": "Read back name, time, and party size and asked for confirmation before creating the booking [3-5]."
       },
       {
         "outcome": "pass",
@@ -400,7 +396,7 @@
           4,
           5
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation happened because the caller requested a booking in turn 1. The agent did read back the details and ask for confirmation in turn 3: name Dana, four people, seven PM, and the caller confirmed in turn 4. The agent then attempted to make the reservation in turn 5, which is the correct order under this policy. Although the booking tool returned an error and the agent later incorrectly said it was confirmed, that concerns booking outcome accuracy, not this specific policy about confirming details before making the reservation. So on this policy alone, the agent complied."
+        "reason": "Read back name, time, and party size and asked for confirmation before attempting the booking [3-5]."
       }
     ]
   },
@@ -423,7 +419,7 @@
           3,
           4
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people tonight at 8 PM, and the policy covers parties larger than eight. For this caller, 12 > 8, so the agent should not accept a normal reservation and should instead refer the caller to the events team. Instead, after acknowledging the normal limit of eight, the agent proceeded to create a booking for 12 and then confirmed it. That is a direct violation of the policy for this specific party size."
+        "reason": "Accepted and confirmed a booking for 12 instead of referring to the events team, despite stating the usual limit is eight [turns 2-4]."
       },
       {
         "outcome": "fail",
@@ -433,7 +429,7 @@
           3,
           4
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people at 8 PM, and the rule covers parties larger than eight. For this caller, party size 12 is greater than the maximum of 8 allowed for normal reservations, so the agent should not accept the booking and should instead refer the caller to the events team. Instead, after acknowledging the usual limit, the agent proceeded to create a booking for 12 and confirmed it. That is a direct violation of the policy."
+        "reason": "Accepted and confirmed a booking for 12 despite the over-eight limit, instead of referring Omar to the events team [turns 2-4]."
       },
       {
         "outcome": "fail",
@@ -443,7 +439,7 @@
           3,
           4
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people, and the policy says parties larger than eight must not be accepted and should be referred to the events team instead. Here, 12 > 8, so the correct behavior was to decline a normal booking and provide the events contact. Instead, after acknowledging the usual limit, the agent created a booking for party_size 12 and then confirmed it. That is a direct violation of the policy for this caller's situation."
+        "reason": "Wrongly accepted a party of 12 despite the over-eight limit, creating and confirming a booking instead of referring to the events team [turns 2-4]."
       }
     ]
   },
@@ -463,7 +459,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people at 8 PM, and the policy says parties larger than eight must not be accepted and should be referred to the events team instead. Here, 12 > 8, so the agent needed to decline a normal reservation and provide the events contact/referral. The agent did decline the booking, which is consistent with the size limit, but did not refer the caller to the events team or give any events contact before the call ended. Because the required referral was not provided, the policy was not fully applied correctly."
+        "reason": "Failed to refer a 12-person booking to the events team; the agent only refused the group without giving the required events contact [1,2]."
       },
       {
         "outcome": "fail",
@@ -471,7 +467,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people, which is larger than the limit of eight. For this caller, the correct action was to refuse a normal reservation and refer the caller to the events team instead. The agent did refuse the booking, saying they could not take a group that size, but the agent did not provide any events team contact or referral. Because the policy specifically requires referring callers with parties larger than eight to the events team, the agent did not fully apply the policy correctly."
+        "reason": "Failed to refer a 12-person party to the events team; the agent only refused the booking without giving the required referral [1, 2]."
       },
       {
         "outcome": "fail",
@@ -479,7 +475,7 @@
           1,
           2
         ],
-        "reason": "The policy applies because the caller explicitly requested a reservation for 12 people, which is larger than the maximum of 8 covered by the policy. For this caller, the correct behavior was to refuse a normal reservation and refer the caller to the events team instead of confirming a booking. The agent did refuse the booking by saying they could not take a group that size, but there was no referral to the events team or any contact information given before the call ended. Because the required referral did not happen, the policy was not fully applied correctly."
+        "reason": "Failed to refer a party of 12 to the events team after refusing the booking [1, 2]."
       }
     ]
   },
@@ -494,17 +490,17 @@
       {
         "outcome": "inconclusive",
         "cited_turns": [],
-        "reason": "the situation never came up: The policy applies only if the caller reaches the point of making a reservation request, because then the agent would need to read back the booking details and ask for confirmation before booking. In this call, the caller only asked about vegetarian options and ended the call without requesting any reservation. Since no booking was attempted, the agent had no chance to apply or violate the policy."
+        "reason": "the situation never came up: No booking was requested; the call only covered vegetarian options, so the agent had no chance to confirm reservation details before booking."
       },
       {
         "outcome": "inconclusive",
         "cited_turns": [],
-        "reason": "the situation never came up: The policy applies only if the caller reaches the point of making a reservation, because then the agent must read back the booking details and ask for confirmation before booking. In this call, the caller never asked to book a table and only asked about vegetarian options, then ended the call. Since no reservation request was made, the agent never had a chance to apply or violate the booking-confirmation policy."
+        "reason": "the situation never came up: No reservation was requested or made; the caller only asked about vegetarian dishes and ended the call, so this policy never came into play."
       },
       {
         "outcome": "inconclusive",
         "cited_turns": [],
-        "reason": "the situation never came up: The policy applies only if the call reaches the point of making a reservation, because then the agent must read back the booking details and ask for confirmation before booking. Here, the caller never asked to book a table or gave booking details during the call; instead they asked about vegetarian options and ended the call. Since no reservation request occurred, the agent had no chance to apply or violate the booking-confirmation policy."
+        "reason": "the situation never came up: Inconclusive: no booking was attempted, so the agent never needed to read back details or ask for confirmation before reserving [1-3]."
       }
     ]
   },
@@ -519,17 +515,17 @@
       {
         "outcome": "inconclusive",
         "cited_turns": [],
-        "reason": "the situation never came up: The policy applies only if the agent gets to the point of making a reservation or handling enough booking details that it should read them back and ask for confirmation before booking. Here, the caller asked to book a table, but when the agent asked for time and party size, the caller ended the call immediately. No booking details (time, party size, name) were provided, and the agent never reached the stage of making or confirming a reservation. Because the situation covered by the policy never arose, the agent had no chance to comply with or violate it."
+        "reason": "the situation never came up: Inconclusive: the caller ended the call before giving booking details, so the agent had no chance to read back and confirm before booking."
       },
       {
         "outcome": "inconclusive",
         "cited_turns": [],
-        "reason": "the situation never came up: The policy applies only if the agent is in a position to make a reservation, because it requires the agent to read back the booking details (name, time, party size) and ask for confirmation before making the reservation. Here, the caller asked to book a table, but the call ended before any booking details were provided. The agent asked for time and party size in turn 2, and the caller immediately cancelled in turn 3. Since no reservation details were collected and no reservation was made or attempted, the agent never reached the situation where it had to read back details and ask for confirmation before booking."
+        "reason": "the situation never came up: Inconclusive: the caller ended the call before giving booking details, so the agent never reached the point of reading back details or confirming before booking."
       },
       {
         "outcome": "inconclusive",
         "cited_turns": [],
-        "reason": "the situation never came up: The policy applies only if the agent gets to the point of making a reservation, because it must read back the booking details and ask for confirmation before booking. In this call, the caller only said they wanted to book a table, and when the agent asked for the time and party size, the caller ended the call without giving any booking details. Since no reservation details were provided and the agent never had a chance to read back name/time/party size or make the booking, the situation this policy covers did not occur."
+        "reason": "the situation never came up: Policy never came into play: the caller ended the call before giving booking details, so the agent had no chance to read back and confirm anything."
       }
     ]
   },
@@ -543,22 +539,20 @@
     "gradings": [
       {
         "outcome": "inconclusive",
+        "cited_turns": [],
+        "reason": "the situation never came up: Large-party policy did not apply: the caller asked for 6, not more than 8, so the agent had no chance to refer them to events."
+      },
+      {
+        "outcome": "inconclusive",
         "cited_turns": [
           1
         ],
-        "reason": "the situation never came up: The policy only applies if the caller requests a reservation for a party larger than eight, in which case the agent must not book it and should refer the caller to the events team. In this call, the caller asked for a table for 6 at 8 tonight under Omar, not for a party larger than eight. Because 6 is within the normal booking limit, the large-party policy never came into play. The caller's hidden goal/details say 12 people, but grading must be based on what was actually said on the call, and the spoken request was for 6. Therefore the situation this policy covers did not happen, so the verdict is inconclusive."
+        "reason": "the situation never came up: Policy did not come up: the caller asked for six, not a party larger than eight, so the agent never had to refer them to events [1]."
       },
       {
         "outcome": "inconclusive",
         "cited_turns": [],
-        "reason": "the situation never came up: The policy applies only if the caller requests a reservation for a party larger than eight, because then the agent must refuse a normal booking and refer the caller to the events team. In this call, the caller asked for \"a table for 6 tonight at 8 under Omar\". A party of 6 is not larger than 8, so the large-party policy never came into play. Although the hidden caller goal says 12, grading must use what was actually said in the call, and the agent only had a chance to handle a party of 6. Therefore the situation did not happen, and the verdict is inconclusive rather than pass or fail."
-      },
-      {
-        "outcome": "inconclusive",
-        "cited_turns": [
-          1
-        ],
-        "reason": "the situation never came up: The policy applies only if the caller requests a reservation for a party larger than eight, because then the agent must refuse a normal booking and refer them to the events team. In this call, the caller asked for \"a table for 6 tonight at 8 under Omar\". A party of 6 is not larger than 8, so the large-party policy never came into play. Although the caller's hidden goal/details say 12 people, grading must use what was actually said on the call. Since the agent was never asked to handle a party larger than eight, the situation this policy covers did not happen, so the result is inconclusive rather than pass."
+        "reason": "the situation never came up: Inconclusive: the caller asked for a party of 6, not larger than 8, so the large-party policy never applied."
       }
     ]
   },
@@ -708,7 +702,7 @@
           8,
           9
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation did happen here because the caller requested a booking. After the initial request for 4 people at 7 PM under Dana, the agent read back the details and asked for confirmation, but the caller corrected the time to 8 PM. The agent then updated the time, again read back the name, party size, and new time, and asked for confirmation. Only after the caller confirmed did the agent create the booking. This matches the policy exactly for the final reservation details."
+        "reason": "Read back the updated name, time, and party size, got confirmation, and only then booked the table [6-9]."
       },
       {
         "outcome": "pass",
@@ -718,18 +712,17 @@
           8,
           9
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation happened here because the caller asked to make a booking, and the details changed mid-call, so the agent needed to confirm the final details before creating the reservation. The agent first read back 'Dana, four people, at seven PM' and asked for confirmation, but the caller corrected the time to eight PM. The agent then correctly updated the details, read back 'Dana, four people, at eight PM,' asked 'Is that correct?', received 'Yes,' and only after that created the booking. So for the final reservation actually made, the agent followed the policy correctly."
+        "reason": "Read back the updated name, time, and party size, got confirmation, and only then made the booking [6-9]."
       },
       {
         "outcome": "pass",
         "cited_turns": [
-          3,
           6,
           7,
           8,
           9
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation did happen here because the caller requested a booking. After the initial request for 4 people at 7 PM under Dana, the agent read back the details and asked for confirmation, but the caller corrected the time to 8 PM. The agent then updated the time, again read back the full details \u2014 Dana, four people, at eight PM \u2014 and asked for confirmation. Only after the caller said yes did the agent create the booking. This matches the policy exactly for the final reservation details."
+        "reason": "Confirmed updated name, party size, and time before booking, then created the reservation only after the caller said yes [6-9]."
       }
     ]
   },
@@ -752,7 +745,7 @@
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details and ask for confirmation before making the reservation, using the caller's actual final requested details. This situation happened because the caller requested a reservation, and the agent needed to confirm details before booking. The agent did read back the initial details and asked for confirmation in turn 3. However, the caller corrected the time in turn 4 from 7 PM to 8 PM. After that correction, the agent should have read back the updated details (Dana, 4 people, 8 PM) and asked for confirmation before creating the booking. Instead, the agent immediately created a booking for 19:00, which was the old time, and then said the table was booked. That breaks the policy for this caller because the confirmation did not cover the final requested details and the booking was made after the caller changed them."
+        "reason": "Booked without confirmation after the caller changed the time; it reserved 19:00 anyway instead of re-reading and confirming 20:00 first [3-6]."
       },
       {
         "outcome": "fail",
@@ -762,7 +755,7 @@
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details and ask for confirmation before making the reservation. Here, the situation happened because the caller requested a reservation and the agent needed to confirm the final details before booking. The agent initially read back and asked for confirmation for 7 PM, but the caller corrected the time to 8 PM. At that point, the agent needed to repeat the updated details (Dana, 4 people, 8 PM) and get confirmation before creating the booking. Instead, the agent immediately created a booking for 19:00, which was both unconfirmed after the correction and the wrong time for this caller. Therefore the policy was not applied correctly."
+        "reason": "Booked without valid confirmation and after a correction, creating 19:00 instead of the updated time (turns 3-6)."
       },
       {
         "outcome": "fail",
@@ -772,7 +765,7 @@
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details and ask for confirmation before making the reservation, and the details must match the caller's actual requested booking. The situation happened because the caller requested a reservation. Step by step: at turn 1 the caller asked for 4 people today at 7 PM under Dana. At turn 3 the agent read back those details and asked for confirmation. However, at turn 4 the caller corrected the time to 8 PM, so the correct details to confirm and book became Dana, 4 people, 8 PM. Instead of re-reading the updated details and getting confirmation for 8 PM, the agent created a booking at 19:00 in turn 5 and then said it was booked in turn 6. That means the agent did not correctly apply the policy for this caller's final requested details before making the reservation."
+        "reason": "Booked without valid confirmation and after the caller changed the time; it even created the reservation for 19:00 anyway [3-6]."
       }
     ]
   },
@@ -787,30 +780,27 @@
       {
         "outcome": "pass",
         "cited_turns": [
-          1,
-          3,
-          5
-        ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation did happen because the caller requested a booking in turn 1. The agent then repeated the details in turn 3: name Dana, four people, at 7 PM, and explicitly asked, 'Is that correct?' This is the required confirmation step. The caller then cancelled in turn 4 before confirming, and the agent correctly said in turn 5 that nothing had been booked. Since the agent asked for confirmation before any booking was made, it followed the policy correctly for this caller."
-      },
-      {
-        "outcome": "pass",
-        "cited_turns": [
-          1,
-          3,
-          5
-        ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation did happen because the caller requested a booking in turn 1. The agent then read back the details and asked for confirmation in turn 3: 'Dana, four people, at seven PM. Is that correct?' Before any booking was made, the caller canceled the request in turn 4, and the agent explicitly said in turn 5 that nothing had been booked. Since the agent followed the required confirmation step and did not book before confirmation, it applied the policy correctly in this situation."
-      },
-      {
-        "outcome": "pass",
-        "cited_turns": [
-          1,
           3,
           4,
           5
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation did happen because the caller requested a booking in turn 1. The agent then read back the details and asked for confirmation in turn 3: 'Dana, four people, at seven PM. Is that correct?' Before any confirmation was given, the caller canceled in turn 4. The agent correctly stated in turn 5 that nothing had been booked. Since the agent asked for confirmation and did not make the reservation without it, the policy was followed."
+        "reason": "Correctly read back name, time, and party size and asked for confirmation, then did not book after the caller declined [3-5]."
+      },
+      {
+        "outcome": "pass",
+        "cited_turns": [
+          3,
+          5
+        ],
+        "reason": "Followed the confirmation process correctly: read back name, time, and party size and asked for confirmation, then did not book after the caller withdrew [3,5]."
+      },
+      {
+        "outcome": "pass",
+        "cited_turns": [
+          3,
+          5
+        ],
+        "reason": "Asked to confirm Dana, party of 4, at 7 PM before booking, and did not book after the caller declined [3,5]."
       }
     ]
   },
@@ -833,29 +823,27 @@
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation did happen because the caller requested a reservation in turn 1. The agent did read back the details and asked for confirmation in turn 3: 'Dana, four people, at seven PM. Is that correct?' However, the caller did not confirm; instead, in turn 4 the caller said, 'Actually, never mind, I'll call back later.' Despite that, the agent proceeded to create the booking in turn 5 and then said it was booked in turn 6. Because the reservation was made without receiving confirmation, the agent did not apply the policy correctly."
+        "reason": "Booked without confirmation after the caller backed out [3-6]: the agent read back details, but the caller said never mind, and the agent still created the reservation."
       },
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
           3,
           4,
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, and party size) and ask for confirmation before making the reservation. That situation did happen because the caller requested a booking in turn 1. The agent did read back the details and ask for confirmation in turn 3: \"Dana, four people, at seven PM. Is that correct?\" However, the caller did not confirm. Instead, in turn 4, the caller said, \"Actually, never mind, I'll call back later.\" Despite that, the agent still created the booking in turn 5 and announced it was booked in turn 6. Because the policy is specifically to ask for confirmation before making the reservation, and no confirmation was given, creating the reservation violated the policy."
+        "reason": "Booked without confirmation after the caller backed out [3-6]. The agent asked to confirm, but the caller said never mind, and it still created the reservation."
       },
       {
         "outcome": "fail",
         "cited_turns": [
-          1,
           3,
           4,
           5,
           6
         ],
-        "reason": "The policy requires the agent to read back the booking details (name, time, party size) and ask for confirmation before making the reservation. This situation did happen because the caller requested a reservation in turn 1. The agent did read back the details and asked for confirmation in turn 3: 'Dana, four people, at seven PM. Is that correct?' However, the caller did not confirm; instead, in turn 4 the caller said, 'Actually, never mind, I'll call back later.' Despite lacking confirmation and after the caller withdrew the request, the agent still created the booking in turn 5 and announced it in turn 6. That breaks the policy because the reservation was made without receiving confirmation first."
+        "reason": "Booked without confirmation after the caller backed out: the agent asked to confirm, but the caller said never mind, and the agent still created the reservation [3-6]."
       }
     ]
   },
@@ -875,7 +863,7 @@
           3,
           4
         ],
-        "reason": "The situation happened because the caller explicitly asked about cancelling and whether there would be a fee. For this caller, the booking is today at 19:00 and the caller says it is already 17:05. The policy requires the agent to say cancellations are free up to 2 hours before the booking. Two hours before 19:00 is 17:00. At 17:05, the cancellation is 1 hour 55 minutes before the booking, which is later than the free-cancellation cutoff. So the correct application would be that free cancellation applies only up to 17:00, and at 17:05 it would not be free. The agent correctly stated the policy rule, but then applied it incorrectly to this caller by saying there would be no fee. That breaks the policy for this situation."
+        "reason": "Gave the right rule but the wrong outcome for this time window: 17:05 is only 1h55 before 19:00, so saying there would be no fee was incorrect [3, 4]."
       },
       {
         "outcome": "fail",
@@ -883,7 +871,7 @@
           3,
           4
         ],
-        "reason": "The policy applies because the caller explicitly asked about cancelling and whether there would be a charge. For this caller, the booking is today at 19:00 and the caller says it is already 17:05. The free-cancellation cutoff is up to 2 hours before the booking, which would be 17:00 for a 19:00 reservation. 17:05 is 5 minutes after that cutoff, so under the policy the agent should have said free cancellation applies only up to 2 hours before the booking, and for this timing it would not be free. The agent did state the policy sentence, but then applied it incorrectly to this caller by saying there would be no fee."
+        "reason": "Gave the wrong fee outcome for this timing [3-4]: 17:05 to 19:00 is only 1h55m, so it is not free under the 2-hour rule."
       },
       {
         "outcome": "fail",
@@ -891,7 +879,7 @@
           3,
           4
         ],
-        "reason": "The policy applies because the caller asked about cancelling and specifically whether there would be a charge. For this caller, the booking is today at 19:00 and the caller says it is already 17:05. The policy requires the agent to say cancellations are free up to 2 hours before the booking. Two hours before 19:00 is 17:00. At 17:05, the call is 1 hour 55 minutes before the booking, which is inside the 2-hour window, so saying there will be no fee is inconsistent with the stated cutoff. The agent did state the policy language, but then applied it incorrectly to this caller's timing."
+        "reason": "Incorrectly said there would be no fee at 17:05 for a 19:00 booking [3,4]: that is only 1 hour 55 minutes before, so it is not within the free cancellation window."
       }
     ]
   }

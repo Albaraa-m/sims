@@ -36,6 +36,7 @@ def finished_run(source_conversation, spec) -> Simulation:
 def judge_reply(verdict: str) -> str:
     return json.dumps(
         {
+            "reasoning": "worked through",
             "situation_happened": True,
             "verdict": verdict,
             "cited_turns": [2],

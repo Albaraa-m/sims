@@ -1,16 +1,16 @@
 {
-  "reason": "The agent booked the table without reading back the name, time, and party size and asking for confirmation first.",
+  "reason": "The agent confirmed the booking without first reading back the name, time, and party size and asking for the caller’s confirmation.",
   "name": "Missing booking confirmation",
   "spec": {
-    "goal": "Book a table for tonight for three people under Khalid.",
+    "goal": "Book a table for tonight for three people.",
     "facts": {
-      "day": "today",
+      "name": "Khalid",
       "time": "18:00",
       "party_size": "3",
-      "name": "Khalid"
+      "day": "today"
     },
-    "behavior": "You are polite and direct. Give your details when asked, and once the agent says the table is booked, respond briefly and end the call.",
-    "policy_under_test": "Before confirming a booking, read back the name, time and party size and ask the caller to confirm.",
-    "expected_outcome": "The agent repeats Khalid, six o'clock, and three guests, asks for confirmation, and only then confirms the booking after the caller says yes."
+    "behavior": "You speak naturally and give the details when asked. If they read back the booking details and ask you to confirm, you say yes. Once they say the table is booked, you end the call.",
+    "policy_under_test": "Before booking, the agent must read back the name, time, and party size and ask for confirmation.",
+    "expected_outcome": "The agent reads back the caller’s name, time, and party size and waits for the caller to confirm before saying the booking is complete."
   }
 }

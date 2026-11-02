@@ -12,23 +12,32 @@ import TestsPage from '@/pages/TestsPage'
 export default function App() {
   return (
     <BrowserRouter>
-      <nav className="mx-auto flex max-w-5xl gap-4 px-6 pt-6 text-sm">
-        {[
-          { to: '/', label: 'Tests' },
-          { to: '/swarms', label: 'Swarms' },
-          { to: '/results', label: 'Results' },
-          { to: '/dashboard', label: 'Dashboard' },
-        ].map(({ to, label }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end
-            className={({ isActive }) => (isActive ? 'font-medium' : 'text-muted-foreground hover:text-foreground')}
-          >
-            {label}
-          </NavLink>
-        ))}
-      </nav>
+      <header className="border-b bg-card">
+        <nav className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-6 text-sm">
+          <span className="font-semibold tracking-tight">Sims</span>
+          {[
+            { to: '/', label: 'Tests' },
+            { to: '/swarms', label: 'Swarms' },
+            { to: '/results', label: 'Results' },
+            { to: '/dashboard', label: 'Dashboard' },
+          ].map(({ to, label }) => (
+            <NavLink
+              key={to}
+              to={to}
+              end={to === '/'}
+              className={({ isActive }) =>
+                `flex h-full items-center border-b-2 ${
+                  isActive
+                    ? 'border-primary font-medium text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                }`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
+        </nav>
+      </header>
       <main className="mx-auto max-w-5xl px-6 py-10">
         <Routes>
           <Route path="/" element={<TestsPage />} />

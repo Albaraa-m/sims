@@ -49,8 +49,8 @@ export default function Verdict({ run, now, onRegraded }: VerdictProps) {
     <div className="space-y-3 rounded-lg border p-4 text-sm">
       <div className="flex items-center gap-3">
         <h2 className="text-base font-semibold">Verdict</h2>
-        <OutcomeBadge run={{ outcome: latest?.outcome ?? null, ended_at: run.ended_at }} now={now} />
-        {run.status !== 'running' && (
+        <OutcomeBadge run={{ outcome: latest?.outcome ?? null, ended_at: run.ended_at, status: run.status }} now={now} />
+        {run.status === 'done' && (
           <Button variant="outline" size="sm" className="ml-auto" onClick={regrade} disabled={isRegrading}>
             {isRegrading ? 'Grading…' : 'Regrade'}
           </Button>
@@ -60,6 +60,12 @@ export default function Verdict({ run, now, onRegraded }: VerdictProps) {
       {latest && (
         <>
           <p>{latest.reason}</p>
+          {latest.reasoning && (
+            <details className="text-muted-foreground">
+              <summary className="cursor-pointer">How the judge worked it out</summary>
+              <p className="mt-2 whitespace-pre-wrap">{latest.reasoning}</p>
+            </details>
+          )}
           {latest.error && <p className="text-muted-foreground">Error: {latest.error}</p>}
           {latest.cited_turns.length > 0 && (
             <p className="flex flex-wrap items-center gap-2 text-muted-foreground">

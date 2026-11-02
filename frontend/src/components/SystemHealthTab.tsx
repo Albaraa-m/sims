@@ -1,163 +1,145 @@
+import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
-import RunHealthOverTimeChart from '@/components/RunHealthOverTimeChart'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { durationSeconds, judgeOfRun, median, resultsUrl } from '@/dashboard'
-import { EXECUTION_FAILURE_KIND_LABEL, formatRunDuration, isAwaitingGrade } from '@/runs'
-import type { ExecutionFailureKind, RunRow } from '@/types'
+import { readQueueState } from '@/api'
+import { FaultInjectionControls, HealthStatusBadge, QueueCard, WorkersCard } from '@/components/SystemHealthCards'
+import { Badge } from '@/components/ui/badge'
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table'
+import { type LedgerBucket, ledgerBucketOf, resultsUrl } from '@/dashboard'
+import { EXECUTION_FAILURE_KIND_LABEL } from '@/runs'
+import type { ExecutionFailureKind, QueueState, RunRow } from '@/types'
 
-function Count({ label, value, to }: { label: string; value: number; to?: string }) {
-  const content = (
-    <>
-      <div className="text-2xl font-semibold tabular-nums">{value}</div>
-      <div className="text-sm text-muted-foreground">{label}</div>
-    </>
-  )
-  return to ? (
-    <Link to={to} className="rounded-lg border p-3 hover:bg-muted/50">
-      {content}
-    </Link>
-  ) : (
-    <div className="rounded-lg border p-3">{content}</div>
-  )
-}
+const POLL_INTERVAL_MS = 2000
 
-function formatSeconds(seconds: number | null): string {
-  if (seconds === null) return '—'
-  const rounded = Math.round(seconds)
-  return `${Math.floor(rounded / 60)}m ${String(rounded % 60).padStart(2, '0')}s`
-}
+const LEDGER_PILLS = [
+  { bucket: 'finished', label: 'Finished', variant: 'outline' },
+  { bucket: 'in_flight', label: 'In Flight', variant: 'info' },
+  { bucket: 'execution_failure', label: 'Execution Failure', variant: 'serious' },
+  { bucket: 'not_graded', label: 'Not Graded', variant: 'warning' },
+  { bucket: 'cancelled', label: 'Cancelled', variant: 'neutral' },
+] as const satisfies { bucket: LedgerBucket; label: string; variant: string }[]
 
-export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: number }) {
-  // Each run lands in exactly one bucket, so the counts add up to the total.
-  const inProgressRuns = runs.filter((run) => run.status === 'running' || isAwaitingGrade(run, now))
-  const executionFailures = runs.filter(
-    (run) => run.outcome === 'execution_failed' || (run.status === 'failed' && run.outcome === null),
-  )
-  const ungradedRuns = runs.filter(
-    (run) => run.status === 'done' && run.outcome === null && !isAwaitingGrade(run, now),
-  )
-  const completedRuns = runs.filter(
-    (run) => run.outcome === 'pass' || run.outcome === 'fail' || run.outcome === 'inconclusive',
-  )
-  const inconclusiveRuns = runs.filter((run) => run.outcome === 'inconclusive')
-  const failureKinds = Object.keys(EXECUTION_FAILURE_KIND_LABEL) as ExecutionFailureKind[]
-  const agentVersions = [...new Set(runs.map((run) => run.agent_version))].sort()
-  const judges = [...new Set(runs.map(judgeOfRun).filter((judge) => judge !== null))]
+function SimulationLedger({ runs, refused, now }: { runs: RunRow[]; refused: number; now: number }) {
+  const counts = new Map<LedgerBucket, number>()
+  for (const run of runs) {
+    const bucket = ledgerBucketOf(run, now)
+    counts.set(bucket, (counts.get(bucket) ?? 0) + 1)
+  }
+  const requested = runs.length + refused
+  const settled = requested - (counts.get('in_flight') ?? 0)
+  const unfinishedAttempts = runs.flatMap((run) => run.attempts.filter((entry) => entry.status !== 'completed'))
+  const interrupted = unfinishedAttempts.filter((entry) => entry.status === 'interrupted').length
 
   return (
-    <>
-      <div className="space-y-2">
-        <h2 className="text-base font-semibold">Runs</h2>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          <Count label="Completed" value={completedRuns.length} />
-          <Count label="In Progress" value={inProgressRuns.length} />
-          <Count
-            label="Execution Failures"
-            value={executionFailures.length}
-            to={resultsUrl({ outcome: 'execution_failed' })}
-          />
-          <Count label="Not Graded" value={ungradedRuns.length} />
-        </div>
-        <RunHealthOverTimeChart runs={runs} now={now} />
+    <div className="space-y-3 rounded-lg border p-4 text-sm">
+      <div className="flex items-center gap-3">
+        <h2 className="text-base font-semibold">Every simulation accounted for</h2>
+        <span className="ml-auto tabular-nums text-muted-foreground">
+          {settled} of {requested} requested settled
+        </span>
       </div>
-
-      <div className="space-y-2">
-        <h2 className="text-base font-semibold">Execution failures by cause</h2>
-        {executionFailures.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Every graded call ran properly.</p>
-        ) : (
-          <Table>
-            <TableBody>
-              {failureKinds.map((kind) => {
-                const count = executionFailures.filter(
-                  // Failed calls that were never graded have no kind yet, but the cause is known.
-                  (run) => (run.execution_failure_kind ?? 'call_failed') === kind,
-                ).length
-                if (count === 0) return null
-                return (
-                  <TableRow key={kind}>
-                    <TableCell>
-                      <Link
-                        to={resultsUrl({ outcome: 'execution_failed', execution_failure_kind: kind })}
-                        className="hover:underline"
-                      >
-                        {EXECUTION_FAILURE_KIND_LABEL[kind]}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">{count}</TableCell>
-                  </TableRow>
-                )
-              })}
-            </TableBody>
-          </Table>
-        )}
+      <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
+        <div
+          className="h-full rounded-full bg-primary transition-all"
+          style={{ width: `${requested ? (settled / requested) * 100 : 0}%` }}
+        />
       </div>
-
-      <div className="space-y-2">
-        <h2 className="text-base font-semibold">Evaluator</h2>
-        <p className="text-sm text-muted-foreground">
-          {judges.length === 0 ? 'No judge has graded a run yet.' : `Judges used: ${judges.join(', ')}.`}
-        </p>
-        {inconclusiveRuns.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No inconclusive runs.</p>
-        ) : (
-          <ul className="space-y-1 text-sm">
-            {inconclusiveRuns.map((run) => (
-              <li key={run.id}>
-                <Link to={`/runs/${run.id}`} className="hover:underline">
-                  <span className="text-muted-foreground">
-                    {run.test_name} v{run.test_version}, agent {run.agent_version}:
-                  </span>{' '}
-                  {run.reason}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="flex flex-wrap gap-2">
+        {LEDGER_PILLS.map(({ bucket, label, variant }) => {
+          const pill = (
+            <Badge variant={variant}>
+              {counts.get(bucket) ?? 0} {label}
+            </Badge>
+          )
+          return bucket === 'execution_failure' ? (
+            <Link key={bucket} to={resultsUrl({ outcome: 'execution_failed' })}>
+              {pill}
+            </Link>
+          ) : (
+            <span key={bucket}>{pill}</span>
+          )
+        })}
+        <Badge variant="neutral">{refused} Refused</Badge>
       </div>
+      <p className="text-muted-foreground">
+        Retried: {interrupted} {interrupted === 1 ? 'attempt' : 'attempts'} interrupted ·{' '}
+        {unfinishedAttempts.length - interrupted} failed. A retry is the next attempt of the same simulation, so
+        nothing is counted twice.
+      </p>
+    </div>
+  )
+}
 
-      <div className="space-y-2">
-        <h2 className="text-base font-semibold">Call duration</h2>
+function ExecutionFailuresByCause({ runs, now }: { runs: RunRow[]; now: number }) {
+  const failures = runs.filter((run) => ledgerBucketOf(run, now) === 'execution_failure')
+  const failureKinds = Object.keys(EXECUTION_FAILURE_KIND_LABEL) as ExecutionFailureKind[]
+  return (
+    <div className="space-y-2">
+      <h2 className="text-base font-semibold">Execution failures by cause</h2>
+      {failures.length === 0 ? (
+        <p className="text-sm text-muted-foreground">Every settled simulation ran properly.</p>
+      ) : (
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Agent</TableHead>
-              <TableHead>Median</TableHead>
-              <TableHead>Slowest</TableHead>
-            </TableRow>
-          </TableHeader>
           <TableBody>
-            {agentVersions.map((agentVersion) => {
-              const finishedRuns = runs.filter(
-                (run) => run.agent_version === agentVersion && run.status === 'done' && run.ended_at,
-              )
-              const slowest = finishedRuns.reduce<RunRow | null>(
-                (current, run) => (!current || durationSeconds(run)! > durationSeconds(current)! ? run : current),
-                null,
-              )
+            {failureKinds.map((kind) => {
+              const count = failures.filter(
+                // Failed calls that were never graded have no kind yet, but the cause is known.
+                (run) => (run.execution_failure_kind ?? 'call_failed') === kind,
+              ).length
+              if (count === 0) return null
               return (
-                <TableRow key={agentVersion}>
-                  <TableCell>{agentVersion}</TableCell>
-                  <TableCell className="tabular-nums">
-                    {formatSeconds(median(finishedRuns.map((run) => durationSeconds(run)!)))}
+                <TableRow key={kind}>
+                  <TableCell>
+                    <Link
+                      to={resultsUrl({ outcome: 'execution_failed', execution_failure_kind: kind })}
+                      className="hover:underline"
+                    >
+                      {EXECUTION_FAILURE_KIND_LABEL[kind]}
+                    </Link>
                   </TableCell>
-                  <TableCell className="tabular-nums">
-                    {slowest ? (
-                      <Link to={`/runs/${slowest.id}`} className="hover:underline">
-                        {formatRunDuration(slowest, now)}
-                      </Link>
-                    ) : (
-                      '—'
-                    )}
-                  </TableCell>
+                  <TableCell className="text-right tabular-nums">{count}</TableCell>
                 </TableRow>
               )
             })}
           </TableBody>
         </Table>
-        <p className="text-xs text-muted-foreground">Only calls that finished; failed calls end at the timeout.</p>
+      )}
+    </div>
+  )
+}
+
+export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: number }) {
+  const [state, setState] = useState<QueueState | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+
+  const loadState = useCallback(() => {
+    readQueueState().then(
+      (loadedState) => {
+        setState(loadedState)
+        setLoadError(null)
+      },
+      (error: Error) => setLoadError(error.message),
+    )
+  }, [])
+
+  useEffect(() => {
+    loadState()
+    const interval = setInterval(loadState, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [loadState])
+
+  if (!state) return loadError ? <p className="text-sm text-destructive">Couldn't load the queue: {loadError}</p> : null
+
+  return (
+    <>
+      <HealthStatusBadge state={state} />
+      <div className="grid gap-4 md:grid-cols-2">
+        <QueueCard state={state} />
+        <WorkersCard state={state} onChange={loadState} />
       </div>
+      <SimulationLedger runs={runs} refused={state.refused_simulations} now={now} />
+      <ExecutionFailuresByCause runs={runs} now={now} />
+      {state.fault_injection_enabled && <FaultInjectionControls state={state} onChange={loadState} />}
     </>
   )
 }

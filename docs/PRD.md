@@ -87,7 +87,7 @@ Authentication, multiple tenants, Kubernetes, a large scenario library, polished
 |---|---|---|---|
 | [x] | M14 | Swarm generation | Agent prompt → tests per policy, reviewed and saved as a swarm |
 | [ ] | M15 | Benchmark: swarm quality | Share of planted bugs caught and coverage of the grid |
-| [ ] | M16 | Reliable queue | Kill a worker mid-swarm, and every run is still accounted for (load and recovery evidence) |
+| [x] | M16 | Reliable queue | Kill a worker mid-swarm, and every run is still accounted for (load and recovery evidence) |
 
 ### Delivery
 

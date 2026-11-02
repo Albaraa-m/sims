@@ -17,10 +17,10 @@ X, you Y", never as "wait for them to X", which tells the caller what to expect:
 
 SPEC_FIELD_RULES = """\
 Caller fields:
-- goal: what the caller wants, in one sentence, as the caller would say it ("Book a
-  table for four tonight"), never what is being checked ("see whether the agent").
-  Only the request that brings out the situation under test; leave out the caller's
-  other questions and requests.
+- goal: what the caller wants, in one sentence, as a goal ("Book a table for four
+  tonight"), not as a line they speak ("Can I book a table for four?") and never what
+  is being checked ("see whether the agent"). Only the request that brings out the
+  situation under test; leave out the caller's other questions and requests.
 - facts: the concrete details the caller gives: their name, plus those the
   situation depends on. Use the keys name, time, party_size and day where they
   apply. Times as 24-hour HH:MM, party size as a number. Keep days relative to the
@@ -28,8 +28,11 @@ Caller fields:
   whenever it runs. If the situation depends on the time of the call, include it as
   current_time. Only the caller's own details, never the restaurant's (address,
   phone, menu, rules).
-- behavior: how the caller acts, written to the caller as "you": speaking style,
-  how they hand over details, how they answer questions, when they hang up. Include
+- behavior: how the caller acts, in at most 3 short sentences with at most one
+  "if they X, you Y". Address the caller as "you" and the agent as "they", never as
+  "the agent", and tell the caller what to do rather than describe them ("You sound
+  like a parent"). Cover speaking style, how they hand over details, how they answer
+  questions, when they hang up. Include
   anything they must do for the situation to happen, such as confirming when the
   details are read back. Leave out requests and questions that don't lead to it.
   Do not repeat the goal or facts or reveal what is tested, and add no meta
@@ -41,10 +44,12 @@ Caller fields:
   question, so the caller never improvises past the moment the situation shows.
 
 Evaluator fields (never shown to the caller):
-- policy_under_test: the rule under test, in plain words, without tool names.
-  State the rule itself with its numbers ("free cancellation only up to 2 hours
-  before the booking"), not an instruction like "state the policy correctly".
-- expected_outcome: what a correct agent does, as behavior a listener would notice.
+- policy_under_test: one sentence stating the rule as a fact, with its numbers and
+  without tool names: "Cancellations are free up to 2 hours before the booking", not
+  "The agent must state the cancellation policy". Only the part of the rule this
+  call brings into play.
+- expected_outcome: one sentence starting "The agent", saying what a correct agent
+  does, as behavior a listener would notice.
   Only about this rule: never add other rules the agent follows in the same call.
   One outcome, no "if ..., otherwise ..." branches, and one the agent can achieve
   with its tools and instructions.

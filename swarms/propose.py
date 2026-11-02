@@ -2,11 +2,11 @@ import asyncio
 
 from pydantic import BaseModel
 
+from agents.booking.agent import RESTAURANT_POLICIES
 from swarms.generate import (
     describe_agent_tools,
     extract_policies_from_agent_instructions,
     generate_scenario_for_policy,
-    instructions_of_agent_version,
 )
 from swarms.models import Policy, Scenario
 
@@ -19,8 +19,10 @@ class SwarmProposal(BaseModel):
 
 
 async def find_policies_of_agent_version(agent_version: str) -> list[Policy]:
+    # Read the restaurant's rules, not this version's prompt: a version's own bug
+    # (v1 skips confirmation) must not become what its tests expect.
     return await extract_policies_from_agent_instructions(
-        instructions_of_agent_version(agent_version),
+        RESTAURANT_POLICIES,
         describe_agent_tools(agent_version),
     )
 

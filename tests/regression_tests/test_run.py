@@ -1,16 +1,12 @@
-import asyncio
-
 import pytest
 
-from evaluations.crud import latest_evaluation_of_simulation
-from regression_tests import run
 from regression_tests.crud import create_test_from_spec, mark_ready
 from regression_tests.run import (
     TestNotReadyError,
     build_caller_scenario,
-    run_test_against_agent_version,
+    queue_test_runs,
 )
-from simulations.crud import create_simulation, list_simulations_of_test
+from simulations.models import SimulationStatus
 
 
 def test_caller_scenario_has_caller_fields_only(spec):
@@ -25,27 +21,15 @@ def test_caller_scenario_has_caller_fields_only(spec):
 def test_draft_test_is_refused(spec, source_conversation):
     test = create_test_from_spec(source_conversation, "Unconfirmed booking", spec)
     with pytest.raises(TestNotReadyError):
-        asyncio.run(run_test_against_agent_version(test.id, "v1"))
+        queue_test_runs(test.id, ["v1"])
 
 
-def test_ready_test_starts_and_evaluates_one_simulation_per_run(
-    spec, source_conversation, monkeypatch
-):
-    started = []
-
-    async def fake_run_simulation(agent_version, test_id, caller_scenario):
-        started.append((agent_version, test_id, caller_scenario))
-        return create_simulation(agent_version, test_id)
-
-    monkeypatch.setattr(run, "run_simulation", fake_run_simulation)
+def test_ready_test_queues_its_runs_for_each_version(spec, source_conversation):
     test = mark_ready(
         create_test_from_spec(source_conversation, "Unconfirmed booking", spec).id
     )
 
-    simulations = asyncio.run(run_test_against_agent_version(test.id, "v1", runs=3))
+    simulations = queue_test_runs(test.id, ["v1", "v2"], runs_per_version=2)
 
-    assert len(simulations) == 3
-    assert {(version, test_id) for version, test_id, _ in started} == {("v1", test.id)}
-    assert started[0][2] == build_caller_scenario(spec)
-    assert len(list_simulations_of_test(test.id)) == 3
-    assert all(latest_evaluation_of_simulation(s.id) for s in simulations)
+    assert [s.agent_version for s in simulations] == ["v1", "v1", "v2", "v2"]
+    assert {s.status for s in simulations} == {SimulationStatus.QUEUED}

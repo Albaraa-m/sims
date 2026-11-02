@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { listRuns, listTestVersions, markTestReady, readSwarm, readTest } from '@/api'
+import { listRuns, listTestVersions, markTestReady, readSwarm, readTest, startRuns } from '@/api'
 import EditTestDialog from '@/components/EditTestDialog'
 import RunControls from '@/components/RunControls'
 import OutcomeSummary from '@/components/OutcomeSummary'
@@ -11,7 +11,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { isAwaitingGrade, TEST_STATUS_LABEL } from '@/runs'
+import { isActive, isAwaitingGrade, TEST_STATUS_BADGE_VARIANT, TEST_STATUS_LABEL } from '@/runs'
 import type { RunRow, SwarmDetail, TestDetail, TestRow } from '@/types'
 
 const POLL_INTERVAL_MS = 3000
@@ -63,7 +63,7 @@ export default function TestPage() {
   useEffect(loadRuns, [loadRuns])
 
   const isPolling =
-    runs.some((run) => run.status === 'running' || isAwaitingGrade(run, now)) ||
+    runs.some((run) => isActive(run) || isAwaitingGrade(run, now)) ||
     now - lastStartedAt < POLL_AFTER_START_MS
 
   useEffect(() => {
@@ -89,7 +89,7 @@ export default function TestPage() {
         </Link>
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">{test.name}</h1>
-          <Badge variant={test.status === 'ready' ? 'default' : 'secondary'}>{TEST_STATUS_LABEL[test.status]}</Badge>
+          <Badge variant={TEST_STATUS_BADGE_VARIANT[test.status]}>{TEST_STATUS_LABEL[test.status]}</Badge>
           <Button variant="outline" className="ml-auto" onClick={() => setIsEditing(true)}>
             Edit
           </Button>
@@ -195,7 +195,7 @@ export default function TestPage() {
         <h2 className="text-base font-semibold">Runs</h2>
         {test.status === 'ready' && latestVersion?.id === test.id && (
           <RunControls
-            testId={test.id}
+            startRuns={(agentVersions, runsPerVersion) => startRuns(test.id, agentVersions, runsPerVersion)}
             onStarted={() => {
               const startedAt = Date.now()
               setLastStartedAt(startedAt)

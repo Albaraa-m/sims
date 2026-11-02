@@ -11,6 +11,12 @@ const badgeVariants = cva(
         default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
         secondary:
           "bg-secondary text-secondary-foreground [a]:hover:bg-secondary/80",
+        // Status pills, GitHub-style: tinted fill, colored text, hairline border.
+        success: "border-success/40 bg-success/15 text-success",
+        warning: "border-warning/40 bg-warning/15 text-warning",
+        serious: "border-serious/40 bg-serious/15 text-serious",
+        info: "border-info/40 bg-info/15 text-info",
+        neutral: "border-neutral/40 bg-neutral/15 text-neutral",
         destructive:
           "bg-destructive/10 text-destructive focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:focus-visible:ring-destructive/40 [a]:hover:bg-destructive/20",
         outline:

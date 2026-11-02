@@ -1,5 +1,3 @@
-import asyncio
-
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import NoResultFound
 
@@ -25,14 +23,13 @@ from regression_tests.crud import (
     mark_ready,
 )
 from regression_tests.models import Test, TestStatus
-from regression_tests.run import run_test_against_agent_version
+from regression_tests.run import queue_test_runs
+from simulations.queue import QueueFullError
 
 router = APIRouter(prefix="/api/tests")
 
+
 # The event loop keeps only weak references to tasks; these must outlive the request.
-running_tasks: set[asyncio.Task] = set()
-
-
 @router.get("")
 def list_tests(include_swarm_tests: bool = False) -> list[TestRow]:
     """Tests made from transcripts; generated swarm tests only when asked for."""
@@ -101,18 +98,14 @@ def create_test(request: CreateTestRequest) -> TestRow:
 
 
 @router.post("/{test_id}/runs", status_code=202)
-async def start_runs_of_test(test_id: str, request: StartRunsRequest) -> None:
-    """Starts the runs and returns at once; each run appears in the runs list."""
+def queue_runs_of_test(test_id: str, request: StartRunsRequest) -> None:
+    """Queues the runs for workers; each appears in the runs list as Queued."""
     if get_test_or_404(test_id).status != TestStatus.READY:
         raise HTTPException(status_code=409, detail="mark the test ready first")
-    for agent_version in request.agent_versions:
-        task = asyncio.create_task(
-            run_test_against_agent_version(
-                test_id, agent_version, request.runs_per_version
-            )
-        )
-        running_tasks.add(task)
-        task.add_done_callback(running_tasks.discard)
+    try:
+        queue_test_runs(test_id, request.agent_versions, request.runs_per_version)
+    except QueueFullError as error:
+        raise HTTPException(status_code=409, detail=str(error))
 
 
 @router.get("/{test_id}/runs")
