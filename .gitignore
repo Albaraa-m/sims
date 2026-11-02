@@ -8,3 +8,4 @@ evidence/
 logs/
 sims.db*
 recordings/
+.playwright-mcp/
