@@ -4,7 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from api.routes import runs, swarms, tests
+from api.routes import runs, swarms, system, tests
 
 FRONTEND_DIST_DIR = Path(__file__).parent.parent / "frontend" / "dist"
 
@@ -19,6 +19,7 @@ def create_app() -> FastAPI:
     app.include_router(tests.router)
     app.include_router(runs.router)
     app.include_router(swarms.router)
+    app.include_router(system.router)
 
     if FRONTEND_DIST_DIR.exists():
         app.mount("/assets", StaticFiles(directory=FRONTEND_DIST_DIR / "assets"))
