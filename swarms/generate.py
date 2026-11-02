@@ -37,6 +37,9 @@ each can be tested with simulated callers.
 
 - One rule per item, short and concrete, e.g. "Parties over 8 go to the events team".
 - Only rules a caller could trigger: what the agent must do, refuse, check or never say.
+- One rule per procedure: merge the steps of the same procedure into one rule, e.g.
+  "Read back name, time and party size, book only after a yes, and read back again
+  after a correction" is one rule, not three.
 - Merge duplicates; skip tone and style rules such as "speak in short sentences".
 
 Reply with JSON only, matching this schema:
@@ -101,7 +104,8 @@ exist. Make them realistic for this agent, and different from each other{avoid}.
 {caller_leak_rules}
 Fields:
 - name: a few words naming the situation, e.g. "Says 6, then actually 11".
-- goal: what the caller wants, in one sentence.
+- goal: what the caller wants, in one sentence, as the caller would say it ("Book a
+  table for four tonight"), never what is being checked ("see whether the agent...").
 - facts: the concrete details the caller gives. Times as 24-hour HH:MM, party size as
   a number, days relative ("today"). Include a caller name.
 - behavior: written to the caller as "you": speaking style, how they hand over
