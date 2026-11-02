@@ -3,9 +3,8 @@ import { useSearchParams } from 'react-router'
 
 import { listRunsOfAllTests } from '@/api'
 import ScopeSelect from '@/components/ScopeSelect'
-import AgentQualityTab from '@/components/AgentQualityTab'
-import SystemHealthTab from '@/components/SystemHealthTab'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import AgentQualitySection from '@/components/AgentQualitySection'
+import SystemHealthSection from '@/components/SystemHealthSection'
 import { REGRESSION_SCOPE } from '@/scopes'
 import type { RunRow } from '@/types'
 
@@ -29,50 +28,43 @@ export default function DashboardPage() {
     )
   }, [])
 
-  useEffect(loadRuns, [loadRuns])
+  // System health is watched live during a run; agent quality changes only after runs.
+  useEffect(() => {
+    loadRuns()
+    const interval = setInterval(loadRuns, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [loadRuns])
 
   const scope = searchParams.get('scope') ?? REGRESSION_SCOPE
   useEffect(() => {
     listRunsOfAllTests({ scope }).then(setScopedRuns, (error: Error) => setLoadError(error.message))
   }, [scope])
 
-  const setParam = (name: string, value: string) => {
+  const setScope = (value: string) => {
     const next = new URLSearchParams(searchParams)
-    if (value) next.set(name, value)
-    else next.delete(name)
+    if (value) next.set('scope', value)
+    else next.delete('scope')
     setSearchParams(next, { replace: true })
   }
-  const tab = searchParams.get('tab') ?? 'quality'
-
-  // System health is watched live during a run; agent quality changes only after runs.
-  useEffect(() => {
-    if (tab !== 'health') return
-    const interval = setInterval(loadRuns, POLL_INTERVAL_MS)
-    return () => clearInterval(interval)
-  }, [tab, loadRuns])
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-6">
       <h1 className="text-xl font-semibold">Dashboard</h1>
       {loadError && <p className="text-sm text-destructive">Couldn't load simulations: {loadError}</p>}
-      {runs && (
-        <Tabs value={tab} onValueChange={(value) => setParam('tab', value)}>
-          <TabsList>
-            <TabsTrigger value="quality">Agent quality</TabsTrigger>
-            <TabsTrigger value="health">System health</TabsTrigger>
-          </TabsList>
-          <TabsContent value="quality" className="space-y-6 pt-4">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              Tests
-              <ScopeSelect value={scope} onChange={(value) => setParam('scope', value)} />
-            </div>
-            {scopedRuns && <AgentQualityTab runs={scopedRuns} scope={scope} />}
-          </TabsContent>
-          <TabsContent value="health" className="space-y-6 pt-4">
-            <SystemHealthTab runs={runs} now={loadedAt} />
-          </TabsContent>
-        </Tabs>
-      )}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold">Agent quality</h2>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            Tests
+            <ScopeSelect value={scope} onChange={setScope} />
+          </div>
+        </div>
+        {scopedRuns && <AgentQualitySection runs={scopedRuns} scope={scope} />}
+      </section>
+      <section className="space-y-6 border-t pt-6">
+        <h2 className="text-lg font-semibold">System health</h2>
+        {runs && <SystemHealthSection runs={runs} now={loadedAt} />}
+      </section>
     </section>
   )
 }

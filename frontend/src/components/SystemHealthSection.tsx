@@ -108,7 +108,7 @@ function ExecutionFailuresByCause({ runs, now }: { runs: RunRow[]; now: number }
   )
 }
 
-export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: number }) {
+export default function SystemHealthSection({ runs, now }: { runs: RunRow[]; now: number }) {
   const [state, setState] = useState<QueueState | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
