@@ -1,7 +1,6 @@
 import { Link } from 'react-router'
 
 import PassRateChart from '@/components/PassRateChart'
-import FailuresTable from '@/components/FailuresTable'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
   type ComparisonCell,
@@ -24,13 +23,13 @@ function CellSummary({ cell, to }: { cell: ComparisonCell; to: string }) {
   )
 }
 
-export default function AgentQualityTab({ runs, judge }: { runs: RunRow[]; judge: string }) {
-  const judgedRuns = runsGradedOnAgentBehavior(runs, judge)
+export default function AgentQualityTab({ runs }: { runs: RunRow[] }) {
+  const judgedRuns = runsGradedOnAgentBehavior(runs)
   const agentVersions = [...new Set(judgedRuns.map((run) => run.agent_version))].sort()
   const rows = groupRunsIntoComparisonRows(judgedRuns, agentVersions)
   const [before, after] = agentVersions
 
-  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No graded runs for this judge yet.</p>
+  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No graded runs yet.</p>
 
   return (
     <>
@@ -99,19 +98,14 @@ export default function AgentQualityTab({ runs, judge }: { runs: RunRow[]; judge
         <p className="text-xs text-muted-foreground">
           Counts only runs the judge passed or failed; execution failures, inconclusive and ungraded runs are on
           System health. Each cell is a few runs of one test version, so it shows how the agent handles these
-          scenarios, not how it performs in general.
+          scenarios, not how it performs in general. Click a cell for its runs, or{' '}
+          <Link to={resultsUrl({ outcome: 'fail' })} className="underline">
+            see every failed run
+          </Link>
+          .
         </p>
       </div>
 
-      <div className="space-y-2">
-        <div>
-          <h2 className="text-base font-semibold">Failures</h2>
-          <p className="text-sm text-muted-foreground">
-            Each test and agent version with failed runs. When a row has several, the most recent one explains it.
-          </p>
-        </div>
-        <FailuresTable rows={rows} />
-      </div>
     </>
   )
 }

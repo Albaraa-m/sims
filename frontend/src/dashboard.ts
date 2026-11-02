@@ -5,13 +5,9 @@ export function judgeOfRun(run: RunRow): string | null {
 }
 
 // Only passes and fails say anything about the agent; the rest are system or evaluator problems.
-export function runsGradedOnAgentBehavior(runs: RunRow[], judge: string): RunRow[] {
-  return runs.filter((run) => (run.outcome === 'pass' || run.outcome === 'fail') && judgeOfRun(run) === judge)
-}
-
-export function listJudgesNewestFirst(runs: RunRow[]): string[] {
-  const judges = runs.map(judgeOfRun).filter((judge) => judge !== null)
-  return [...new Set(judges)]
+// One judge is assumed: comparing grades from different judges is out of scope.
+export function runsGradedOnAgentBehavior(runs: RunRow[]): RunRow[] {
+  return runs.filter((run) => run.outcome === 'pass' || run.outcome === 'fail')
 }
 
 export type OutcomeCounts = Record<Outcome, number> & { ungraded: number }

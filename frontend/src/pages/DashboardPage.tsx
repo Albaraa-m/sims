@@ -3,10 +3,8 @@ import { useSearchParams } from 'react-router'
 
 import { listRunsOfAllTests } from '@/api'
 import AgentQualityTab from '@/components/AgentQualityTab'
-import Filter from '@/components/Filter'
 import SystemHealthTab from '@/components/SystemHealthTab'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { listJudgesNewestFirst } from '@/dashboard'
 import type { RunRow } from '@/types'
 
 const POLL_INTERVAL_MS = 3000
@@ -43,8 +41,6 @@ export default function DashboardPage() {
     const interval = setInterval(loadRuns, POLL_INTERVAL_MS)
     return () => clearInterval(interval)
   }, [tab, loadRuns])
-  const judges = runs ? listJudgesNewestFirst(runs) : []
-  const judge = searchParams.get('judge') ?? judges[0] ?? ''
 
   return (
     <section className="space-y-4">
@@ -57,18 +53,7 @@ export default function DashboardPage() {
             <TabsTrigger value="health">System health</TabsTrigger>
           </TabsList>
           <TabsContent value="quality" className="space-y-6 pt-4">
-            {judges.length > 0 && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                Graded by
-                <Filter
-                  label="Judge"
-                  value={judge}
-                  options={judges.map((name) => ({ value: name, label: name }))}
-                  onChange={(value) => setParam('judge', value)}
-                />
-              </div>
-            )}
-            <AgentQualityTab runs={runs} judge={judge} />
+            <AgentQualityTab runs={runs} />
           </TabsContent>
           <TabsContent value="health" className="space-y-6 pt-4">
             <SystemHealthTab runs={runs} now={loadedAt} />
