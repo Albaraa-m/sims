@@ -53,7 +53,7 @@
 | Test names | The policy's name, "Agent <does what>" | Readable from the list, like a test function name |
 | Saving | Only on Save, as Ready | The reviewer confirms before anything is stored, as with New test |
 | Policy grouping | Verbatim policy text, no extra field | One less field; the policy list on the swarm shows untested ones |
-| Model | The converter's (`openai/gpt-5.4-mini`) | Offline generation, same leak rules as conversion |
+| Model | `openai/gpt-5.4`, as the judge | Offline, and the mini model dropped constraints on abstract rules (turned "answer only from the knowledge base" into a booking) |
 | Tests tab | Swarm tests hidden by default | Keeps the curated regression suite readable |
 
 ## Risks
