@@ -53,6 +53,8 @@ export type Outcome = 'pass' | 'fail' | 'execution_failed' | 'inconclusive'
 export type RunRow = {
   id: string
   test_id: string
+  // Shared by every version of the test, so a test can be counted once.
+  test_lineage_id: string
   test_name: string
   test_version: number
   agent_version: string

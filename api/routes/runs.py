@@ -38,6 +38,7 @@ def build_run_row(simulation: Simulation, test: Test) -> RunRow:
     return RunRow(
         id=simulation.id,
         test_id=test.id,
+        test_lineage_id=test.lineage_id,
         test_name=test.name,
         test_version=test.version,
         agent_version=simulation.agent_version,

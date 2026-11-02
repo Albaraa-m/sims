@@ -64,6 +64,8 @@ class AttemptLogEntry(BaseModel):
 class RunRow(BaseModel):
     id: str
     test_id: str
+    # Shared by every version of the test, so a test can be counted once.
+    test_lineage_id: str
     test_name: str
     test_version: int
     agent_version: str

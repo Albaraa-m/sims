@@ -1,41 +1,35 @@
 import { Link } from 'react-router'
 
-import PassRateChart from '@/components/PassRateChart'
-import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import {
-  type ComparisonCell,
-  countOutcomes,
-  describeChange,
-  groupRunsIntoComparisonRows,
-  passRate,
-  resultsUrl,
-  runsGradedOnAgentBehavior,
-} from '@/dashboard'
+import { ChangeLabel, StatusPill, SuiteStatusBar, SuiteStatusLegend } from '@/components/SuiteStatus'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { buildSuiteRows, MIN_RUNS_TO_RELY_ON, resultsUrl } from '@/dashboard'
 import type { RunRow } from '@/types'
 
-function CellSummary({ cell, to }: { cell: ComparisonCell; to: string }) {
-  const { pass, fail } = cell.counts
-  if (cell.runs.length === 0) return <span className="text-muted-foreground">—</span>
-  return (
-    <Link to={to} className="tabular-nums hover:underline">
-      {pass}/{pass + fail} pass
-    </Link>
-  )
-}
-
+// The agent read as a test suite: each test counts once per version, by its runs' status.
 export default function AgentQualityTab({ runs }: { runs: RunRow[] }) {
-  const judgedRuns = runsGradedOnAgentBehavior(runs)
-  const agentVersions = [...new Set(judgedRuns.map((run) => run.agent_version))].sort()
-  const rows = groupRunsIntoComparisonRows(judgedRuns, agentVersions)
-  const [before, after] = agentVersions
+  const agentVersions = [...new Set(runs.map((run) => run.agent_version))].sort()
+  const rows = buildSuiteRows(runs, agentVersions)
+  const hasChange = agentVersions.length >= 2
 
   if (rows.length === 0) return <p className="text-sm text-muted-foreground">No graded runs yet.</p>
 
   return (
-    <>
+    <div className="space-y-6">
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold">Tests passing by agent version</h2>
+        <div className="space-y-2">
+          {agentVersions.map((agentVersion) => (
+            <SuiteStatusBar
+              key={agentVersion}
+              label={`Agent ${agentVersion}`}
+              cells={rows.map((row) => row.cells[agentVersion])}
+            />
+          ))}
+        </div>
+        <SuiteStatusLegend />
+      </div>
+
       <div className="space-y-2">
-        <h2 className="text-base font-semibold">Version comparison</h2>
-        <PassRateChart runs={judgedRuns} agentVersions={agentVersions} />
         <Table>
           <TableHeader>
             <TableRow>
@@ -43,23 +37,21 @@ export default function AgentQualityTab({ runs }: { runs: RunRow[] }) {
               {agentVersions.map((agentVersion) => (
                 <TableHead key={agentVersion}>Agent {agentVersion}</TableHead>
               ))}
-              {after && <TableHead>Change</TableHead>}
+              {hasChange && <TableHead>Change</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.map((row) => (
-              <TableRow key={row.testId}>
-                <TableCell className="align-top">
+              <TableRow key={row.lineageId}>
+                <TableCell>
                   <Link to={`/tests/${row.testId}`} className="hover:underline">
                     {row.testName}
                   </Link>{' '}
-                  <span className="text-muted-foreground">
-                    v{row.testVersion} · <span className="font-mono">{row.testId}</span>
-                  </span>
+                  <span className="text-muted-foreground">v{row.testVersion}</span>
                 </TableCell>
                 {agentVersions.map((agentVersion) => (
-                  <TableCell key={agentVersion} className="align-top">
-                    <CellSummary
+                  <TableCell key={agentVersion}>
+                    <StatusPill
                       cell={row.cells[agentVersion]}
                       to={resultsUrl({
                         test_id: row.testId,
@@ -69,43 +61,25 @@ export default function AgentQualityTab({ runs }: { runs: RunRow[] }) {
                     />
                   </TableCell>
                 ))}
-                {after && (
-                  <TableCell className="align-top">
-                    {describeChange(row.cells[before].counts, row.cells[after].counts)}
+                {hasChange && row.change && (
+                  <TableCell>
+                    <ChangeLabel change={row.change} />
                   </TableCell>
                 )}
               </TableRow>
             ))}
           </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell>All tests</TableCell>
-              {agentVersions.map((agentVersion) => {
-                const counts = countOutcomes(judgedRuns.filter((run) => run.agent_version === agentVersion))
-                const rate = passRate(counts)
-                return (
-                  <TableCell key={agentVersion} className="tabular-nums">
-                    {rate === null
-                      ? 'no graded runs'
-                      : `${counts.pass}/${counts.pass + counts.fail} pass (${Math.round(rate * 100)}%)`}
-                  </TableCell>
-                )
-              })}
-              {after && <TableCell />}
-            </TableRow>
-          </TableFooter>
         </Table>
         <p className="text-xs text-muted-foreground">
-          Counts only runs the judge passed or failed; execution failures, inconclusive and ungraded runs are on
-          System health. Each cell is a few runs of one test version, so it shows how the agent handles these
-          scenarios, not how it performs in general. Click a cell for its runs, or{' '}
+          Each test counts once per agent version, at its latest version. Passing: every graded run passed. Flaky: some
+          passed. Failing: none did. n=1 or 2 marks fewer than {MIN_RUNS_TO_RELY_ON} graded runs, too few to rely on.
+          Only passes and fails count; execution failures and inconclusive runs are on System health.{' '}
           <Link to={resultsUrl({ outcome: 'fail' })} className="underline">
-            see every failed run
+            See every failed run
           </Link>
           .
         </p>
       </div>
-
-    </>
+    </div>
   )
 }
