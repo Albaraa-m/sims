@@ -139,7 +139,7 @@ export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: nu
       </div>
       <SimulationLedger runs={runs} refused={state.refused_simulations} now={now} />
       <ExecutionFailuresByCause runs={runs} now={now} />
-      {state.fault_injection_enabled && <FaultInjectionControls state={state} onChange={loadState} />}
+      <FaultInjectionControls state={state} onChange={loadState} />
     </>
   )
 }

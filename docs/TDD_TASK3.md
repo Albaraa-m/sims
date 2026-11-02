@@ -120,7 +120,7 @@ None.
 | Hangs | A hard deadline around each attempt | The lease alone can't catch a hung attempt in a live worker |
 | Admission | Refuse the whole start, and record it | A half-started swarm is confusing; refused work must be counted |
 | Locking | Transactions take the write lock up front and wait | Several processes share one file |
-| Fault controls | Kill a worker and inject failures from System Health, only with `SIMS_FAULT_INJECTION=1` | Shows recovery in the UI without a terminal |
+| Fault controls | Kill a worker and inject failures from System Health, always on | Shows recovery in the UI without a terminal; reviewers are invited to break it |
 
 ## Risks
 

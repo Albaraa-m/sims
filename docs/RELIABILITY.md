@@ -36,7 +36,7 @@ Setup: one laptop (MacBook Air, 8 GB), LiveKit Ship plan, one pair of agent serv
 | Account (Ship plan) | 20 concurrent inference connections per model, and each call needs 2 (one per agent), so about **10 calls at once** at most |
 | Recovery time | A dead worker's calls wait up to 60 s (the lease) plus up to 15 s (the reaper's interval). Meanwhile they still count against the cap |
 | Queue | One SQLite file on one machine; workers and the website must share it |
-| Fault controls | Killing a worker from the website only works for workers on the same machine, and only when the website runs with `SIMS_FAULT_INJECTION=1` |
+| Fault controls | Killing a worker from the website only works for workers on the same machine |
 
 **Bugs this run found and we fixed:**
 1. With several processes on one SQLite file, a write could fail at once with "database is locked". Transactions now take the write lock up front and wait.
@@ -48,7 +48,7 @@ Setup: one laptop (MacBook Air, 8 GB), LiveKit Ship plan, one pair of agent serv
 ```
 uv run sims agents                                # terminal 1: agent servers
 uv run sims worker                                # terminals 2 and 3: two workers
-SIMS_FAULT_INJECTION=1 uv run sims web            # terminal 4: website with fault controls
+uv run sims web                                   # terminal 4: website with fault controls
 SIMS_MAX_QUEUED_RUNS=10 uv run sims load <swarm-id> --count 12   # refused whole
 SIMS_MAX_QUEUED_RUNS=10 uv run sims load <swarm-id> --count 10   # queued
 ```

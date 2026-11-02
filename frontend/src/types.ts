@@ -201,8 +201,6 @@ export type QueueState = {
   max_queued: number
   longest_wait_seconds: number | null
   fail_rate: number
-  // Kill and failure injection are offered only when the website was started for a demo.
-  fault_injection_enabled: boolean
   refused_starts_last_hour: number
   refused_simulations: number
   workers: WorkerRow[]

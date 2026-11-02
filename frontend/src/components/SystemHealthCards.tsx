@@ -122,17 +122,15 @@ export function WorkersCard({ state, onChange }: { state: QueueState; onChange: 
                 {Math.round(worker.heartbeat_seconds_ago)}s ago
               </div>
             </div>
-            {state.fault_injection_enabled && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="ml-auto"
-                disabled={killingWorkerId === worker.id}
-                onClick={() => kill(worker.id)}
-              >
-                {killingWorkerId === worker.id ? 'Killing…' : 'Kill'}
-              </Button>
-            )}
+            <Button
+              variant="outline"
+              size="sm"
+              className="ml-auto"
+              disabled={killingWorkerId === worker.id}
+              onClick={() => kill(worker.id)}
+            >
+              {killingWorkerId === worker.id ? 'Killing…' : 'Kill'}
+            </Button>
           </li>
         ))}
         {state.stopped_workers.map((worker) => (
