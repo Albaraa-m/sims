@@ -1,15 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { listRunsOfAllTests, listTests } from '@/api'
 import OutcomeBadge from '@/components/OutcomeBadge'
 import Filter from '@/components/Filter'
 import ScopeSelect from '@/components/ScopeSelect'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { EXECUTION_FAILURE_KIND_LABEL, OUTCOME_LABEL, startedAtFormat } from '@/runs'
+import {
+  EXECUTION_FAILURE_KIND_LABEL,
+  isActive,
+  isAwaitingGrade,
+  OUTCOME_LABEL,
+  RUN_STATUS_BADGE_VARIANT,
+  RUN_STATUS_LABEL,
+  startedAtFormat,
+} from '@/runs'
 import { isTestInScope, REGRESSION_SCOPE } from '@/scopes'
 import type { ExecutionFailureKind, Outcome, RunRow, TestRow } from '@/types'
+
+const POLL_INTERVAL_MS = 3000
 
 export default function ResultsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -39,7 +50,7 @@ export default function ResultsPage() {
     listTests(true).then(setTests, (error: Error) => setLoadError(error.message))
   }, [])
 
-  useEffect(() => {
+  const loadRuns = useCallback(() => {
     listRunsOfAllTests({ ...Object.fromEntries(searchParams), scope }).then(
       (loadedRuns) => {
         setRuns(loadedRuns)
@@ -48,6 +59,16 @@ export default function ResultsPage() {
       (error: Error) => setLoadError(error.message),
     )
   }, [searchParams, scope])
+
+  useEffect(loadRuns, [loadRuns])
+
+  const isPolling = runs?.some((run) => isActive(run) || isAwaitingGrade(run, loadedAt)) ?? false
+
+  useEffect(() => {
+    if (!isPolling) return
+    const interval = setInterval(loadRuns, POLL_INTERVAL_MS)
+    return () => clearInterval(interval)
+  }, [isPolling, loadRuns])
 
   const outcomes = Object.entries(OUTCOME_LABEL) as [Outcome, string][]
   const shownRuns = runs?.filter(
@@ -111,6 +132,7 @@ export default function ResultsPage() {
               <TableHead>When</TableHead>
               <TableHead>Test</TableHead>
               <TableHead>Agent</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>Verdict</TableHead>
             </TableRow>
           </TableHeader>
@@ -125,6 +147,9 @@ export default function ResultsPage() {
                   {run.test_name} <span className="text-muted-foreground">v{run.test_version}</span>
                 </TableCell>
                 <TableCell>{run.agent_version}</TableCell>
+                <TableCell>
+                  <Badge variant={RUN_STATUS_BADGE_VARIANT[run.status]}>{RUN_STATUS_LABEL[run.status]}</Badge>
+                </TableCell>
                 <TableCell>
                   <OutcomeBadge run={run} now={loadedAt} />
                 </TableCell>
