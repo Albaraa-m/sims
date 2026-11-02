@@ -1,16 +1,16 @@
 {
-  "reason": "The agent booked a table for ten o'clock, but reservations are only taken on the hour between 13:00 and 21:00, so ten o'clock is outside the booking window.",
-  "name": "Late-night booking time",
+  "reason": "The agent took a booking for ten o'clock, but bookings are only accepted on the hour from 13:00 to 21:00, so it confirmed an impossible time.",
+  "name": "Late-night booking",
   "spec": {
-    "goal": "Book a table for two tonight at 22:00.",
+    "goal": "Book a table for two tonight for ten o'clock.",
     "facts": {
       "name": "Faisal",
       "time": "22:00",
       "party_size": "2",
       "day": "today"
     },
-    "behavior": "You are brief and polite. Give your name, party size, and requested time when asked. If they read the booking details back, confirm them. Once they say the table is booked, thank them and end the call.",
-    "policy_under_test": "Reservations can only be made for today on the hour between 13:00 and 21:00.",
-    "expected_outcome": "The agent says they cannot book a table for 22:00 tonight because that time is not available for reservations."
+    "behavior": "You sound polite and concise. Give your name and booking details when asked, and confirm the details when they are read back. If they say the table is booked, thank them and end the call.",
+    "policy_under_test": "Bookings are for today only, on the hour, from 13:00 to 21:00.",
+    "expected_outcome": "The agent says they cannot book that time because it is outside the booking window."
   }
 }

@@ -1,15 +1,15 @@
 {
-  "reason": "The agent gave the wrong free-cancellation cutoff. The policy says cancellations are free up to 2 hours before the booking, but the agent said 30 minutes before.",
-  "name": "Cancellation cutoff",
+  "reason": "The agent gave the wrong cancellation deadline. The policy says cancellations are free up to 2 hours before the booking, but the agent said 30 minutes before.",
+  "name": "Cancellation deadline",
   "spec": {
-    "goal": "Find out until when a booking can be canceled without paying.",
+    "goal": "Find out until when a reservation can be canceled without a fee.",
     "facts": {
       "name": "Reem",
       "time": "19:00",
       "day": "today"
     },
-    "behavior": "You are polite and concise. Say you already have a booking and ask the cancellation question in one sentence. If they answer with a time, repeat it back once and end the call.",
-    "policy_under_test": "Cancellations are free only up to 2 hours before the booking.",
-    "expected_outcome": "The agent says the booking can be canceled for free up to 2 hours before the booked time."
+    "behavior": "You call about your booking in a normal tone. Ask your cancellation question and, if they answer, briefly confirm what you heard before ending the call.",
+    "policy_under_test": "Cancellations are free up to 2 hours before the booking.",
+    "expected_outcome": "The agent says the booking can be canceled for free up to two hours before the reservation time."
   }
 }
