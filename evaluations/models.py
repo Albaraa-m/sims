@@ -20,6 +20,8 @@ class Evaluation(SQLModel, table=True):
 
     id: str = Field(default_factory=new_id, primary_key=True)
     simulation_id: str = Field(foreign_key="simulation.id", index=True)
+    # The simulation attempt this grades; a retried call is graded once per attempt.
+    attempt: int = Field(default=1, sa_column_kwargs={"server_default": "1"})
     outcome: Outcome
     # None when the judge wasn't asked, e.g. for an execution failure.
     situation_happened: bool | None = None

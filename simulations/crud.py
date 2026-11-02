@@ -6,7 +6,8 @@ from simulations.models import Simulation
 
 
 def create_simulation(agent_version: str, test_id: str | None = None) -> Simulation:
-    return save(Simulation(agent_version=agent_version, test_id=test_id))
+    """A call record outside the queue, e.g. for tests and benchmarks."""
+    return save(Simulation(agent_version=agent_version, test_id=test_id, attempt=1))
 
 
 def get_simulation(simulation_id: str) -> Simulation:

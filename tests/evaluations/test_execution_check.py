@@ -36,7 +36,7 @@ def test_call_where_both_sides_spoke_can_be_graded():
         (
             Simulation(agent_version="v1"),
             ExecutionFailureKind.CALL_UNFINISHED,
-            "the call hasn't finished; it is running",
+            "the call hasn't finished; it is queued",
         ),
         (
             Simulation(agent_version="v1", status=SimulationStatus.DONE),

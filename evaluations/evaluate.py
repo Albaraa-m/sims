@@ -21,6 +21,7 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
         return save(
             Evaluation(
                 simulation_id=simulation_id,
+                attempt=max(simulation.attempt, 1),
                 outcome=Outcome.EXECUTION_FAILED,
                 reason=execution_failure.reason,
             )
@@ -29,6 +30,7 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
         return save(
             Evaluation(
                 simulation_id=simulation_id,
+                attempt=max(simulation.attempt, 1),
                 outcome=Outcome.INCONCLUSIVE,
                 reason="the run has no test, so there is no policy to grade",
             )
@@ -43,6 +45,7 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
         return save(
             Evaluation(
                 simulation_id=simulation_id,
+                attempt=max(simulation.attempt, 1),
                 outcome=Outcome.INCONCLUSIVE,
                 reason="the judge failed",
                 error=str(error) or type(error).__name__,
@@ -54,6 +57,7 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
     return save(
         Evaluation(
             simulation_id=simulation_id,
+            attempt=max(simulation.attempt, 1),
             outcome=graded.outcome,
             situation_happened=reply.situation_happened,
             cited_turns=reply.cited_turns,
