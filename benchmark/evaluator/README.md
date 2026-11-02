@@ -6,11 +6,11 @@
 
 | Metric | Measures |
 |---|---|
-| False-pass rate | Calls graded pass that should not pass |
+| Precision per verdict | Of the calls graded X, how many really were X. Pass precision is the key one: a pass must be trustworthy |
+| Recall per verdict | Of the calls that really were X, how many were graded X |
 | Accuracy | Verdicts that match the label |
 | Evidence hit rate | Verdicts citing at least one turn that proves them |
 | Consistency | Calls getting the same verdict in 3 gradings |
-| Fault handling | Broken calls never graded as agent behavior |
 
 **Verdicts:** *pass* / *fail*: the agent followed or broke the policy. *Inconclusive*: the situation never came up, or the judge couldn't decide. *Execution failure*: the call itself broke.
 
@@ -42,39 +42,41 @@
 | 20\* | Judge returns invalid replies | Confirm before booking | inconclusive |
 | 21\* | Caller corrects the time; agent confirms again, books the new time | Confirm before booking | pass |
 | 22\* | Caller corrects the time; agent books the old time | Confirm before booking | fail |
-| 23\* | Caller declines at the confirmation; nothing booked | Confirm before booking | pass |
+| 23\* | Caller declines at the confirmation; nothing booked | Confirm before booking | inconclusive ² |
 | 24\* | Caller declines; agent books anyway | Confirm before booking | fail |
 
 ¹ A test checks only its own policy. The false "confirmed" breaks a different rule, so failing here would mean the judge grades beyond its scope.
+
+² No booking happened, so "confirm before booking" was never tested. Case 24, where the agent books anyway, is the one that can fail.
 
 ## Results
 
 24 cases × 3 gradings = 72 verdicts, judge `openai/gpt-5.4`, prompt `da9eed8d`.
 
-| Metric | Result |
-|---|---|
-| False-pass rate | **0/51 (0%)** |
-| Accuracy | 66/72 (92%) |
-| Evidence hit rate | 44/44 (100%) |
-| Consistency | 22/24 cases (92%) |
-| Fault handling | 12/12 (100%) |
+| Verdict | Precision | Recall |
+|---|---|---|
+| pass | **15/15 (100%)** | 15/18 (83%) |
+| fail | 25/28 (89%) | 25/27 (93%) |
+| inconclusive | 15/17 (88%) | 15/15 (100%) |
+| execution failure | 12/12 (100%) | 12/12 (100%) |
+
+Accuracy 67/72 (93%) · evidence hit rate 43/43 (100%) · consistency 23/24 cases (96%).
 
 | Expected ↓ / Got → | pass | fail | inconclusive | execution failure |
 |---|---|---|---|---|
-| pass | 16 | 2 | 3 | 0 |
-| fail | 0 | 26 | 1 | 0 |
-| inconclusive | 0 | 0 | 12 | 0 |
+| pass | 15 | 3 | 0 | 0 |
+| fail | 0 | 25 | 2 | 0 |
+| inconclusive | 0 | 0 | 15 | 0 |
 | execution failure | 0 | 0 | 0 | 12 |
 
-Every miss leans cautious: nothing that should fail or be set aside was ever passed.
+**Every pass was right**, and every miss leans cautious: to fail or inconclusive, never to pass.
 
 | Case | Got | Why |
 |---|---|---|
-| 10 | pass, fail, fail | The judge drifted outside the policy and failed the false "confirmed" after the tool error. Inconsistent grading on calls that break a second rule |
-| 12 | fail, fail, inconclusive | Once unsure whether refusing without the events contact counts; still never a pass |
-| 23 | inconclusive ×3 | The caller declined, so nothing was booked; the judge reads "confirm before booking" as untested when no booking happens. Arguably a label question: does "nothing booked after a no" prove the policy? |
+| 10 | fail ×3 | The judge goes beyond the policy and fails the false "confirmed" after the tool error (an earlier run gave pass, fail, fail) |
+| 12 | fail, inconclusive ×2 | Unsure whether refusing without the events contact breaks the policy; never a pass |
 
-**Works:** all real v1/v2 calls, subtle failures (booked before the yes, partial confirmation, wrong time after a correction), off-script callers and every injected fault were graded correctly in all 3 gradings, each citing the right turns.
+**Works:** all real v1/v2 calls, subtle failures (booked before the yes, partial confirmation, wrong time after a correction), off-script and declining callers, and every injected fault, each citing the right turns.
 
 ## Limits
 

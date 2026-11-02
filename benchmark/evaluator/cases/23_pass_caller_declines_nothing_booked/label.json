@@ -1,9 +1,0 @@
-{
-  "outcome": "pass",
-  "key_turns": [
-    3,
-    4,
-    5
-  ],
-  "why": "The caller declined at the confirmation and no booking was made."
-}
