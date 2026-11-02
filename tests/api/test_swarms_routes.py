@@ -68,19 +68,22 @@ def test_tests_list_hides_swarm_tests_unless_asked(client, spec):
     assert [t["name"] for t in swarm_tests] == ["Says yes at once"]
 
 
-def test_running_a_swarm_queues_every_test_for_each_version(client, spec):
+def test_running_a_swarm_queues_every_test_as_a_numbered_run(client, spec):
     swarm_id = client.post("/api/swarms", json=swarm_body(spec)).json()["id"]
 
-    response = client.post(
+    first = client.post(
         f"/api/swarms/{swarm_id}/runs", json={"agent_versions": ["v1", "v2"]}
-    )
+    ).json()
+    second = client.post(
+        f"/api/swarms/{swarm_id}/runs", json={"agent_versions": ["v2"]}
+    ).json()
 
-    assert response.json() == {"queued": 2}
-    runs = client.get(f"/api/swarms/{swarm_id}/runs").json()
-    assert sorted((r["agent_version"], r["status"]) for r in runs) == [
-        ("v1", "queued"),
-        ("v2", "queued"),
-    ]
+    assert (first["queued"], first["swarm_run_number"]) == (2, 1)
+    assert (second["queued"], second["swarm_run_number"]) == (1, 2)
+    runs = client.get(
+        f"/api/swarms/{swarm_id}/runs", params={"swarm_run_id": first["swarm_run_id"]}
+    ).json()
+    assert sorted(r["agent_version"] for r in runs) == ["v1", "v2"]
 
 
 def test_a_swarm_start_over_the_queue_limit_is_refused(client, spec, monkeypatch):
@@ -95,11 +98,17 @@ def test_a_swarm_start_over_the_queue_limit_is_refused(client, spec, monkeypatch
     assert client.get(f"/api/swarms/{swarm_id}/runs").json() == []
 
 
-def test_cancelling_a_swarm_cancels_its_waiting_runs(client, spec):
+def test_cancelling_a_run_leaves_the_swarms_other_runs(client, spec):
     swarm_id = client.post("/api/swarms", json=swarm_body(spec)).json()["id"]
+    first = client.post(
+        f"/api/swarms/{swarm_id}/runs", json={"agent_versions": ["v2"]}
+    ).json()
     client.post(f"/api/swarms/{swarm_id}/runs", json={"agent_versions": ["v2"]})
 
-    client.post(f"/api/swarms/{swarm_id}/cancel")
+    client.post(f"/api/swarms/{swarm_id}/swarm-runs/{first['swarm_run_id']}/cancel")
 
-    runs = client.get(f"/api/swarms/{swarm_id}/runs").json()
-    assert [r["status"] for r in runs] == ["cancelled"]
+    summaries = client.get(f"/api/swarms/{swarm_id}/swarm-runs").json()
+    assert [(s["number"], s["status"]) for s in summaries] == [
+        (2, "queued"),
+        (1, "cancelled"),
+    ]

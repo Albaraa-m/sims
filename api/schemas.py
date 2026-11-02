@@ -43,6 +43,8 @@ class StartRunsRequest(BaseModel):
 
 class QueuedRuns(BaseModel):
     queued: int
+    swarm_run_id: str | None = None
+    swarm_run_number: int | None = None
 
 
 def mark_as_utc(time: datetime | None) -> datetime | None:
@@ -191,3 +193,18 @@ class SwarmDetail(SwarmRow):
     # Every policy found, so untested ones show too; tests group by policy_under_test.
     policies: list[str]
     tests: list[SwarmTest]
+
+
+class SwarmRunSummary(BaseModel):
+    # "earlier" for calls queued before runs were numbered.
+    id: str
+    number: int
+    created_at: datetime | None
+    agent_versions: list[str]
+    # Worked out from its calls: queued, running, completed or cancelled.
+    status: Literal["queued", "running", "completed", "cancelled"]
+    total: int
+    status_counts: dict[str, int]
+    outcome_counts: dict[str, int]
+
+    _mark_created_at_as_utc = field_validator("created_at")(mark_as_utc)

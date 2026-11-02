@@ -121,6 +121,7 @@ def list_test_runs(
     lineage_id: str | None = None,
     agent_version: str | None = None,
     swarm_id: str | None = None,
+    swarm_run_id: str | None = None,
 ) -> list[tuple[Simulation, Test]]:
     """Each run of a test with the test version it ran, newest run first."""
     with Session(db.engine) as session:
@@ -131,6 +132,8 @@ def list_test_runs(
             query = query.where(Test.lineage_id == lineage_id)
         if swarm_id is not None:
             query = query.where(Simulation.swarm_id == swarm_id)
+        if swarm_run_id is not None:
+            query = query.where(Simulation.swarm_run_id == swarm_run_id)
         if agent_version is not None:
             query = query.where(Simulation.agent_version == agent_version)
         query = query.order_by(col(Simulation.started_at).desc())

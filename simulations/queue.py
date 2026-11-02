@@ -51,7 +51,9 @@ def count_active_runs(session: Session) -> int:
 
 
 def admit_runs(
-    requests: list[RunRequest], swarm_id: str | None = None
+    requests: list[RunRequest],
+    swarm_id: str | None = None,
+    swarm_run_id: str | None = None,
 ) -> list[Simulation]:
     """Queues every request, or none: a start that doesn't fit is refused whole."""
     with Session(db.engine) as session:
@@ -72,6 +74,7 @@ def admit_runs(
                 agent_version=request.agent_version,
                 test_id=request.test_id,
                 swarm_id=swarm_id,
+                swarm_run_id=swarm_run_id,
             )
             for request in requests
         ]
@@ -247,8 +250,9 @@ def reap_expired_leases() -> list[str]:
     return rooms
 
 
-def cancel_runs(swarm_id: str) -> list[str]:
-    """Cancels a swarm's waiting and running calls; returns the rooms to close."""
+def cancel_runs(swarm_id: str, swarm_run_id: str | None = None) -> list[str]:
+    """Cancels the waiting and running calls of a swarm, or of one of its runs;
+    returns the rooms to close."""
     with Session(db.engine) as session:
         query = select(Simulation).where(
             Simulation.swarm_id == swarm_id,
@@ -256,6 +260,8 @@ def cancel_runs(swarm_id: str) -> list[str]:
                 [SimulationStatus.QUEUED, SimulationStatus.RUNNING]
             ),
         )
+        if swarm_run_id is not None:
+            query = query.where(Simulation.swarm_run_id == swarm_run_id)
         active = list(session.exec(query))
         rooms = [
             room_of_attempt(simulation.id, simulation.attempt)

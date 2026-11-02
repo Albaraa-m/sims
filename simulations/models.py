@@ -26,6 +26,8 @@ class Simulation(SQLModel, table=True):
     id: str = Field(default_factory=new_id, primary_key=True)
     test_id: str | None = None
     swarm_id: str | None = Field(default=None, index=True)
+    # Which press of Run swarm queued it; None for runs started from a test.
+    swarm_run_id: str | None = Field(default=None, index=True)
     agent_version: str
     status: SimulationStatus = SimulationStatus.QUEUED
     # The current attempt, from 1; 0 while it has never been claimed.

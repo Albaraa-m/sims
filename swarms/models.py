@@ -26,6 +26,18 @@ class Policy(BaseModel):
     rule: str
 
 
+class SwarmRun(SQLModel, table=True):
+    """One press of Run swarm: its calls are tracked and shown together."""
+
+    id: str = Field(default_factory=new_id, primary_key=True)
+    swarm_id: str = Field(index=True)
+    # 1, 2, 3… within the swarm, as the reviewer refers to them.
+    number: int
+    agent_versions: list[str] = Field(default_factory=list, sa_column=Column(JSON))
+    runs_per_test: int
+    created_at: datetime = Field(default_factory=now)
+
+
 class Scenario(BaseModel):
     """One generated test: name is its short label, spec.behavior the caller instruction."""
 
