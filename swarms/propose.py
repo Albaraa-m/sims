@@ -33,7 +33,8 @@ def warnings_for_proposal(
     warnings = []
     if untested:
         warnings.append(
-            f"{len(counts)} policies found; too few tests to cover: {'; '.join(untested)}"
+            f"{len(untested)} of {len(counts)} policies have no tests. Ask for at least "
+            f"{len(counts)} tests to cover every policy."
         )
     if short:
         warnings.append(f"Fewer scenarios than asked for: {'; '.join(short)}")

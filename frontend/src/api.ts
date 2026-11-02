@@ -1,4 +1,17 @@
-import type { CreateTestRequest, EvaluationDetail, InferredTest, RunDetail, RunRow, TestDetail, TestRow, TestSpec } from '@/types'
+import type {
+  CreateTestRequest,
+  EvaluationDetail,
+  InferredTest,
+  RunDetail,
+  RunRow,
+  SaveSwarmRequest,
+  SwarmDetail,
+  SwarmProposal,
+  SwarmRow,
+  TestDetail,
+  TestRow,
+  TestSpec,
+} from '@/types'
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, {
@@ -70,4 +83,23 @@ export type RunFilters = { test_id?: string; agent_version?: string; outcome?: s
 export function listRunsOfAllTests(filters: RunFilters): Promise<RunRow[]> {
   const definedFilters = Object.entries(filters).filter((entry): entry is [string, string] => Boolean(entry[1]))
   return requestJson(`/api/runs?${new URLSearchParams(definedFilters)}`)
+}
+
+export function generateSwarm(agentVersion: string, testCount: number): Promise<SwarmProposal> {
+  return requestJson('/api/swarms/generate', {
+    method: 'POST',
+    body: JSON.stringify({ agent_version: agentVersion, test_count: testCount }),
+  })
+}
+
+export function saveSwarm(request: SaveSwarmRequest): Promise<SwarmRow> {
+  return requestJson('/api/swarms', { method: 'POST', body: JSON.stringify(request) })
+}
+
+export function listSwarms(): Promise<SwarmRow[]> {
+  return requestJson('/api/swarms')
+}
+
+export function readSwarm(swarmId: string): Promise<SwarmDetail> {
+  return requestJson(`/api/swarms/${swarmId}`)
 }

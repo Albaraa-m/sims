@@ -5,6 +5,8 @@ export type TestRow = {
   name: string
   version: number
   status: TestStatus
+  // Set for generated tests; null for tests made from a transcript.
+  swarm_id: string | null
   created_at: string
 }
 
@@ -95,4 +97,45 @@ export type RunDetail = {
   has_recording: boolean
   // Newest first; the first one is the run's current outcome.
   evaluations: EvaluationDetail[]
+}
+
+export type Scenario = {
+  name: string
+  spec: TestSpec
+}
+
+export type SwarmProposal = {
+  agent_version: string
+  policies: string[]
+  scenarios: Scenario[]
+  warnings: string[]
+}
+
+export type SaveSwarmRequest = {
+  name: string
+  agent_version: string
+  policies: string[]
+  scenarios: Scenario[]
+}
+
+export type SwarmRow = {
+  id: string
+  name: string
+  agent_version: string
+  test_count: number
+  created_at: string
+}
+
+export type SwarmTest = {
+  id: string
+  name: string
+  version: number
+  status: TestStatus
+  spec: TestSpec
+}
+
+export type SwarmDetail = SwarmRow & {
+  // Every policy found, so untested ones show too; tests group by policy_under_test.
+  policies: string[]
+  tests: SwarmTest[]
 }

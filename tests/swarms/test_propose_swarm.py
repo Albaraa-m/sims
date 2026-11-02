@@ -47,4 +47,4 @@ def test_too_few_tests_warns_about_untested_policies(monkeypatch):
     proposal = asyncio.run(propose_swarm("v2", 2))
 
     assert len(proposal.scenarios) == 2
-    assert "C" in proposal.warnings[0]
+    assert proposal.warnings[0].startswith("1 of 3 policies have no tests")
