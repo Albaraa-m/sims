@@ -24,8 +24,8 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json()
 }
 
-export function listTests(): Promise<TestRow[]> {
-  return requestJson('/api/tests')
+export function listTests(includeSwarmTests = false): Promise<TestRow[]> {
+  return requestJson(`/api/tests?include_swarm_tests=${includeSwarmTests}`)
 }
 
 export function readTest(testId: string): Promise<TestDetail> {
