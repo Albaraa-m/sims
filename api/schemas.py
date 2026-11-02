@@ -68,6 +68,8 @@ class RunRow(BaseModel):
     test_id: str
     # Shared by every version of the test, so a test can be counted once.
     test_lineage_id: str
+    # The swarm that queued the run, if any.
+    swarm_id: str | None
     test_name: str
     test_version: int
     agent_version: str

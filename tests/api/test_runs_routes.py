@@ -4,10 +4,16 @@ from fastapi.testclient import TestClient
 from api.app import create_app
 from core.db import save
 from evaluations.models import Evaluation, Outcome
-from regression_tests.crud import create_test_from_spec
+from regression_tests.crud import (
+    create_test_from_spec,
+    list_latest_tests,
+    promote_test_to_regression_suite,
+)
 from simulations.crud import create_simulation, update_simulation
 from simulations.models import SimulationStatus
 from simulations.queue import RunRequest, admit_runs, claim_next_run, fail_attempt
+from swarms.crud import save_swarm_with_tests
+from swarms.models import Scenario
 
 
 @pytest.fixture
@@ -162,3 +168,25 @@ def test_a_run_that_could_not_run_is_listed_as_an_execution_failure(
     rows = client.get("/api/runs", params={"outcome": "execution_failed"}).json()
 
     assert [row["id"] for row in rows] == [broken.id]
+
+
+def test_runs_are_scoped_to_the_regression_suite_or_one_swarm(
+    client, source_conversation, spec
+):
+    regression_test = create_test_from_spec(source_conversation, "Unconfirmed", spec)
+    regression_run = create_simulation("v1", regression_test.id)
+    swarm = save_swarm_with_tests("s", "v2", ["p"], [Scenario(name="n", spec=spec)])
+    [swarm_test] = list_latest_tests(swarm.id)
+    [swarm_run] = admit_runs([RunRequest("v2", swarm_test.id)], swarm.id)
+
+    def run_ids(scope: str) -> list[str]:
+        return [
+            row["id"] for row in client.get("/api/runs", params={"scope": scope}).json()
+        ]
+
+    assert run_ids("regression") == [regression_run.id]
+    assert run_ids(f"swarm:{swarm.id}") == [swarm_run.id]
+
+    promote_test_to_regression_suite(swarm_test.id)
+
+    assert sorted(run_ids("regression")) == sorted([regression_run.id, swarm_run.id])
