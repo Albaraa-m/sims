@@ -4,6 +4,7 @@ import DashboardPage from '@/pages/DashboardPage'
 import NewSwarmPage from '@/pages/NewSwarmPage'
 import ResultsPage from '@/pages/ResultsPage'
 import RunPage from '@/pages/RunPage'
+import SwarmPage from '@/pages/SwarmPage'
 import SwarmsPage from '@/pages/SwarmsPage'
 import TestPage from '@/pages/TestPage'
 import TestsPage from '@/pages/TestsPage'
@@ -37,6 +38,7 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/swarms" element={<SwarmsPage />} />
           <Route path="/swarms/new" element={<NewSwarmPage />} />
+          <Route path="/swarms/:swarmId" element={<SwarmPage />} />
         </Routes>
       </main>
     </BrowserRouter>

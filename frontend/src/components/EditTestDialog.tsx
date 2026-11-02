@@ -51,7 +51,12 @@ export default function EditTestDialog({ test, open, onOpenChange, onSaved }: Ed
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">
-          <TestFieldsEditor fields={fields} onChange={setFields} aiFields={aiFields} />
+          <TestFieldsEditor
+            fields={fields}
+            onChange={setFields}
+            aiFields={aiFields}
+            aiLabel={test.swarm_id ? 'Generated' : 'Inferred'}
+          />
           {requestError && <p className="text-sm text-destructive">{requestError}</p>}
         </div>
         <DialogFooter>
