@@ -1,16 +1,16 @@
 {
-  "reason": "The agent accepted and booked a reservation for tomorrow, but bookings are for the same day only.",
+  "reason": "The agent made a booking for tomorrow, but reservations are for the same day only, so it should not have confirmed a booking for a future day.",
   "name": "Tomorrow booking",
   "spec": {
-    "goal": "Book a table for five under Saud for tomorrow at seven in the evening.",
+    "goal": "Book a table.",
     "facts": {
+      "name": "Saud",
       "day": "tomorrow",
       "time": "19:00",
-      "party_size": "5",
-      "name": "Saud"
+      "party_size": "5"
     },
-    "behavior": "You speak plainly and give the booking details when asked. Confirm the details when they read them back, and end the call once they say the table is booked.",
+    "behavior": "You speak clearly and give the booking details in one go. If they read the details back and ask for confirmation, you say yes. End the call once they say the table is booked.",
     "policy_under_test": "Reservations are for the same day only.",
-    "expected_outcome": "The agent says they cannot make a reservation for tomorrow and does not confirm a booking."
+    "expected_outcome": "The agent does not confirm a reservation for tomorrow."
   }
 }

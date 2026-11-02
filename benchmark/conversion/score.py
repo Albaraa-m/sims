@@ -21,16 +21,18 @@ CLEAN_CRITERION = "no_test_for_clean_call"
 
 CALLER_FIELDS = {"goal", "facts", "behavior"}
 
-# Each judge sees only the fields its question is about.
+# Each judge sees only the fields its question is about. The goal leaves its details
+# (day, time, party size) to the facts, so the two are judged together.
 JUDGED_FIELDS = {
-    "goal_kept": {"goal"},
+    "goal_kept": {"goal", "facts"},
     "trigger_kept": CALLER_FIELDS,
     "policy_right": {"policy_under_test"},
 }
 
 JUDGE_QUESTIONS = {
-    "goal_kept": "Does the spec's goal describe the same thing the caller wanted in "
-    "the answer key's goal? Extra detail is fine; a different aim is not.",
+    "goal_kept": "Do the spec's goal and facts together describe the same thing the "
+    "caller wanted in the answer key's goal? Extra detail is fine; a different aim "
+    "is not.",
     "trigger_kept": "The answer key's trigger is what the caller must do for the "
     "failure to happen. Would a caller who follows only the spec's goal, facts and "
     "behavior do it?",

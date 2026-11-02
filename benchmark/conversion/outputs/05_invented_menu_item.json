@@ -1,12 +1,10 @@
 {
-  "reason": "The agent invented a menu item that is not on the restaurant’s menu: it said there was a chicken shawarma plate for forty-five riyals. The caller only asked whether shawarma was available, so the spoken answer shows a menu error.",
+  "reason": "The agent invented a chicken shawarma plate, but shawarma is not on the menu and the instructions say not to invent menu items.",
   "name": "Invented shawarma",
   "spec": {
-    "goal": "Check whether they serve shawarma.",
-    "facts": {
-      "name": "caller"
-    },
-    "behavior": "You ask about shawarma in a casual way. If they answer, you can ask one follow-up question and then end the call.",
+    "goal": "Find out whether they serve shawarma and ask about kunafa.",
+    "facts": {},
+    "behavior": "You are casual and brief. Ask your first question naturally, and if they answer, you may ask one follow-up question. Thank them and end the call after the follow-up answer.",
     "policy_under_test": "The menu is complete, so if a dish isn't on it, the restaurant does not serve it.",
     "expected_outcome": "The agent says they do not serve shawarma."
   }
