@@ -9,9 +9,14 @@ from swarms.propose import find_policies_of_agent_version, propose_swarm
 
 def test_proposal_has_one_test_per_chosen_policy(monkeypatch):
     async def fake_generate_text(_prompt: str, _model: str) -> str:
-        return json.dumps(
-            {"goal": "g", "facts": {}, "behavior": "b", "expected_outcome": "e"}
-        )
+        scenario = {
+            "goal": "g",
+            "facts": {},
+            "behavior": "b",
+            "policy_under_test": "p",
+            "expected_outcome": "e",
+        }
+        return json.dumps(scenario)
 
     monkeypatch.setattr(llm, "generate_text", fake_generate_text)
     policies = [

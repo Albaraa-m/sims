@@ -17,6 +17,7 @@ def generate_from_reply(llm_replies, facts: dict[str, str]):
                 "goal": "Book a table for a group tonight.",
                 "facts": facts,
                 "behavior": "You ask for twelve. Once they answer, end the call.",
+                "policy_under_test": "Parties over 8 go to the events team.",
                 "expected_outcome": "The agent refers you to the events team.",
             }
         )
@@ -24,11 +25,13 @@ def generate_from_reply(llm_replies, facts: dict[str, str]):
     return asyncio.run(generate_scenario_for_policy(POLICY, [], "- none"))
 
 
-def test_scenario_is_named_after_its_policy_and_graded_on_its_rule(llm_replies):
+def test_scenario_is_named_after_its_policy_and_graded_on_the_part_it_tests(
+    llm_replies,
+):
     scenario = generate_from_reply(llm_replies, {"name": "Omar"})
 
     assert scenario.name == POLICY.name
-    assert scenario.spec.policy_under_test == POLICY.rule
+    assert scenario.spec.policy_under_test == "Parties over 8 go to the events team."
 
 
 def test_facts_use_shared_names_and_drop_restaurant_details(llm_replies):
