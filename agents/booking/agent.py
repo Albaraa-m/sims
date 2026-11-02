@@ -3,6 +3,7 @@ from pathlib import Path
 
 from livekit.agents import Agent, RunContext, ToolError, function_tool
 
+from agents.booking.planted_bugs import PLANTED_BUGS
 from agents.booking.store import FIRST_SLOT, LAST_SLOT, ReservationStore
 
 KNOWLEDGE_BASE = (Path(__file__).parent / "restaurant.md").read_text()
@@ -48,6 +49,10 @@ to confirm them; just tell them the table is booked.
 INSTRUCTIONS_BY_VERSION = {
     "v1": RESTAURANT_POLICIES + SHORT_CALLS_INSTRUCTION,
     "v2": RESTAURANT_POLICIES,
+    **{
+        bug.version: bug.apply_to_instructions(RESTAURANT_POLICIES)
+        for bug in PLANTED_BUGS
+    },
 }
 
 

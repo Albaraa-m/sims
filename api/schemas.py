@@ -143,6 +143,9 @@ class RunDetail(BaseModel):
     test_id: str | None
     test_name: str | None
     test_version: int | None
+    # What the judge grades against, from the test's spec.
+    policy_under_test: str | None
+    expected_outcome: str | None
     conversation: list[SpokenLine | ToolCall]
     has_recording: bool
     # Newest first; the first one is the run's current outcome.

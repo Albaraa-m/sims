@@ -2,16 +2,14 @@ import asyncio
 import json
 from contextlib import contextmanager
 
-from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, create_engine
-
 from benchmark.evaluator.case_files import (
     RESULTS_PATH,
     EvaluatorCase,
     load_evaluator_cases,
 )
 from benchmark.evaluator.score import write_scores
-from core import db, llm
+from benchmark.in_memory_database import use_in_memory_database
+from core import llm
 from evaluations.evaluate import evaluate_simulation
 from regression_tests.crud import (
     create_test_from_spec,
@@ -24,14 +22,6 @@ from simulations.models import SimulationStatus
 GRADINGS_PER_CASE = 3
 # Keeps the judge calls within LiveKit Inference's rate limits.
 MAX_CONCURRENT_GRADINGS = 8
-
-
-def use_in_memory_database() -> None:
-    """Benchmark rows never reach sims.db."""
-    db.engine = create_engine(
-        "sqlite://", connect_args={"check_same_thread": False}, poolclass=StaticPool
-    )
-    SQLModel.metadata.create_all(db.engine)
 
 
 def save_case_as_simulation(case: EvaluatorCase) -> str:

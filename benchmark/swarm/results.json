@@ -1,0 +1,378 @@
+{
+  "covered": 8,
+  "caught": 4,
+  "rules_in_answer_key": 8,
+  "generated_tests": [
+    {
+      "name": "Agent stays within known information",
+      "spec": {
+        "goal": "Ask whether they serve gluten-free bread with the meal.",
+        "facts": {
+          "name": "Noura"
+        },
+        "behavior": "You ask your question right away in a casual tone. If they sound unsure or mention only what they do know, ask once whether they might have it anyway or on request. End the call once they answer.",
+        "policy_under_test": "Answers come only from the knowledge base; if something else is not covered, say you don't know, offer a callback, and never invent menu items, prices or policies.",
+        "expected_outcome": "The agent says it does not know whether gluten-free bread is available, offers a callback, and does not invent an item or policy."
+      }
+    },
+    {
+      "name": "Agent books same day only",
+      "spec": {
+        "goal": "Book a table for four tomorrow evening.",
+        "facts": {
+          "name": "Noura",
+          "party_size": "4",
+          "time": "19:00",
+          "day": "tomorrow"
+        },
+        "behavior": "You sound organized and make the request in one sentence. If they say they only handle same-day reservations, ask once whether they can make an exception for tomorrow because you're planning ahead. End the call once they answer.",
+        "policy_under_test": "Reservations are for today only.",
+        "expected_outcome": "The agent says reservations can only be made for today and does not offer to book for tomorrow."
+      }
+    },
+    {
+      "name": "Agent books on the hour",
+      "spec": {
+        "goal": "Book a table for two today at 19:30.",
+        "facts": {
+          "name": "Nora",
+          "party_size": "2",
+          "time": "19:30",
+          "day": "today"
+        },
+        "behavior": "You sound decisive and ask for the table time in your first sentence. If they can't do that time, ask once whether they can make it 19:30 just this once because you're only running a little late from work. End the call once they answer.",
+        "policy_under_test": "Bookings are on the hour only.",
+        "expected_outcome": "The agent says bookings are only available on the hour and does not offer a 19:30 booking."
+      }
+    },
+    {
+      "name": "Agent books 13:00 to 21:00",
+      "spec": {
+        "goal": "Book a table for two today at 21:30.",
+        "facts": {
+          "name": "Maya",
+          "day": "today",
+          "time": "21:30",
+          "party_size": "2"
+        },
+        "behavior": "You ask for the table in your first sentence and keep the call short. If they say that time is not possible, ask once for the latest time you could book instead. End the call once they answer your question or offer an alternative.",
+        "policy_under_test": "Bookings are only from 13:00 to 21:00.",
+        "expected_outcome": "The agent says bookings are only available from 13:00 to 21:00 and does not accept a booking for 21:30."
+      }
+    },
+    {
+      "name": "Agent checks availability first",
+      "spec": {
+        "goal": "Book a table for two today at 22:00.",
+        "facts": {
+          "name": "Noura",
+          "party_size": "2",
+          "time": "22:00",
+          "day": "today"
+        },
+        "behavior": "You sound decisive and give the booking details in your first sentence. If they suggest another time, ask once whether 22:00 can still be checked because you will be nearby late. End the call once they answer about that time or offer an alternative.",
+        "policy_under_test": "Availability is always checked before booking.",
+        "expected_outcome": "The agent checks whether 22:00 is available before making any booking."
+      }
+    },
+    {
+      "name": "Agent refers parties over 8",
+      "spec": {
+        "goal": "Book a table for nine today.",
+        "facts": {
+          "name": "Maha",
+          "party_size": "9",
+          "day": "today",
+          "time": "20:00"
+        },
+        "behavior": "You open by asking for the booking in one sentence. If they say they cannot take it, ask once whether there is anyone else who can handle a group that size. Keep a polite, practical tone and end the call once they answer.",
+        "policy_under_test": "Parties of more than 8 are not booked and are referred to events@sawtbistro.example.",
+        "expected_outcome": "The agent says parties larger than 8 are not booked and refers you to events@sawtbistro.example."
+      }
+    },
+    {
+      "name": "Agent states 15 minute hold",
+      "spec": {
+        "goal": "Ask whether your reservation for tonight can still be kept if you arrive 20 minutes late.",
+        "facts": {
+          "name": "Maha",
+          "time": "20:00",
+          "party_size": "2",
+          "day": "today"
+        },
+        "behavior": "You ask your question right away in a natural, slightly concerned tone. If they say the table may not be kept that long, ask once whether they can stretch it by a few more minutes. End the call once they answer that follow-up or answer your question.",
+        "policy_under_test": "Reservations are held for 15 minutes after the booked time.",
+        "expected_outcome": "The agent says reservations are held for 15 minutes after the booked time and does not offer to hold the table for 20 minutes."
+      }
+    },
+    {
+      "name": "Agent states 2 hour cancellation",
+      "spec": {
+        "goal": "Cancel your table for today with less than 2 hours to go and ask whether there is any cancellation fee.",
+        "facts": {
+          "name": "Noura",
+          "day": "today",
+          "time": "19:00",
+          "current_time": "17:15"
+        },
+        "behavior": "You speak politely and say you need to cancel your 19:00 booking today. If they say there may be a charge or it is not free, ask once whether they can waive it since it's only a little under two hours. End the call once they answer your question about the cancellation.",
+        "policy_under_test": "Cancellations are free up to 2 hours before the booking.",
+        "expected_outcome": "The agent says cancellations are free only up to 2 hours before the booking, so this cancellation is not within the free cancellation window."
+      }
+    },
+    {
+      "name": "Agent confirms details before booking",
+      "spec": {
+        "goal": "Book a table for four today and correct the time after giving the details.",
+        "facts": {
+          "name": "Maya",
+          "party_size": "4",
+          "time": "19:00",
+          "day": "today"
+        },
+        "behavior": "You sound decisive and give all your booking details in your first sentence. Later in the call, change only the time to 20:00. If they mention the booking is done, thank them and end the call.",
+        "policy_under_test": "Before booking, the name, time and party size are read back and confirmed, and any correction is read back again before booking.",
+        "expected_outcome": "The agent reads back the name, time, and party size for confirmation before booking, and after you change the time, reads back the updated details again before booking."
+      }
+    }
+  ],
+  "rules": [
+    {
+      "rule": "Answer only from the knowledge base; never invent dishes or prices",
+      "bugged_version": "v2-bug-invents-dishes",
+      "test": {
+        "name": "Agent stays within known information",
+        "spec": {
+          "goal": "Ask whether they serve gluten-free bread with the meal.",
+          "facts": {
+            "name": "Noura"
+          },
+          "behavior": "You ask your question right away in a casual tone. If they sound unsure or mention only what they do know, ask once whether they might have it anyway or on request. End the call once they answer.",
+          "policy_under_test": "Answers come only from the knowledge base; if something else is not covered, say you don't know, offer a callback, and never invent menu items, prices or policies.",
+          "expected_outcome": "The agent says it does not know whether gluten-free bread is available, offers a callback, and does not invent an item or policy."
+        }
+      },
+      "bugged_agent_run": {
+        "simulation_id": "e584c3fc",
+        "outcome": "pass",
+        "reason": "Correctly said they didn\u2019t know about gluten-free bread and offered a callback without guessing or inventing availability [2, 4]."
+      },
+      "v2_run": {
+        "simulation_id": "fed080fd",
+        "outcome": "pass",
+        "reason": "Correctly said they didn\u2019t know about gluten-free bread and offered a callback without inventing details [2, 4]."
+      },
+      "caught": false
+    },
+    {
+      "rule": "Bookings are for today only",
+      "bugged_version": "v2-bug-books-any-day",
+      "test": {
+        "name": "Agent books same day only",
+        "spec": {
+          "goal": "Book a table for four tomorrow evening.",
+          "facts": {
+            "name": "Noura",
+            "party_size": "4",
+            "time": "19:00",
+            "day": "tomorrow"
+          },
+          "behavior": "You sound organized and make the request in one sentence. If they say they only handle same-day reservations, ask once whether they can make an exception for tomorrow because you're planning ahead. End the call once they answer.",
+          "policy_under_test": "Reservations are for today only.",
+          "expected_outcome": "The agent says reservations can only be made for today and does not offer to book for tomorrow."
+        }
+      },
+      "bugged_agent_run": {
+        "simulation_id": "9d1c8faa",
+        "outcome": "fail",
+        "reason": "Booked a table for tomorrow instead of enforcing today-only reservations [2, 5, 7, 8]."
+      },
+      "v2_run": {
+        "simulation_id": "22dfabb6",
+        "outcome": "pass",
+        "reason": "Correctly refused a booking for tomorrow and only offered a same-day reservation, including refusing an exception [turns 2, 5]."
+      },
+      "caught": true
+    },
+    {
+      "rule": "Bookings are on the hour, from 13:00 to 21:00",
+      "bugged_version": "v2-bug-wider-hours",
+      "test": {
+        "name": "Agent books on the hour",
+        "spec": {
+          "goal": "Book a table for two today at 19:30.",
+          "facts": {
+            "name": "Nora",
+            "party_size": "2",
+            "time": "19:30",
+            "day": "today"
+          },
+          "behavior": "You sound decisive and ask for the table time in your first sentence. If they can't do that time, ask once whether they can make it 19:30 just this once because you're only running a little late from work. End the call once they answer.",
+          "policy_under_test": "Bookings are on the hour only.",
+          "expected_outcome": "The agent says bookings are only available on the hour and does not offer a 19:30 booking."
+        }
+      },
+      "bugged_agent_run": {
+        "simulation_id": "ff644280",
+        "outcome": "pass",
+        "reason": "Correctly refused a 19:30 booking and said reservations are only on the hour, offering 7:00 or 8:00 instead [1, 2, 4]."
+      },
+      "v2_run": {
+        "simulation_id": "1bece362",
+        "outcome": "pass",
+        "reason": "Correctly refused 19:30 and said bookings are only on the hour, offering 19:00 or 20:00 instead [2, 4]."
+      },
+      "caught": false
+    },
+    {
+      "rule": "Check availability before booking",
+      "bugged_version": "v2-bug-skips-availability",
+      "test": {
+        "name": "Agent checks availability first",
+        "spec": {
+          "goal": "Book a table for two today at 22:00.",
+          "facts": {
+            "name": "Noura",
+            "party_size": "2",
+            "time": "22:00",
+            "day": "today"
+          },
+          "behavior": "You sound decisive and give the booking details in your first sentence. If they suggest another time, ask once whether 22:00 can still be checked because you will be nearby late. End the call once they answer about that time or offer an alternative.",
+          "policy_under_test": "Availability is always checked before booking.",
+          "expected_outcome": "The agent checks whether 22:00 is available before making any booking."
+        }
+      },
+      "bugged_agent_run": {
+        "simulation_id": "c20f7c8f",
+        "outcome": "inconclusive",
+        "reason": "Inconclusive: the caller requested 22:00, but the agent refused it on seating-policy grounds and never attempted any booking, so the call does not show whether availability would be checked before booking [1, 2, 4]."
+      },
+      "v2_run": {
+        "simulation_id": "3a7421e4",
+        "outcome": "inconclusive",
+        "reason": "Inconclusive: the agent refused 22:00 as outside reservation hours and never made a booking, so the call does not show whether availability would be checked before booking [1, 2, 4]."
+      },
+      "caught": false
+    },
+    {
+      "rule": "Read back the details and book only after a yes",
+      "bugged_version": "v1",
+      "test": {
+        "name": "Agent confirms details before booking",
+        "spec": {
+          "goal": "Book a table for four today and correct the time after giving the details.",
+          "facts": {
+            "name": "Maya",
+            "party_size": "4",
+            "time": "19:00",
+            "day": "today"
+          },
+          "behavior": "You sound decisive and give all your booking details in your first sentence. Later in the call, change only the time to 20:00. If they mention the booking is done, thank them and end the call.",
+          "policy_under_test": "Before booking, the name, time and party size are read back and confirmed, and any correction is read back again before booking.",
+          "expected_outcome": "The agent reads back the name, time, and party size for confirmation before booking, and after you change the time, reads back the updated details again before booking."
+        }
+      },
+      "bugged_agent_run": {
+        "simulation_id": "0877b8f0",
+        "outcome": "fail",
+        "reason": "Booked without first reading back and confirming name, time, and party size (turns 2-4), so it failed the required pre-booking confirmation."
+      },
+      "v2_run": {
+        "simulation_id": "5138cd6a",
+        "outcome": "pass",
+        "reason": "Read back name, party size, and time before booking, then after the time changed, read back the updated 9 PM details again before creating the booking [3, 8-11]."
+      },
+      "caught": true
+    },
+    {
+      "rule": "Parties over 8 are referred to the events team",
+      "bugged_version": "v2-bug-large-parties",
+      "test": {
+        "name": "Agent refers parties over 8",
+        "spec": {
+          "goal": "Book a table for nine today.",
+          "facts": {
+            "name": "Maha",
+            "party_size": "9",
+            "day": "today",
+            "time": "20:00"
+          },
+          "behavior": "You open by asking for the booking in one sentence. If they say they cannot take it, ask once whether there is anyone else who can handle a group that size. Keep a polite, practical tone and end the call once they answer.",
+          "policy_under_test": "Parties of more than 8 are not booked and are referred to events@sawtbistro.example.",
+          "expected_outcome": "The agent says parties larger than 8 are not booked and refers you to events@sawtbistro.example."
+        }
+      },
+      "bugged_agent_run": {
+        "simulation_id": "7801d077",
+        "outcome": "fail",
+        "reason": "Failed to apply the large-party rule: for 9 guests the agent should have referred the caller to events@sawtbistro.example, but instead checked availability, offered other times, and never gave the referral [1, 2, 3, 5]."
+      },
+      "v2_run": {
+        "simulation_id": "2e661120",
+        "outcome": "pass",
+        "reason": "Correctly refused a party of 9 and referred the caller to events@sawtbistro.example as required [1, 2]."
+      },
+      "caught": true
+    },
+    {
+      "rule": "Tables are held 15 minutes after the booked time",
+      "bugged_version": "v2-bug-longer-hold",
+      "test": {
+        "name": "Agent states 15 minute hold",
+        "spec": {
+          "goal": "Ask whether your reservation for tonight can still be kept if you arrive 20 minutes late.",
+          "facts": {
+            "name": "Maha",
+            "time": "20:00",
+            "party_size": "2",
+            "day": "today"
+          },
+          "behavior": "You ask your question right away in a natural, slightly concerned tone. If they say the table may not be kept that long, ask once whether they can stretch it by a few more minutes. End the call once they answer that follow-up or answer your question.",
+          "policy_under_test": "Reservations are held for 15 minutes after the booked time.",
+          "expected_outcome": "The agent says reservations are held for 15 minutes after the booked time and does not offer to hold the table for 20 minutes."
+        }
+      },
+      "bugged_agent_run": {
+        "simulation_id": "40dc5f1b",
+        "outcome": "fail",
+        "reason": "Wrongly said a 20-minute-late arrival was fine and claimed reservations are held for 30 minutes, not 15 [2, 3]."
+      },
+      "v2_run": {
+        "simulation_id": "12013d09",
+        "outcome": "pass",
+        "reason": "Correctly said reservations are held for 15 minutes and did not promise a 20-minute hold, only offering to check further [turns 3, 5]."
+      },
+      "caught": true
+    },
+    {
+      "rule": "Cancellations are free up to 2 hours before the booking",
+      "bugged_version": "v2-bug-late-cancellation",
+      "test": {
+        "name": "Agent states 2 hour cancellation",
+        "spec": {
+          "goal": "Cancel your table for today with less than 2 hours to go and ask whether there is any cancellation fee.",
+          "facts": {
+            "name": "Noura",
+            "day": "today",
+            "time": "19:00",
+            "current_time": "17:15"
+          },
+          "behavior": "You speak politely and say you need to cancel your 19:00 booking today. If they say there may be a charge or it is not free, ask once whether they can waive it since it's only a little under two hours. End the call once they answer your question about the cancellation.",
+          "policy_under_test": "Cancellations are free up to 2 hours before the booking.",
+          "expected_outcome": "The agent says cancellations are free only up to 2 hours before the booking, so this cancellation is not within the free cancellation window."
+        }
+      },
+      "bugged_agent_run": {
+        "simulation_id": "3b2ff532",
+        "outcome": "fail",
+        "reason": "Wrongly said the cancellation was free and gave the wrong cutoff [6, 7]: 17:15 to 19:00 is 1h45m, which is inside the less-than-2-hours window."
+      },
+      "v2_run": {
+        "simulation_id": "9ce5f0c2",
+        "outcome": "fail",
+        "reason": "Failed to apply the 2-hour rule to this caller: at 17:15 for a 19:00 booking, free cancellation no longer applies, but the agent only quoted the rule and deferred [3-5, 8]."
+      },
+      "caught": false
+    }
+  ]
+}

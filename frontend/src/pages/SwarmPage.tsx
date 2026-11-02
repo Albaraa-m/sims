@@ -5,6 +5,7 @@ import { cancelSwarmRun, listRunsOfSwarmRun, listSwarmRuns, readSwarm, startSwar
 import RunControls from '@/components/RunControls'
 import SwarmRunDetail from '@/components/SwarmRunDetail'
 import SwarmRunList from '@/components/SwarmRunList'
+import TestSpecSummary from '@/components/TestSpecSummary'
 import { Badge } from '@/components/ui/badge'
 import { startedAtFormat, TEST_STATUS_BADGE_VARIANT, TEST_STATUS_LABEL } from '@/runs'
 import type { RunRow, SwarmDetail, SwarmRunSummary } from '@/types'
@@ -123,12 +124,7 @@ export default function SwarmPage() {
               {test.promoted_from_swarm_id && <Badge variant="info">Promoted</Badge>}
               {test.version > 1 && <span className="text-muted-foreground">v{test.version}</span>}
             </div>
-            <p className="text-muted-foreground">
-              <span className="text-foreground">Policy:</span> {test.spec.policy_under_test}
-            </p>
-            <p className="text-muted-foreground">
-              <span className="text-foreground">Caller:</span> {test.spec.behavior}
-            </p>
+            <TestSpecSummary spec={test.spec} />
           </Link>
         ))}
       </div>

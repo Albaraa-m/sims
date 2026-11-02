@@ -49,13 +49,24 @@ export default function Verdict({ run, now, onRegraded }: VerdictProps) {
     <div className="space-y-3 rounded-lg border p-4 text-sm">
       <div className="flex items-center gap-3">
         <h2 className="text-base font-semibold">Verdict</h2>
-        <OutcomeBadge run={{ outcome: latest?.outcome ?? null, ended_at: run.ended_at, status: run.status }} now={now} />
+        <OutcomeBadge
+          run={{ outcome: latest?.outcome ?? null, ended_at: run.ended_at, status: run.status }}
+          now={now}
+        />
         {run.status === 'done' && (
           <Button variant="outline" size="sm" className="ml-auto" onClick={regrade} disabled={isRegrading}>
             {isRegrading ? 'Grading…' : 'Regrade'}
           </Button>
         )}
       </div>
+      {run.policy_under_test && (
+        <dl className="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-1 rounded-md bg-muted/50 p-3">
+          <dt className="text-muted-foreground">Policy</dt>
+          <dd>{run.policy_under_test}</dd>
+          <dt className="text-muted-foreground">Expected</dt>
+          <dd>{run.expected_outcome}</dd>
+        </dl>
+      )}
       {regradeError && <p className="text-destructive">Couldn't regrade: {regradeError}</p>}
       {latest && (
         <>
