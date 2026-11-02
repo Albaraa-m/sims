@@ -26,6 +26,9 @@ MAX_QUEUED_RUNS = int(os.getenv("SIMS_MAX_QUEUED_RUNS", "50"))
 # model, and the laptop runs both agents of every call.
 MAX_CONCURRENT_CALLS = int(os.getenv("SIMS_MAX_CONCURRENT_CALLS", "4"))
 LEASE_SECONDS = 60
+# How often each worker looks for expired leases; a dead worker's calls wait at most
+# LEASE_SECONDS plus this before going back in the queue.
+REAP_EVERY_SECONDS = 15
 
 
 class QueueFullError(Exception):
@@ -299,3 +302,9 @@ def list_refused_starts(since: datetime) -> list[RefusedStart]:
             .order_by(col(RefusedStart.refused_at).desc())
         )
         return list(session.exec(query))
+
+
+def count_refused_simulations() -> int:
+    with Session(db.engine) as session:
+        query = select(func.coalesce(func.sum(RefusedStart.requested), 0))
+        return session.exec(query).one()

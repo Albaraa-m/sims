@@ -18,6 +18,7 @@ from regression_tests.run import build_caller_scenario
 from simulations.models import Simulation, SimulationStatus
 from simulations.queue import (
     MAX_CONCURRENT_CALLS,
+    REAP_EVERY_SECONDS,
     claim_next_run,
     fail_attempt,
     finish_attempt_with_evidence,
@@ -34,7 +35,6 @@ from simulations.worker_registry import (
 
 POLL_SECONDS = 1
 LEASE_RENEW_SECONDS = 10
-REAP_EVERY_SECONDS = 15
 
 
 class InjectedFailure(Exception):
