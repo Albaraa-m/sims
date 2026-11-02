@@ -5,7 +5,7 @@ import os
 import signal
 import socket
 from contextlib import nullcontext, suppress
-from itertools import groupby
+from itertools import cycle, groupby, islice
 from pathlib import Path
 
 import uvicorn
@@ -22,13 +22,19 @@ from regression_tests.convert import convert_transcript_to_test
 from regression_tests.crud import (
     get_source_conversation,
     get_test,
+    list_latest_tests,
     mark_ready,
 )
 from regression_tests.models import Test
 from regression_tests.run import queue_test_runs
 from simulations.crud import get_simulation, list_simulations_of_test
 from simulations.models import Simulation, SimulationStatus
-from simulations.queue import MAX_CONCURRENT_CALLS, RunRequest, admit_runs
+from simulations.queue import (
+    MAX_CONCURRENT_CALLS,
+    QueueFullError,
+    RunRequest,
+    admit_runs,
+)
 from simulations.transcript import SPEAKERS, chat_items, message_text, spoken_lines
 from simulations.worker import run_worker
 
@@ -215,6 +221,15 @@ def main() -> None:
     ready = commands.add_parser("mark-ready", help="Mark a test ready to run.")
     ready.add_argument("test_id")
 
+    load = commands.add_parser(
+        "load", help="Queue a burst of runs of a swarm's tests, to test the queue."
+    )
+    load.add_argument("swarm_id")
+    load.add_argument("--count", type=int, required=True, help="Runs to queue.")
+    load.add_argument(
+        "--versions", nargs="+", choices=["v1", "v2"], default=["v1", "v2"]
+    )
+
     run_test = commands.add_parser(
         "run-test", help="Run a ready test against agent versions."
     )
@@ -295,6 +310,19 @@ def main() -> None:
             print_test(get_test(args.test_id))
         case "mark-ready":
             print(f"test {mark_ready(args.test_id).id} is ready")
+        case "load":
+            tests = list_latest_tests(args.swarm_id)
+            pairs = [(test, version) for test in tests for version in args.versions]
+            requests = [
+                RunRequest(version, test.id)
+                for test, version in islice(cycle(pairs), args.count)
+            ]
+            try:
+                queued = admit_runs(requests, args.swarm_id)
+            except QueueFullError as error:
+                print(f"rejected: {error}")
+            else:
+                print(f"queued {len(queued)} runs of swarm {args.swarm_id}")
         case "run-test":
             simulations = queue_test_runs(args.test_id, args.versions, args.runs)
             with running_agent_servers() if args.start_agents else nullcontext():

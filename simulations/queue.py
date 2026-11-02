@@ -4,6 +4,7 @@ Every write that finishes an attempt checks the row is still running that attemp
 a worker that comes back late can't overwrite a retry or a cancel.
 """
 
+import os
 from datetime import timedelta
 from typing import NamedTuple
 
@@ -14,10 +15,11 @@ from core import db
 from core.config import now
 from simulations.models import Simulation, SimulationStatus
 
-MAX_QUEUED_RUNS = 50
+# Overridable from the environment, so a load test can show admission at a small cap.
+MAX_QUEUED_RUNS = int(os.getenv("SIMS_MAX_QUEUED_RUNS", "50"))
 # Each call holds 2 agent sessions; the Ship plan allows 20 inference connections per
 # model, and the laptop runs both agents of every call.
-MAX_CONCURRENT_CALLS = 4
+MAX_CONCURRENT_CALLS = int(os.getenv("SIMS_MAX_CONCURRENT_CALLS", "4"))
 LEASE_SECONDS = 60
 
 
