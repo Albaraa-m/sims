@@ -3,7 +3,7 @@ import json
 from livekit.agents import FunctionTool
 from pydantic import BaseModel, Field
 
-from agents.booking.agent import INSTRUCTIONS_BY_VERSION, KNOWLEDGE_BASE, BookingAgent
+from agents.booking.agent import KNOWLEDGE_BASE, BookingAgent
 from agents.booking.store import default_store
 from core import llm
 from regression_tests.models import TestSpec
@@ -77,10 +77,6 @@ async def extract_policies_from_agent_instructions(
     except llm.InvalidReplyError as error:
         raise GenerationError(f"model returned an invalid policy list: {error}")
     return reply.policies
-
-
-def instructions_of_agent_version(agent_version: str) -> str:
-    return INSTRUCTIONS_BY_VERSION[agent_version]
 
 
 class GeneratedScenario(BaseModel):

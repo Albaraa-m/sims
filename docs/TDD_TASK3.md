@@ -35,7 +35,7 @@
 ## Data flow
 
 1. The reviewer opens Swarms → Create swarm and picks an agent version → Find policies.
-2. `find_policies_of_agent_version` reads that version's instructions (restaurant policies and knowledge base included) and its tool descriptions, and returns one policy per topic (about 8 for v2), each with a test-like name and its full rule.
+2. `find_policies_of_agent_version` reads the restaurant's rules (`RESTAURANT_POLICIES`, knowledge base included), the same for every version, and the tool descriptions, and returns one policy per topic (about 8 for v2), each with a test-like name and its full rule.
 3. The same dialog lists them, all ticked; the reviewer unticks any to skip, then Generate N tests (N = ticked policies).
 4. `propose_swarm` writes one test per policy, one call each, choosing the caller behavior most likely to expose a breach; the test is named after the policy and its rule is copied verbatim for the judge.
 5. The review page lists the tests: name, policy, caller behavior; Edit opens the full spec (labelled Generated / Edited); Remove drops it, and its policy with it.
@@ -47,7 +47,7 @@
 | Decision | Choice | Why |
 |---|---|---|
 | Scenario | An ordinary `Test` with `swarm_id` | Editing, versioning, running and grading are reused |
-| Source | The chosen version's prompt plus its tools | The brief: the swarm uses the agent's instructions, policies, knowledge and tools |
+| Source | `RESTAURANT_POLICIES` (rules + knowledge base) plus the tools, for every version | Tests must expect what the restaurant wants, not what the tested prompt says: generated from v1's prompt, they would expect v1's bug |
 | Test count | One test per policy; the reviewer only chooses policies | No counts to balance; no policy left untested |
 | Policies | One per topic, found before generating | The reviewer decides coverage seeing what there is to cover |
 | Test names | The policy's name, "Agent <does what>" | Readable from the list, like a test function name |
