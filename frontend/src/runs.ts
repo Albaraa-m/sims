@@ -1,6 +1,17 @@
-import type { ExecutionFailureKind, Outcome, RunRow, RunStatus } from '@/types'
+import type { ExecutionFailureKind, Outcome, RunRow, RunStatus, TestStatus } from '@/types'
 
 export const startedAtFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+
+export const RUN_STATUS_LABEL = {
+  running: 'Running',
+  done: 'Done',
+  failed: 'Failed',
+} as const satisfies Record<RunStatus, string>
+
+export const TEST_STATUS_LABEL = {
+  draft: 'Draft',
+  ready: 'Ready',
+} as const satisfies Record<TestStatus, string>
 
 export const RUN_STATUS_BADGE_VARIANT = {
   running: 'outline',
@@ -15,10 +26,10 @@ export function formatRunDuration(run: Pick<RunRow, 'started_at' | 'ended_at'>, 
 }
 
 export const OUTCOME_LABEL = {
-  pass: 'pass',
-  fail: 'fail',
-  inconclusive: 'inconclusive',
-  execution_failed: 'execution failure',
+  pass: 'Pass',
+  fail: 'Fail',
+  inconclusive: 'Inconclusive',
+  execution_failed: 'Execution Failure',
 } as const satisfies Record<Outcome, string>
 
 export const OUTCOME_BADGE_VARIANT = {
@@ -29,12 +40,12 @@ export const OUTCOME_BADGE_VARIANT = {
 } as const satisfies Record<Outcome, string>
 
 export const EXECUTION_FAILURE_KIND_LABEL = {
-  call_failed: 'call failed',
-  call_unfinished: "call didn't finish",
-  no_report: 'no session report',
-  no_recording: 'no recording',
-  agent_silent: 'agent never spoke',
-  caller_silent: 'caller never spoke',
+  call_failed: 'Call Failed',
+  call_unfinished: "Call Didn't Finish",
+  no_report: 'No Session Report',
+  no_recording: 'No Recording',
+  agent_silent: 'Agent Never Spoke',
+  caller_silent: 'Caller Never Spoke',
 } as const satisfies Record<ExecutionFailureKind, string>
 
 // Grading starts when the call ends and takes seconds; ungraded runs older than this

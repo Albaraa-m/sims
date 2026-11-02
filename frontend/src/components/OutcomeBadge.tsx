@@ -6,6 +6,6 @@ export default function OutcomeBadge({ run, now }: { run: Pick<RunRow, 'outcome'
   if (run.outcome) return <Badge variant={OUTCOME_BADGE_VARIANT[run.outcome]}>{OUTCOME_LABEL[run.outcome]}</Badge>
   if (run.ended_at === null) return <span className="text-muted-foreground">–</span>
   return (
-    <span className="text-muted-foreground">{isAwaitingGrade(run, now) ? 'grading…' : 'not graded'}</span>
+    <span className="text-muted-foreground">{isAwaitingGrade(run, now) ? 'Grading…' : 'Not Graded'}</span>
   )
 }

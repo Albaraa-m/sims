@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router'
 import OutcomeBadge from '@/components/OutcomeBadge'
 import { Badge } from '@/components/ui/badge'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { formatRunDuration, RUN_STATUS_BADGE_VARIANT, startedAtFormat } from '@/runs'
+import { formatRunDuration, RUN_STATUS_BADGE_VARIANT, RUN_STATUS_LABEL, startedAtFormat } from '@/runs'
 import type { RunRow } from '@/types'
 
 type RunsTableProps = {
@@ -43,7 +43,7 @@ export default function RunsTable({ runs, viewedTestId, now }: RunsTableProps) {
               v{run.test_version}
             </TableCell>
             <TableCell>
-              <Badge variant={RUN_STATUS_BADGE_VARIANT[run.status]}>{run.status}</Badge>
+              <Badge variant={RUN_STATUS_BADGE_VARIANT[run.status]}>{RUN_STATUS_LABEL[run.status]}</Badge>
             </TableCell>
             <TableCell>
               <OutcomeBadge run={run} now={now} />

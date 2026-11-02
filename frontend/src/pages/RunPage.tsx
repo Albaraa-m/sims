@@ -5,7 +5,14 @@ import { readRun, recordingUrl } from '@/api'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import Verdict from '@/components/Verdict'
-import { formatRunDuration, isAwaitingGrade, RUN_STATUS_BADGE_VARIANT, startedAtFormat, turnElementId } from '@/runs'
+import {
+  formatRunDuration,
+  isAwaitingGrade,
+  RUN_STATUS_BADGE_VARIANT,
+  RUN_STATUS_LABEL,
+  startedAtFormat,
+  turnElementId,
+} from '@/runs'
 import type { ConversationEntry, RunDetail } from '@/types'
 
 const POLL_INTERVAL_MS = 3000
@@ -80,7 +87,7 @@ export default function RunPage() {
         )}
         <div className="flex items-center gap-3">
           <h1 className="font-mono text-xl font-semibold">{run.id}</h1>
-          <Badge variant={RUN_STATUS_BADGE_VARIANT[run.status]}>{run.status}</Badge>
+          <Badge variant={RUN_STATUS_BADGE_VARIANT[run.status]}>{RUN_STATUS_LABEL[run.status]}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
           Agent {run.agent_version} · {startedAtFormat.format(new Date(run.started_at))} ·{' '}

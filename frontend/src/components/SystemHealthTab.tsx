@@ -28,8 +28,17 @@ function formatSeconds(seconds: number | null): string {
 }
 
 export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: number }) {
-  const ungradedRuns = runs.filter((run) => run.ended_at !== null && run.outcome === null && !isAwaitingGrade(run, now))
-  const executionFailures = runs.filter((run) => run.outcome === 'execution_failed')
+  // Each run lands in exactly one bucket, so the counts add up to the total.
+  const inProgressRuns = runs.filter((run) => run.status === 'running' || isAwaitingGrade(run, now))
+  const executionFailures = runs.filter(
+    (run) => run.outcome === 'execution_failed' || (run.status === 'failed' && run.outcome === null),
+  )
+  const ungradedRuns = runs.filter(
+    (run) => run.status === 'done' && run.outcome === null && !isAwaitingGrade(run, now),
+  )
+  const completedRuns = runs.filter(
+    (run) => run.outcome === 'pass' || run.outcome === 'fail' || run.outcome === 'inconclusive',
+  )
   const inconclusiveRuns = runs.filter((run) => run.outcome === 'inconclusive')
   const failureKinds = Object.keys(EXECUTION_FAILURE_KIND_LABEL) as ExecutionFailureKind[]
   const agentVersions = [...new Set(runs.map((run) => run.agent_version))].sort()
@@ -39,17 +48,20 @@ export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: nu
     <>
       <div className="space-y-2">
         <h2 className="text-base font-semibold">Runs</h2>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-          <Count label="started" value={runs.length} to="/results" />
-          <Count label="running" value={runs.filter((run) => run.status === 'running').length} />
-          <Count label="call failed" value={runs.filter((run) => run.status === 'failed').length} />
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          <Count label="Completed" value={completedRuns.length} />
+          <Count label="In Progress" value={inProgressRuns.length} />
           <Count
-            label="execution failures"
+            label="Execution Failures"
             value={executionFailures.length}
             to={resultsUrl({ outcome: 'execution_failed' })}
           />
-          <Count label="not graded" value={ungradedRuns.length} />
+          <Count label="Not Graded" value={ungradedRuns.length} />
         </div>
+        <p className="text-xs text-muted-foreground">
+          {runs.length} runs in total. Completed runs got a verdict (Pass, Fail or Inconclusive); execution failures
+          broke before the agent could be judged.
+        </p>
         {ungradedRuns.length > 0 && (
           <p className="text-xs text-muted-foreground">
             Runs that finished without a verdict, usually from before grading existed. Grade them with{' '}
@@ -59,14 +71,17 @@ export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: nu
       </div>
 
       <div className="space-y-2">
-        <h2 className="text-base font-semibold">Execution failures</h2>
+        <h2 className="text-base font-semibold">Execution failures by cause</h2>
         {executionFailures.length === 0 ? (
           <p className="text-sm text-muted-foreground">Every graded call ran properly.</p>
         ) : (
           <Table>
             <TableBody>
               {failureKinds.map((kind) => {
-                const count = executionFailures.filter((run) => run.execution_failure_kind === kind).length
+                const count = executionFailures.filter(
+                  // Failed calls that were never graded have no kind yet, but the cause is known.
+                  (run) => (run.execution_failure_kind ?? 'call_failed') === kind,
+                ).length
                 if (count === 0) return null
                 return (
                   <TableRow key={kind}>

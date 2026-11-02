@@ -11,7 +11,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { isAwaitingGrade } from '@/runs'
+import { isAwaitingGrade, TEST_STATUS_LABEL } from '@/runs'
 import type { RunRow, TestDetail, TestRow } from '@/types'
 
 const POLL_INTERVAL_MS = 3000
@@ -82,7 +82,7 @@ export default function TestPage() {
         </Link>
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">{test.name}</h1>
-          <Badge variant={test.status === 'ready' ? 'default' : 'secondary'}>{test.status}</Badge>
+          <Badge variant={test.status === 'ready' ? 'default' : 'secondary'}>{TEST_STATUS_LABEL[test.status]}</Badge>
           <Button variant="outline" className="ml-auto" onClick={() => setIsEditing(true)}>
             Edit
           </Button>

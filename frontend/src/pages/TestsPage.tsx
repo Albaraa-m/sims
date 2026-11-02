@@ -6,6 +6,7 @@ import NewTestDialog from '@/components/NewTestDialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { TEST_STATUS_LABEL } from '@/runs'
 import type { TestRow } from '@/types'
 
 const createdAtFormat = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' })
@@ -53,7 +54,7 @@ export default function TestsPage() {
                 <TableCell className="font-mono text-muted-foreground">{test.id}</TableCell>
                 <TableCell>v{test.version}</TableCell>
                 <TableCell>
-                  <Badge variant={test.status === 'ready' ? 'default' : 'secondary'}>{test.status}</Badge>
+                  <Badge variant={test.status === 'ready' ? 'default' : 'secondary'}>{TEST_STATUS_LABEL[test.status]}</Badge>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {createdAtFormat.format(new Date(test.created_at))}
