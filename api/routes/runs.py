@@ -39,6 +39,7 @@ def build_run_row(simulation: Simulation, test: Test) -> RunRow:
         id=simulation.id,
         test_id=test.id,
         test_lineage_id=test.lineage_id,
+        swarm_id=simulation.swarm_id,
         test_name=test.name,
         test_version=test.version,
         agent_version=simulation.agent_version,
@@ -58,17 +59,36 @@ def build_run_row(simulation: Simulation, test: Test) -> RunRow:
     )
 
 
+REGRESSION_SCOPE = "regression"
+SWARM_SCOPE_PREFIX = "swarm:"
+
+
+def is_in_scope(simulation: Simulation, test: Test, scope: str | None) -> bool:
+    """regression: runs of regression tests, including a promoted test's earlier swarm
+    runs; swarm:<id>: runs that swarm queued; no scope: every run."""
+    if scope is None:
+        return True
+    if scope == REGRESSION_SCOPE:
+        return test.swarm_id is None
+    if scope.startswith(SWARM_SCOPE_PREFIX):
+        return simulation.swarm_id == scope.removeprefix(SWARM_SCOPE_PREFIX)
+    raise HTTPException(status_code=422, detail=f"unknown scope {scope}")
+
+
 @router.get("")
 def list_runs(
     test_id: str | None = None,
     agent_version: Literal["v1", "v2"] | None = None,
     outcome: Outcome | None = None,
+    scope: str | None = None,
 ) -> list[RunRow]:
-    """Runs of tests, newest first; test_id matches every version of that test."""
+    """Runs of tests, newest first; test_id matches every version of that test.
+    scope is "regression" or "swarm:<id>"; without it, every run (for system health)."""
     lineage_id = get_test_or_404(test_id).lineage_id if test_id else None
     rows = [
         build_run_row(simulation, test)
         for simulation, test in list_test_runs(lineage_id, agent_version)
+        if is_in_scope(simulation, test, scope)
     ]
     return [row for row in rows if outcome is None or has_outcome(row, outcome)]
 

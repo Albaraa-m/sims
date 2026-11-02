@@ -88,7 +88,9 @@ export default function RunPage() {
           </Link>
         )}
         <div className="flex items-center gap-3">
-          <h1 className="font-mono text-xl font-semibold">{run.id}</h1>
+          <h1 className="text-xl font-semibold">
+            Simulation <span className="font-mono">{run.id}</span>
+          </h1>
           <Badge variant={RUN_STATUS_BADGE_VARIANT[run.status]}>{RUN_STATUS_LABEL[run.status]}</Badge>
         </div>
         <p className="text-sm text-muted-foreground">

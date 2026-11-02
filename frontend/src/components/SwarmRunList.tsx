@@ -35,7 +35,7 @@ function summaryText(summary: SwarmRunSummary): string {
   const parts = [`${outcomes.pass ?? 0} pass`, `${outcomes.fail ?? 0} fail`]
   if (counts.cancelled) parts.push(`${counts.cancelled} cancelled`)
   if (counts.failed) parts.push(`${counts.failed} couldn't run`)
-  return `${summary.total} calls · ${parts.join(' · ')}`
+  return `${summary.total} simulations · ${parts.join(' · ')}`
 }
 
 type SwarmRunListProps = {

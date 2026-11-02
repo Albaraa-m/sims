@@ -59,6 +59,10 @@ export function editTest(testId: string, name: string, spec: TestSpec): Promise<
   return requestJson(`/api/tests/${testId}`, { method: 'PUT', body: JSON.stringify({ name, spec }) })
 }
 
+export function promoteTest(testId: string): Promise<TestDetail> {
+  return requestJson(`/api/tests/${testId}/promote`, { method: 'POST' })
+}
+
 export function markTestReady(testId: string): Promise<TestDetail> {
   return requestJson(`/api/tests/${testId}/ready`, { method: 'POST' })
 }
@@ -86,7 +90,8 @@ export function regradeRun(runId: string): Promise<EvaluationDetail> {
   return requestJson(`/api/runs/${runId}/evaluate`, { method: 'POST' })
 }
 
-export type RunFilters = { test_id?: string; agent_version?: string; outcome?: string }
+// scope: "regression" or "swarm:<id>"; without it, every run.
+export type RunFilters = { test_id?: string; agent_version?: string; outcome?: string; scope?: string }
 
 export function listRunsOfAllTests(filters: RunFilters): Promise<RunRow[]> {
   const definedFilters = Object.entries(filters).filter((entry): entry is [string, string] => Boolean(entry[1]))

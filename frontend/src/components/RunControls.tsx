@@ -54,7 +54,7 @@ export default function RunControls({ startRuns, onStarted, testCount = 1 }: Run
           </Label>
         ))}
         <Label className="font-normal">
-          Runs per version
+          Simulations per version
           <Input
             type="number"
             min={1}

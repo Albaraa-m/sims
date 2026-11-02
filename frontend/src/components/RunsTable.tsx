@@ -32,7 +32,7 @@ export default function RunsTable({ runs, viewedTestId, now }: RunsTableProps) {
   const navigate = useNavigate()
   const [expandedRunIds, setExpandedRunIds] = useState<string[]>([])
   if (runs.length === 0) {
-    return <p className="text-sm text-muted-foreground">No runs yet.</p>
+    return <p className="text-sm text-muted-foreground">No simulations yet.</p>
   }
 
   function toggle(runId: string) {
@@ -45,12 +45,12 @@ export default function RunsTable({ runs, viewedTestId, now }: RunsTableProps) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Run</TableHead>
+          <TableHead>Simulation</TableHead>
           <TableHead>When</TableHead>
           <TableHead>Agent</TableHead>
           <TableHead>Test</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Outcome</TableHead>
+          <TableHead>Verdict</TableHead>
           <TableHead>Attempts</TableHead>
           <TableHead>Time</TableHead>
         </TableRow>
@@ -60,9 +60,9 @@ export default function RunsTable({ runs, viewedTestId, now }: RunsTableProps) {
           const isExpanded = expandedRunIds.includes(run.id)
           return (
             <Fragment key={run.id}>
-              <TableRow onClick={() => navigate(`/runs/${run.id}`)} className="cursor-pointer">
+              <TableRow onClick={() => navigate(`/simulations/${run.id}`)} className="cursor-pointer">
                 <TableCell className="font-mono">
-                  <Link to={`/runs/${run.id}`}>{run.id}</Link>
+                  <Link to={`/simulations/${run.id}`}>{run.id}</Link>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {startedAtFormat.format(new Date(run.started_at))}

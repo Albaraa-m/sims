@@ -5,8 +5,6 @@ import { listSwarms, listTests } from '@/api'
 import NewTestDialog from '@/components/NewTestDialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { TEST_STATUS_BADGE_VARIANT, TEST_STATUS_LABEL } from '@/runs'
 import type { SwarmRow, TestRow } from '@/types'
@@ -17,13 +15,13 @@ export default function TestsPage() {
   const [tests, setTests] = useState<TestRow[] | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [isNewTestOpen, setIsNewTestOpen] = useState(false)
-  const [isShowingSwarmTests, setIsShowingSwarmTests] = useState(false)
   const [swarms, setSwarms] = useState<SwarmRow[]>([])
   const navigate = useNavigate()
 
   const loadTests = useCallback(() => {
-    listTests(isShowingSwarmTests).then(setTests, (error: Error) => setLoadError(error.message))
-  }, [isShowingSwarmTests])
+    // The regression suite only; swarm tests live on their swarm's page until promoted.
+    listTests().then(setTests, (error: Error) => setLoadError(error.message))
+  }, [])
 
   useEffect(() => {
     listSwarms().then(setSwarms, (error: Error) => setLoadError(error.message))
@@ -40,16 +38,6 @@ export default function TestsPage() {
         <Button onClick={() => setIsNewTestOpen(true)}>New test</Button>
       </div>
       <NewTestDialog open={isNewTestOpen} onOpenChange={setIsNewTestOpen} onCreated={loadTests} />
-      <div className="flex items-center gap-2">
-        <Checkbox
-          id="show-swarm-tests"
-          checked={isShowingSwarmTests}
-          onCheckedChange={(checked) => setIsShowingSwarmTests(checked === true)}
-        />
-        <Label htmlFor="show-swarm-tests" className="font-normal text-muted-foreground">
-          Show swarm tests
-        </Label>
-      </div>
       {loadError && <p className="text-sm text-destructive">Couldn't load tests: {loadError}</p>}
       {tests && tests.length === 0 && (
         <p className="text-sm text-muted-foreground">No tests yet. Use New test to create one from a call transcript.</p>
@@ -73,7 +61,9 @@ export default function TestsPage() {
                   <Link to={`/tests/${test.id}`}>{test.name}</Link>
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  {test.swarm_id ? `Swarm: ${swarmNameOf(test.swarm_id)}` : 'Transcript'}
+                  {test.promoted_from_swarm_id
+                    ? `Promoted from swarm ${swarmNameOf(test.promoted_from_swarm_id)}`
+                    : 'From a call'}
                 </TableCell>
                 <TableCell className="font-mono text-muted-foreground">{test.id}</TableCell>
                 <TableCell>v{test.version}</TableCell>

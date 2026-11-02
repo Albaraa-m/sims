@@ -14,6 +14,7 @@ from api.schemas import (
 )
 from regression_tests.convert import infer_test_spec_from_transcript
 from regression_tests.crud import (
+    NotASwarmTestError,
     create_test_from_transcript,
     edit_test,
     get_test,
@@ -21,6 +22,7 @@ from regression_tests.crud import (
     list_runs_of_every_test_version,
     list_test_versions,
     mark_ready,
+    promote_test_to_regression_suite,
 )
 from regression_tests.models import Test, TestStatus
 from regression_tests.run import queue_test_runs
@@ -32,11 +34,10 @@ router = APIRouter(prefix="/api/tests")
 # The event loop keeps only weak references to tasks; these must outlive the request.
 @router.get("")
 def list_tests(include_swarm_tests: bool = False) -> list[TestRow]:
-    """Tests made from transcripts; generated swarm tests only when asked for."""
+    """The regression suite; swarm tests too only when asked for."""
     return [
         TestRow.model_validate(test, from_attributes=True)
-        for test in list_latest_tests()
-        if include_swarm_tests or test.swarm_id is None
+        for test in list_latest_tests(regression_only=not include_swarm_tests)
     ]
 
 
@@ -59,6 +60,17 @@ def list_versions_of_test(test_id: str) -> list[TestRow]:
         TestRow.model_validate(version, from_attributes=True)
         for version in list_test_versions(lineage_id)
     ]
+
+
+@router.post("/{test_id}/promote")
+def promote_test(test_id: str) -> TestDetail:
+    """Moves a swarm test into the regression suite."""
+    get_test_or_404(test_id)
+    try:
+        test = promote_test_to_regression_suite(test_id)
+    except NotASwarmTestError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+    return TestDetail.model_validate(test, from_attributes=True)
 
 
 @router.post("/{test_id}/ready")

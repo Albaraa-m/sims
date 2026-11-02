@@ -4,9 +4,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router'
 import { listRunsOfAllTests, listTests } from '@/api'
 import OutcomeBadge from '@/components/OutcomeBadge'
 import Filter from '@/components/Filter'
+import ScopeSelect from '@/components/ScopeSelect'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { EXECUTION_FAILURE_KIND_LABEL, OUTCOME_LABEL, startedAtFormat } from '@/runs'
+import { isTestInScope, REGRESSION_SCOPE } from '@/scopes'
 import type { ExecutionFailureKind, Outcome, RunRow, TestRow } from '@/types'
 
 export default function ResultsPage() {
@@ -17,6 +19,7 @@ export default function ResultsPage() {
   const [loadedAt, setLoadedAt] = useState(0)
   const navigate = useNavigate()
 
+  const scope = searchParams.get('scope') ?? REGRESSION_SCOPE
   const filters = {
     test_id: searchParams.get('test_id') ?? '',
     agent_version: searchParams.get('agent_version') ?? '',
@@ -33,18 +36,18 @@ export default function ResultsPage() {
   }
 
   useEffect(() => {
-    listTests().then(setTests, (error: Error) => setLoadError(error.message))
+    listTests(true).then(setTests, (error: Error) => setLoadError(error.message))
   }, [])
 
   useEffect(() => {
-    listRunsOfAllTests(Object.fromEntries(searchParams)).then(
+    listRunsOfAllTests({ ...Object.fromEntries(searchParams), scope }).then(
       (loadedRuns) => {
         setRuns(loadedRuns)
         setLoadedAt(Date.now())
       },
       (error: Error) => setLoadError(error.message),
     )
-  }, [searchParams])
+  }, [searchParams, scope])
 
   const outcomes = Object.entries(OUTCOME_LABEL) as [Outcome, string][]
   const shownRuns = runs?.filter(
@@ -54,12 +57,25 @@ export default function ResultsPage() {
   )
   return (
     <section className="space-y-4">
-      <h1 className="text-xl font-semibold">Results</h1>
+      <h1 className="text-xl font-semibold">Simulations</h1>
       <div className="flex flex-wrap items-center gap-2">
+        <ScopeSelect
+          value={scope}
+          onChange={(value) => {
+            // A test from the old scope isn't in the new one.
+            const next = new URLSearchParams(searchParams)
+            next.set('scope', value)
+            next.delete('test_id')
+            next.delete('test_version')
+            setSearchParams(next)
+          }}
+        />
         <Filter
           label="Test"
           value={filters.test_id}
-          options={tests.map((test) => ({ value: test.id, label: test.name }))}
+          options={tests
+            .filter((test) => isTestInScope(test, scope))
+            .map((test) => ({ value: test.id, label: test.name }))}
           onChange={(value) => setFilter('test_id', value)}
         />
         <Filter
@@ -69,7 +85,7 @@ export default function ResultsPage() {
           onChange={(value) => setFilter('agent_version', value)}
         />
         <Filter
-          label="Outcome"
+          label="Verdict"
           value={filters.outcome}
           options={outcomes.map(([value, label]) => ({ value, label }))}
           onChange={(value) => setFilter('outcome', value)}
@@ -86,23 +102,23 @@ export default function ResultsPage() {
         )}
       </div>
       {loadError && <p className="text-sm text-destructive">Couldn't load results: {loadError}</p>}
-      {shownRuns && shownRuns.length === 0 && <p className="text-sm text-muted-foreground">No runs match these filters.</p>}
+      {shownRuns && shownRuns.length === 0 && <p className="text-sm text-muted-foreground">No simulations match these filters.</p>}
       {shownRuns && shownRuns.length > 0 && (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Run</TableHead>
+              <TableHead>Simulation</TableHead>
               <TableHead>When</TableHead>
               <TableHead>Test</TableHead>
               <TableHead>Agent</TableHead>
-              <TableHead>Outcome</TableHead>
+              <TableHead>Verdict</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {shownRuns.map((run) => (
-              <TableRow key={run.id} onClick={() => navigate(`/runs/${run.id}`)} className="cursor-pointer">
+              <TableRow key={run.id} onClick={() => navigate(`/simulations/${run.id}`)} className="cursor-pointer">
                 <TableCell className="font-mono">
-                  <Link to={`/runs/${run.id}`}>{run.id}</Link>
+                  <Link to={`/simulations/${run.id}`}>{run.id}</Link>
                 </TableCell>
                 <TableCell className="text-muted-foreground">{startedAtFormat.format(new Date(run.started_at))}</TableCell>
                 <TableCell>

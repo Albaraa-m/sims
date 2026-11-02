@@ -46,8 +46,8 @@ export function StatusPill({ cell, to }: { cell: SuiteCell; to?: string }) {
         </span>
       )}
       {isTooFewRuns(cell) && (
-        <span className="text-muted-foreground" title={`Fewer than ${MIN_RUNS_TO_RELY_ON} graded runs: too few to rely on`}>
-          · few runs
+        <span className="text-muted-foreground" title={`Fewer than ${MIN_RUNS_TO_RELY_ON} graded simulations: too few to rely on`}>
+          · few simulations
         </span>
       )}
     </span>
@@ -77,7 +77,7 @@ const CHANGE_STYLE: Record<
   Broke: { color: '#d03b3b', Icon: ArrowDownIcon, strong: true },
   Worse: { color: '#d03b3b', Icon: ArrowDownIcon, strong: false },
   'No change': { color: null, Icon: null, strong: false },
-  'Too few runs': { color: null, Icon: null, strong: false },
+  'Too few simulations': { color: null, Icon: null, strong: false },
   "Can't compare": { color: null, Icon: null, strong: false },
 }
 

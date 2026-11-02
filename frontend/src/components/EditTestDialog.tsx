@@ -47,7 +47,7 @@ export default function EditTestDialog({ test, open, onOpenChange, onSaved }: Ed
         <DialogHeader>
           <DialogTitle>Edit test</DialogTitle>
           <DialogDescription>
-            Saving creates v{test.version + 1} as a draft. Earlier versions and their runs stay as they are.
+            Saving creates v{test.version + 1} as a draft. Earlier versions and their simulations stay as they are.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4">

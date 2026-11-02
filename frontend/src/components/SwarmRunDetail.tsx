@@ -37,7 +37,7 @@ export default function SwarmRunDetail({ summary, tests, runs, now }: SwarmRunDe
           </h3>
           <SwarmRunStatusLabel status={summary.status} />
           <span className="ml-auto tabular-nums text-muted-foreground">
-            {settled} of {runs.length} settled
+            {settled} of {runs.length} done
           </span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-secondary">
@@ -84,7 +84,7 @@ export default function SwarmRunDetail({ summary, tests, runs, now }: SwarmRunDe
                     <span className="flex flex-wrap items-center gap-1.5">
                       {cellRuns.length === 0 && <span className="text-muted-foreground">—</span>}
                       {cellRuns.map((run) => (
-                        <Link key={run.id} to={`/runs/${run.id}`} className="inline-flex items-center gap-1 hover:opacity-80">
+                        <Link key={run.id} to={`/simulations/${run.id}`} className="inline-flex items-center gap-1 hover:opacity-80">
                           <CallPill run={run} now={now} />
                           {run.attempts.length > 1 && (
                             <span className="text-xs text-muted-foreground">×{run.attempts.length}</span>

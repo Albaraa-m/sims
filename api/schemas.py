@@ -68,6 +68,8 @@ class RunRow(BaseModel):
     test_id: str
     # Shared by every version of the test, so a test can be counted once.
     test_lineage_id: str
+    # The swarm that queued the run, if any.
+    swarm_id: str | None
     test_name: str
     test_version: int
     agent_version: str
@@ -113,6 +115,8 @@ class TestRow(BaseModel):
     status: TestStatus
     # Set for generated tests; None for tests made from a transcript.
     swarm_id: str | None
+    # Set for swarm tests promoted into the regression suite.
+    promoted_from_swarm_id: str | None
     created_at: datetime
 
     _mark_created_at_as_utc = field_validator("created_at")(mark_as_utc)
@@ -187,6 +191,7 @@ class SwarmTest(BaseModel):
     version: int
     status: TestStatus
     spec: TestSpec
+    promoted_from_swarm_id: str | None
 
 
 class SwarmDetail(SwarmRow):

@@ -23,8 +23,8 @@ export default function OutcomeSummary({ runs, testId, testVersion }: OutcomeSum
   return (
     <div className="space-y-3 rounded-lg border p-4 text-sm">
       <div>
-        <h3 className="text-base font-semibold">Run summary</h3>
-        <p className="text-muted-foreground">All graded runs of test v{testVersion}, by agent version.</p>
+        <h3 className="text-base font-semibold">Simulation summary</h3>
+        <p className="text-muted-foreground">All graded simulations of test v{testVersion}, by agent version.</p>
       </div>
       <div className="grid grid-cols-[max-content_max-content_1fr] items-center gap-x-4 gap-y-2">
         {agentVersions.map((agentVersion) => {
@@ -48,8 +48,8 @@ export default function OutcomeSummary({ runs, testId, testVersion }: OutcomeSum
         })}
       </div>
       <p className="text-xs text-muted-foreground">
-        Covers only this test's policy. The ratio is runs passed out of runs passed or failed. Passing: all passed; Flaky: some did; Failing: none did. Small
-        samples can't show a version is better overall, and inconclusive runs and execution failures say nothing about
+        Covers only this test's policy. The ratio is simulations passed out of those passed or failed. Passing: all passed; Flaky: some did; Failing: none did. Small
+        samples can't show a version is better overall, and inconclusive simulations and execution failures say nothing about
         the agent.
       </p>
     </div>

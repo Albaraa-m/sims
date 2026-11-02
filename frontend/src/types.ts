@@ -7,6 +7,8 @@ export type TestRow = {
   status: TestStatus
   // Set for generated tests; null for tests made from a transcript.
   swarm_id: string | null
+  // Set for swarm tests promoted into the regression suite.
+  promoted_from_swarm_id: string | null
   created_at: string
 }
 
@@ -55,6 +57,8 @@ export type RunRow = {
   test_id: string
   // Shared by every version of the test, so a test can be counted once.
   test_lineage_id: string
+  // The swarm that queued the run, if any.
+  swarm_id: string | null
   test_name: string
   test_version: number
   agent_version: string
@@ -163,6 +167,7 @@ export type SwarmTest = {
   version: number
   status: TestStatus
   spec: TestSpec
+  promoted_from_swarm_id: string | null
 }
 
 export type SwarmDetail = SwarmRow & {
