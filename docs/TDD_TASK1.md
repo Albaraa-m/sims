@@ -83,7 +83,7 @@
 |---|---|---|
 | Tests | Latest version of each test: name, id, version, status, created | Open a test; start "New test" |
 | New test (modal) | Transcript, optional reported issue and agent version; the fields, each labelled Inferred or Edited; a "no regression found" warning with the model's reason on a clean transcript | Infer the fields (asks before overwriting edits), write or edit them, create a draft |
-| Test | Fields labelled Inferred or Edited, with the AI version on request; version dropdown; runs of every version (run, when, agent, test version, status, time), polled every 3s while running | Edit (saves a new version), mark ready, run v1 and/or v2 1–5 times, open a run or an earlier version |
+| Test | Fields in two blocks, Scenario (what the caller is told) and Evaluation criteria (hidden from the caller), each labelled Inferred or Edited, with the AI version on request; version dropdown; runs of every version (run, when, agent, test version, status, time), polled every 3s while running | Edit (saves a new version), mark ready, run v1 and/or v2 1–5 times, open a run or an earlier version |
 | Run | Status, agent, duration, error, recording, conversation with tool calls inline; link to the test version it ran | Play the call, go back to that test version |
 
 The "Not ready to run" notice and the Run controls, shown only on the latest version once ready, tell the reviewer whether the test can run.

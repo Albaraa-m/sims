@@ -20,14 +20,14 @@ A restaurant booking agent with a knowledge base (hours, menu, policies) and two
 | AgentVersion | A prompt and tools. Immutable. |
 | Test | One broken rule to check: a name, caller goal, facts, behavior, policy under test, expected outcome. Editing creates a new version. |
 | Simulation | One call: test version × agent version. Retries never erase earlier results. |
-| Evaluation | Checks with evidence and an outcome. |
+| Evaluation | An outcome with a reason and cited turns, plus the judge that produced it. Regrading adds a row. |
 
-**Outcomes:** `pass`, `behavioral_fail`, `execution_fail`, `inconclusive`. Missing evidence or an evaluator error is never a pass.
+**Outcomes:** `pass`, `fail`, `execution_failed`, `inconclusive`. Missing evidence or an evaluator error is never a pass.
 
 ## Requirements
 
 - **Task 1:** a transcript becomes a test the reviewer can edit, which then runs by voice against v1 and v2. The test stays linked to its source conversation.
-- **Task 2:** fixed-rule checks plus a model judge, each with evidence. A results view drills down into a single run. Dashboards show v1 vs v2 and system health.
+- **Task 2:** an execution check in code, then a model judge that cites turns as evidence. A results view drills down into a single run. Dashboards show v1 vs v2 and system health.
 - **Task 3:** the agent's prompt, knowledge base and tools produce a coverage grid. The reviewer adjusts it, which generates a swarm. A reliable queue limits concurrency and handles retries, cancellation and recovery. Every run is accounted for.
 - **Task 4 (bonus):** a command-line tool or MCP server for coding agents.
 
@@ -78,7 +78,7 @@ Authentication, multiple tenants, Kubernetes, a large scenario library, polished
 |---|---|---|---|
 | [x] | M10 | Evaluator | Each run gets an outcome with evidence |
 | [x] | M11 | Website: results | You can filter results and drill into a run's evidence |
-| [ ] | M12 | Dashboards | Version comparison and system health views |
+| [x] | M12 | Dashboards | Version comparison and system health views |
 | [x] | M13 | Benchmark: evaluator trust | Agreement with hand labels and the false-pass rate on ~20 runs, including injected faults |
 
 ### Task 3: Reliable swarm

@@ -1,6 +1,6 @@
-# Technical Design (TDD): Task 2 — Evaluator and Results (M10–M11)
+# Technical Design (TDD): Task 2 — Evaluator, Results and Dashboards (M10–M12)
 
-**Done when:** every finished run gets an outcome (pass, fail, execution failure or inconclusive) with the cited turns that justify it. The reviewer reads the grading criteria before running, filters results, and drills from a result into its evidence. Dashboards (M12) and the evaluator benchmark (M13) are out of scope.
+**Done when:** every finished run gets an outcome (pass, fail, execution failure or inconclusive) with the cited turns that justify it. The reviewer reads the grading criteria before running, filters results, and drills from a result into its evidence. The dashboard (M12) compares agent versions and shows system health. The evaluator benchmark (M13) has its own results in `benchmark/`.
 
 ## Outcomes
 
@@ -8,7 +8,7 @@
 |---|---|---|
 | Pass | The situation happened and the agent followed the policy | Judge |
 | Fail | The situation happened and the agent broke the policy | Judge |
-| Execution failure | No usable call: crash, timeout, missing report, empty side of the conversation | Code, before the judge |
+| Execution failure | No usable call: call failed (crash, timeout), unfinished, no report, no recording, agent or caller never spoke | Code, before the judge |
 | Inconclusive | The call ran, but the policy can't be graded: the caller never pursued the goal, the call ended before the situation came up, the judge errored or cited turns that don't exist | Judge or code |
 
 Only pass and fail count towards a pass rate. The other two are always shown, never counted as passes.
@@ -55,9 +55,11 @@ Only pass and fail count towards a pass rate. The other two are always shown, ne
 
 | Screen | Reviewer sees | Reviewer can |
 |---|---|---|
-| Test | A "Graded on" block: policy, pass condition, judge model; per agent version, "v1: 0 pass / 3 fail / 0 inconclusive / 0 execution failure (n=3)"; an outcome column in the runs table | Run, open a run |
+| Test | An "Evaluation criteria" block: policy and expected outcome; per agent version, "v1: 0 pass / 3 fail / 0 inconclusive / 0 execution failure (n=3)"; an outcome column in the runs table | Run, open a run |
 | Run | Outcome badge, reason, cited turns highlighted in the conversation (click to scroll), judge model and prompt version, earlier evaluations | Regrade, go to the test version |
-| Results | Every run across tests: test, test version, agent version, outcome, when | Filter by test, agent version and outcome; open a run |
+| Results | Every run across tests: test, test version, agent version, outcome, when | Filter by test, agent version and outcome (plus test version and failure cause, set from the dashboard); open a run |
+| Dashboard: Agent quality | Judge picker; pass rate bar per agent version; comparison table (test version × agent version, pass/graded, change); failures table with the latest reason | Open the matching runs or the test |
+| Dashboard: System health | Completed / In Progress / Execution Failures / Not Graded; runs per hour by bucket; execution failures by cause; judges used and inconclusive runs; call duration per agent | Open the matching runs |
 
 A fixed line under each comparison: *"Covers only this test's policy, over n runs; inconclusive and execution failures are excluded from pass counts."*
 
@@ -65,11 +67,11 @@ A fixed line under each comparison: *"Covers only this test's policy, over n run
 
 1. Before a run, the test page shows `policy_under_test` and `expected_outcome` as the grading criteria.
 2. The run finishes → the runner calls `evaluate_simulation(simulation_id)`.
-3. The execution check runs in code: `failed` status, a missing report, or no speech from the agent or the caller → execution failure, and the judge isn't called.
+3. The execution check runs in code: `failed` or unfinished status, a missing report or recording, or no speech from the agent or the caller → execution failure with a fixed cause (`ExecutionFailureKind`), and the judge isn't called.
 4. Otherwise the judge gets the evaluator fields, the caller's goal and the numbered conversation, tool calls included. It returns `situation_happened`, an outcome, `cited_turns` and a reason.
 5. Code checks the reply: invalid after one retry, cited turns out of range, a pass or fail with no cited turns, or `situation_happened = false` with a pass or fail → inconclusive.
 6. An `Evaluation` row is saved. `sims evaluate <id>` and the Regrade button rerun steps 3–6 and add a new row.
-7. The test, run and results pages read the newest evaluation of each run.
+7. The test, run and results pages and the dashboard read the newest evaluation of each run. `GET /api/runs` also returns its reason, judge and failure cause; the dashboard computes everything in the browser from that list.
 
 ## Key decisions
 
@@ -86,6 +88,10 @@ A fixed line under each comparison: *"Covers only this test's policy, over n run
 | Storage | Immutable `Evaluation` rows | Regrading and judge changes keep the history |
 | When it runs | Automatically after each run, in the runner's background task; also a CLI command and a button | Results appear without extra steps; regrading after a prompt change |
 | Results filtering | Query parameters on `GET /api/runs` | Small data, plain SQL |
+| Dashboard data | Computed in the browser from `GET /api/runs`, no new endpoint | Tens of runs; one source of truth |
+| Pass rate | pass ÷ (pass + fail), one judge at a time | Execution failures and inconclusive runs say nothing about the agent; mixing judges makes comparisons meaningless |
+| Failure cause | Recomputed from the run, not stored | Deterministic code on an immutable run; no schema change |
+| Charts | Plain HTML bars, no chart library | Few runs; exact counts beside every bar |
 
 ## Risks
 
