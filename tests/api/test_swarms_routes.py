@@ -22,20 +22,22 @@ def swarm_body(spec) -> dict:
 
 
 def test_generate_returns_a_proposal_and_saves_nothing(client, spec, monkeypatch):
-    async def fake_propose_swarm(agent_version, test_counts):
+    async def fake_propose_swarm(agent_version, policies):
         scenario = Scenario(name="n", spec=spec)
         return SwarmProposal(
             agent_version=agent_version,
             policies=["p"],
             scenarios=[scenario],
-            warnings=[],
         )
 
     monkeypatch.setattr(swarms_routes, "propose_swarm", fake_propose_swarm)
 
     response = client.post(
         "/api/swarms/generate",
-        json={"agent_version": "v2", "test_counts": [{"policy": "p", "count": 1}]},
+        json={
+            "agent_version": "v2",
+            "policies": [{"name": "Agent does p", "rule": "p"}],
+        },
     )
 
     assert response.json()["scenarios"][0]["name"] == "n"
@@ -63,13 +65,3 @@ def test_tests_list_hides_swarm_tests_unless_asked(client, spec):
     assert client.get("/api/tests").json() == []
     swarm_tests = client.get("/api/tests", params={"include_swarm_tests": True}).json()
     assert [t["name"] for t in swarm_tests] == ["Says yes at once"]
-
-
-def test_generate_refuses_more_tests_than_the_swarm_limit(client):
-    test_counts = [{"policy": f"p{n}", "count": 3} for n in range(14)]
-
-    response = client.post(
-        "/api/swarms/generate", json={"agent_version": "v2", "test_counts": test_counts}
-    )
-
-    assert response.status_code == 422

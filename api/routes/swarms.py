@@ -47,7 +47,7 @@ async def find_policies(request: FindPoliciesRequest) -> FoundPolicies:
 async def generate_swarm_proposal(request: GenerateSwarmRequest) -> SwarmProposal:
     """Returns tests for the reviewer to edit; nothing is saved."""
     try:
-        return await propose_swarm(request.agent_version, request.test_counts)
+        return await propose_swarm(request.agent_version, request.policies)
     except GenerationError as error:
         raise HTTPException(status_code=502, detail=str(error))
 

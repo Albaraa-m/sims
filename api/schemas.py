@@ -8,8 +8,7 @@ from evaluations.models import Outcome
 from regression_tests.models import TestSpec, TestStatus
 from simulations.conversation import SpokenLine, ToolCall
 from simulations.models import SimulationStatus
-from swarms.models import Scenario
-from swarms.propose import MAX_TESTS_PER_SWARM, PolicyTestCount
+from swarms.models import Policy, Scenario
 
 
 class InferTestRequest(BaseModel):
@@ -123,23 +122,13 @@ class FindPoliciesRequest(BaseModel):
 
 class FoundPolicies(BaseModel):
     agent_version: str
-    policies: list[str]
+    policies: list[Policy]
 
 
 class GenerateSwarmRequest(BaseModel):
     agent_version: Literal["v1", "v2"]
-    # In the order the reviewer sees them; each policy gets at least one test.
-    test_counts: list[PolicyTestCount] = Field(min_length=1)
-
-    @field_validator("test_counts")
-    @classmethod
-    def stay_within_the_swarm_limit(
-        cls, test_counts: list[PolicyTestCount]
-    ) -> list[PolicyTestCount]:
-        total = sum(chosen.count for chosen in test_counts)
-        if total > MAX_TESTS_PER_SWARM:
-            raise ValueError(f"{total} tests is over the {MAX_TESTS_PER_SWARM} limit")
-        return test_counts
+    # The policies the reviewer ticked; each gets one test.
+    policies: list[Policy] = Field(min_length=1)
 
 
 class SaveSwarmRequest(BaseModel):

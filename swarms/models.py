@@ -18,6 +18,14 @@ class Swarm(SQLModel, table=True):
     created_at: datetime = Field(default_factory=now)
 
 
+class Policy(BaseModel):
+    """A rule found in the agent's instructions; each becomes one test."""
+
+    # Reads like a test name: "Agent refers parties over 8 to the events team".
+    name: str
+    rule: str
+
+
 class Scenario(BaseModel):
     """One generated test: name is its short label, spec.behavior the caller instruction."""
 

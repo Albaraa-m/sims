@@ -15,9 +15,10 @@ def extract(instructions: str = "Confirm before booking."):
 
 
 def test_policies_are_read_from_the_reply(llm_replies):
-    llm_replies.append(json.dumps({"policies": ["Confirm before booking"]}))
+    policy = {"name": "Agent confirms before booking", "rule": "Confirm first"}
+    llm_replies.append(json.dumps({"policies": [policy]}))
 
-    assert extract() == ["Confirm before booking"]
+    assert [p.model_dump() for p in extract()] == [policy]
 
 
 def test_invalid_replies_raise_a_generation_error(llm_replies):
