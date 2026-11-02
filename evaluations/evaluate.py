@@ -22,7 +22,7 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
             Evaluation(
                 simulation_id=simulation_id,
                 outcome=Outcome.EXECUTION_FAILED,
-                reason=execution_failure,
+                reason=execution_failure.reason,
             )
         )
     if simulation.test_id is None:

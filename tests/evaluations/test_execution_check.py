@@ -1,6 +1,6 @@
 import pytest
 
-from evaluations.execution import find_execution_failure
+from evaluations.execution import ExecutionFailureKind, find_execution_failure
 from simulations.models import Simulation, SimulationStatus
 
 
@@ -24,21 +24,34 @@ def test_call_where_both_sides_spoke_can_be_graded():
 
 
 @pytest.mark.parametrize(
-    "call, reason",
+    "call, kind, reason",
     [
         (
             Simulation(
                 agent_version="v1", status=SimulationStatus.FAILED, error="timeout"
             ),
+            ExecutionFailureKind.CALL_FAILED,
             "the call failed: timeout",
         ),
-        (Simulation(agent_version="v1"), "the call hasn't finished; it is running"),
+        (
+            Simulation(agent_version="v1"),
+            ExecutionFailureKind.CALL_UNFINISHED,
+            "the call hasn't finished; it is running",
+        ),
         (
             Simulation(agent_version="v1", status=SimulationStatus.DONE),
+            ExecutionFailureKind.NO_REPORT,
             "the call has no session report",
         ),
-        (finished_call(message("assistant", "Hello.")), "the caller never spoke"),
+        (
+            finished_call(message("assistant", "Hello.")),
+            ExecutionFailureKind.CALLER_SILENT,
+            "the caller never spoke",
+        ),
     ],
 )
-def test_unusable_call_is_an_execution_failure(call, reason):
-    assert find_execution_failure(call) == reason
+def test_unusable_call_is_an_execution_failure(call, kind, reason):
+    failure = find_execution_failure(call)
+
+    assert failure is not None
+    assert (failure.kind, failure.reason) == (kind, reason)
