@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { listRuns, listTestVersions, markTestReady, readSwarm, readTest } from '@/api'
+import { listRuns, listTestVersions, markTestReady, readSwarm, readTest, startRuns } from '@/api'
 import EditTestDialog from '@/components/EditTestDialog'
 import RunControls from '@/components/RunControls'
 import OutcomeSummary from '@/components/OutcomeSummary'
@@ -195,7 +195,7 @@ export default function TestPage() {
         <h2 className="text-base font-semibold">Runs</h2>
         {test.status === 'ready' && latestVersion?.id === test.id && (
           <RunControls
-            testId={test.id}
+            startRuns={(agentVersions, runsPerVersion) => startRuns(test.id, agentVersions, runsPerVersion)}
             onStarted={() => {
               const startedAt = Date.now()
               setLastStartedAt(startedAt)

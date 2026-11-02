@@ -21,7 +21,10 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { 'Content-Type': 'application/json' },
   })
   if (!response.ok) {
-    throw new Error(`${init?.method ?? 'GET'} ${path} failed with ${response.status}`)
+    // FastAPI explains refusals (e.g. a full queue) in detail; show that when there is one.
+    const body = await response.json().catch(() => null)
+    const detail = typeof body?.detail === 'string' ? body.detail : null
+    throw new Error(detail ?? `${init?.method ?? 'GET'} ${path} failed with ${response.status}`)
   }
   return response.json()
 }
@@ -111,4 +114,19 @@ export function listSwarms(): Promise<SwarmRow[]> {
 
 export function readSwarm(swarmId: string): Promise<SwarmDetail> {
   return requestJson(`/api/swarms/${swarmId}`)
+}
+
+export function startSwarmRuns(swarmId: string, agentVersions: string[], runsPerTest: number): Promise<{ queued: number }> {
+  return requestJson(`/api/swarms/${swarmId}/runs`, {
+    method: 'POST',
+    body: JSON.stringify({ agent_versions: agentVersions, runs_per_version: runsPerTest }),
+  })
+}
+
+export function listRunsOfSwarm(swarmId: string): Promise<RunRow[]> {
+  return requestJson(`/api/swarms/${swarmId}/runs`)
+}
+
+export function cancelSwarmRuns(swarmId: string): Promise<null> {
+  return requestJson(`/api/swarms/${swarmId}/cancel`, { method: 'POST' })
 }
