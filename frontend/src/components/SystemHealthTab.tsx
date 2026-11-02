@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 
+import RunHealthOverTimeChart from '@/components/RunHealthOverTimeChart'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { durationSeconds, judgeOfRun, median, resultsUrl } from '@/dashboard'
 import { EXECUTION_FAILURE_KIND_LABEL, formatRunDuration, isAwaitingGrade } from '@/runs'
@@ -58,6 +59,7 @@ export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: nu
           />
           <Count label="Not Graded" value={ungradedRuns.length} />
         </div>
+        <RunHealthOverTimeChart runs={runs} now={now} />
       </div>
 
       <div className="space-y-2">

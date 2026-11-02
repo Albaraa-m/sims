@@ -1,5 +1,6 @@
 import { Link } from 'react-router'
 
+import PassRateChart from '@/components/PassRateChart'
 import FailuresTable from '@/components/FailuresTable'
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
@@ -35,6 +36,7 @@ export default function AgentQualityTab({ runs, judge }: { runs: RunRow[]; judge
     <>
       <div className="space-y-2">
         <h2 className="text-base font-semibold">Version comparison</h2>
+        <PassRateChart runs={judgedRuns} agentVersions={agentVersions} />
         <Table>
           <TableHeader>
             <TableRow>
