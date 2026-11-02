@@ -78,6 +78,7 @@ def edit_test(test_id: str, name: str | None = None, **changes) -> Test:
             # Editing an older version still yields a new, unique latest version.
             version=latest_version(current.lineage_id) + 1,
             source_conversation_id=current.source_conversation_id,
+            swarm_id=current.swarm_id,
             spec=spec.model_dump(),
             inferred=current.inferred,
         )
