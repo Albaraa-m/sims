@@ -98,6 +98,8 @@ A fixed line under each comparison: *"Covers only this test's policy, over n run
 
 Code rules on tool calls, human override, several judge votes, LiveKit `JudgeGroup` export.
 
+Other mistakes in a graded call: the judge grades only the test's policy, so a call can pass while breaking another rule (evaluator benchmark case 10: confirmed properly, then said "confirmed" after the booking failed). Fix: an optional "other concerns" note on the verdict, shown on the run page without changing the outcome.
+
 ## Your steps
 
 None. The judge uses LiveKit Inference.
