@@ -5,10 +5,8 @@ import time
 from livekit import api
 
 from agents.dispatch import BOOKING_AGENT, CALLER_AGENT
-from core.config import now
-from simulations.crud import create_simulation, update_simulation
 from simulations.evidence import wait_for_evidence
-from simulations.models import Simulation, SimulationStatus
+from simulations.models import Simulation
 
 CALL_TIMEOUT_SECONDS = 180
 EVIDENCE_WAIT_SECONDS = 20
@@ -37,27 +35,6 @@ async def run_call_attempt(simulation: Simulation, caller_scenario: str | None) 
         raise AttemptHungError(
             f"attempt hung past {ATTEMPT_DEADLINE_SECONDS}s and was stopped"
         ) from error
-
-
-async def run_simulation(
-    agent_version: str,
-    test_id: str | None = None,
-    caller_scenario: str | None = None,
-) -> Simulation:
-    simulation = create_simulation(agent_version, test_id)
-    try:
-        evidence = await run_call_attempt(simulation, caller_scenario)
-    # Any error must end the simulation as failed, never leave it stuck as running.
-    except Exception as error:  # noqa: BLE001
-        return update_simulation(
-            simulation.id,
-            status=SimulationStatus.FAILED,
-            error=str(error) or type(error).__name__,
-            ended_at=now(),
-        )
-    return update_simulation(
-        simulation.id, status=SimulationStatus.DONE, ended_at=now(), **evidence
-    )
 
 
 async def run_call(simulation: Simulation, caller_scenario: str | None) -> None:

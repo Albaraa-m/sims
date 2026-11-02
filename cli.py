@@ -1,7 +1,9 @@
 import argparse
 import asyncio
 import json
+import os
 import signal
+import socket
 from contextlib import nullcontext, suppress
 from itertools import groupby
 from pathlib import Path
@@ -23,11 +25,12 @@ from regression_tests.crud import (
     mark_ready,
 )
 from regression_tests.models import Test
-from regression_tests.run import run_test_against_agent_version
+from regression_tests.run import queue_test_runs
 from simulations.crud import get_simulation, list_simulations_of_test
-from simulations.models import Simulation
-from simulations.runner import run_simulation
+from simulations.models import Simulation, SimulationStatus
+from simulations.queue import MAX_CONCURRENT_CALLS, RunRequest, admit_runs
 from simulations.transcript import SPEAKERS, chat_items, message_text, spoken_lines
+from simulations.worker import run_worker
 
 
 def print_evaluation(evaluation: Evaluation | None) -> None:
@@ -78,15 +81,65 @@ def print_test(test: Test) -> None:
         print(f"{version}: {len(runs)} simulations ({statuses})")
 
 
-async def run_test_against_agent_versions(
-    test_id: str, agent_versions: list[str], runs: int
+def worker_id_of_this_process() -> str:
+    return f"{socket.gethostname()}-{os.getpid()}"
+
+
+def is_settled(simulation: Simulation) -> bool:
+    """Finished for good: given up, cancelled, or done and graded on its last attempt."""
+    if simulation.status in (SimulationStatus.FAILED, SimulationStatus.CANCELLED):
+        return True
+    evaluation = latest_evaluation_of_simulation(simulation.id)
+    return (
+        simulation.status == SimulationStatus.DONE
+        and evaluation is not None
+        and evaluation.attempt == simulation.attempt
+    )
+
+
+async def wait_for_runs_to_settle(
+    simulation_ids: list[str], with_worker: bool
 ) -> list[Simulation]:
-    simulations = []
-    for agent_version in agent_versions:
-        simulations += await run_test_against_agent_version(
-            test_id, agent_version, runs
-        )
+    """Prints each run's progress; with_worker also runs a worker in this process."""
+    stop = asyncio.Event()
+    worker = (
+        asyncio.create_task(run_worker(worker_id_of_this_process(), stop=stop))
+        if with_worker
+        else None
+    )
+    if worker is None:
+        print("waiting for a worker: run `sims worker` in another terminal")
+    last_seen: dict[str, tuple] = {}
+    while True:
+        simulations = [
+            get_simulation(simulation_id) for simulation_id in simulation_ids
+        ]
+        for simulation in simulations:
+            state = (simulation.status, simulation.attempt)
+            if last_seen.get(simulation.id) != state:
+                last_seen[simulation.id] = state
+                print(
+                    f"{simulation.agent_version}  simulation {simulation.id}  "
+                    f"attempt {simulation.attempt}  {simulation.status}"
+                )
+        if all(is_settled(simulation) for simulation in simulations):
+            break
+        await asyncio.sleep(2)
+    if worker:
+        stop.set()
+        await worker
     return simulations
+
+
+def print_run_results(simulations: list[Simulation]) -> None:
+    for simulation in simulations:
+        evaluation = latest_evaluation_of_simulation(simulation.id)
+        outcome = evaluation.outcome if evaluation else "-"
+        error = f"  ({simulation.error})" if simulation.error else ""
+        print(
+            f"{simulation.agent_version}  simulation {simulation.id} "
+            f"{simulation.status}  {outcome}{error}"
+        )
 
 
 def main() -> None:
@@ -98,7 +151,28 @@ def main() -> None:
     run.add_argument(
         "--start-agents",
         action="store_true",
-        help="Start the agent servers for this call and stop them afterwards.",
+        help="Start the agent servers and a worker for this call, then stop them.",
+    )
+
+    worker = commands.add_parser(
+        "worker", help="Place and grade queued calls until stopped."
+    )
+    worker.add_argument(
+        "--max-calls",
+        type=int,
+        default=MAX_CONCURRENT_CALLS,
+        help="Calls this worker places at once.",
+    )
+    worker.add_argument(
+        "--fail-rate",
+        type=float,
+        default=0.0,
+        help="Fail this share of attempts before placing the call, to test retries.",
+    )
+    worker.add_argument(
+        "--start-agents",
+        action="store_true",
+        help="Also run the agent servers in this process.",
     )
 
     commands.add_parser("agents", help="Run both agent servers until stopped.")
@@ -154,17 +228,37 @@ def main() -> None:
     run_test.add_argument(
         "--start-agents",
         action="store_true",
-        help="Start the agent servers for this run and stop them afterwards.",
+        help="Start the agent servers and a worker for these runs, then stop them.",
     )
 
     args = parser.parse_args()
     create_tables()
     match args.command:
         case "run":
+            simulations = admit_runs([RunRequest(args.version)])
             with running_agent_servers() if args.start_agents else nullcontext():
-                simulation = asyncio.run(run_simulation(args.version))
-            print(f"simulation {simulation.id} {simulation.status}", end="")
-            print(f": {simulation.error}" if simulation.error else "")
+                simulations = asyncio.run(
+                    wait_for_runs_to_settle(
+                        [s.id for s in simulations], with_worker=args.start_agents
+                    )
+                )
+            print_run_results(simulations)
+        case "worker":
+            # Treat a terminate like Ctrl-C, so the worker stops its calls either way.
+            signal.signal(signal.SIGTERM, signal.default_int_handler)
+            with running_agent_servers() if args.start_agents else nullcontext():
+                print(
+                    f"worker {worker_id_of_this_process()} placing up to "
+                    f"{args.max_calls} calls; Ctrl-C to stop"
+                )
+                with suppress(KeyboardInterrupt):
+                    asyncio.run(
+                        run_worker(
+                            worker_id_of_this_process(),
+                            args.max_calls,
+                            args.fail_rate,
+                        )
+                    )
         case "agents":
             # Treat a terminate like Ctrl-C, so the agent servers are stopped either way.
             signal.signal(signal.SIGTERM, signal.default_int_handler)
@@ -202,18 +296,14 @@ def main() -> None:
         case "mark-ready":
             print(f"test {mark_ready(args.test_id).id} is ready")
         case "run-test":
+            simulations = queue_test_runs(args.test_id, args.versions, args.runs)
             with running_agent_servers() if args.start_agents else nullcontext():
                 simulations = asyncio.run(
-                    run_test_against_agent_versions(
-                        args.test_id, args.versions, args.runs
+                    wait_for_runs_to_settle(
+                        [s.id for s in simulations], with_worker=args.start_agents
                     )
                 )
-            for simulation in simulations:
-                evaluation = latest_evaluation_of_simulation(simulation.id)
-                outcome = evaluation.outcome if evaluation else "not evaluated"
-                print(
-                    f"{simulation.agent_version}  simulation {simulation.id} {simulation.status}  {outcome}"
-                )
+            print_run_results(simulations)
 
 
 if __name__ == "__main__":
