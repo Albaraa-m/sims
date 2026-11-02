@@ -10,12 +10,15 @@ REPORT_FILE = "report.json"
 RECORDING_FILE = "audio.ogg"
 
 
-def evidence_dir(simulation_id: str) -> Path:
-    return EVIDENCE_DIR / simulation_id
+def evidence_dir(simulation_id: str, attempt: int) -> Path:
+    # One folder per attempt: a dead attempt's agent writing late can't overwrite a retry.
+    return EVIDENCE_DIR / simulation_id / str(attempt)
 
 
-def write_evidence(simulation_id: str, report: dict, recording: Path | None) -> None:
-    directory = evidence_dir(simulation_id)
+def write_evidence(
+    simulation_id: str, attempt: int, report: dict, recording: Path | None
+) -> None:
+    directory = evidence_dir(simulation_id, attempt)
     directory.mkdir(parents=True, exist_ok=True)
     if recording and recording.exists():
         shutil.copy(recording, directory / RECORDING_FILE)
@@ -23,8 +26,8 @@ def write_evidence(simulation_id: str, report: dict, recording: Path | None) -> 
     (directory / REPORT_FILE).write_text(json.dumps(report))
 
 
-async def wait_for_evidence(simulation_id: str, timeout: float) -> dict:
-    directory = evidence_dir(simulation_id)
+async def wait_for_evidence(simulation_id: str, attempt: int, timeout: float) -> dict:
+    directory = evidence_dir(simulation_id, attempt)
     report_file = directory / REPORT_FILE
     deadline = time.monotonic() + timeout
     while not report_file.exists():

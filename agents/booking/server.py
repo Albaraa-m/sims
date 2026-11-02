@@ -18,12 +18,18 @@ server = AgentServer()
 
 
 async def save_evidence(ctx: JobContext) -> None:
-    simulation_id = json.loads(ctx.job.metadata or "{}").get("simulation_id")
+    settings = json.loads(ctx.job.metadata or "{}")
+    simulation_id = settings.get("simulation_id")
     if not simulation_id:
         return
 
     report = ctx.make_session_report()
-    write_evidence(simulation_id, report.to_dict(), report.audio_recording_path)
+    write_evidence(
+        simulation_id,
+        settings.get("attempt", 1),
+        report.to_dict(),
+        report.audio_recording_path,
+    )
 
 
 @server.rtc_session(agent_name=BOOKING_AGENT, on_session_end=save_evidence)

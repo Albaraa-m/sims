@@ -1,3 +1,5 @@
+import asyncio
+
 from core.db import save
 from evaluations.execution import find_execution_failure
 from evaluations.judge import (
@@ -11,6 +13,8 @@ from regression_tests.crud import get_test
 from regression_tests.models import TestSpec
 from simulations.conversation import conversation_of_simulation
 from simulations.crud import get_simulation
+
+JUDGE_TIMEOUT_SECONDS = 90
 
 
 async def evaluate_simulation(simulation_id: str) -> Evaluation:
@@ -39,7 +43,10 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
     spec = TestSpec.model_validate(get_test(simulation.test_id).spec)
     conversation = conversation_of_simulation(simulation)
     try:
-        reply = await ask_judge_for_verdict(spec, conversation)
+        # A judge that never answers must not hold up the run.
+        reply = await asyncio.wait_for(
+            ask_judge_for_verdict(spec, conversation), JUDGE_TIMEOUT_SECONDS
+        )
     # A failed judge must never pass a run; anything it raises becomes inconclusive.
     except Exception as error:  # noqa: BLE001
         return save(
