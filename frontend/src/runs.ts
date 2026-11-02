@@ -27,12 +27,18 @@ export const TEST_STATUS_LABEL = {
   ready: 'Ready',
 } as const satisfies Record<TestStatus, string>
 
+export const TEST_STATUS_BADGE_VARIANT = {
+  draft: 'neutral',
+  ready: 'success',
+} as const satisfies Record<TestStatus, string>
+
 export const RUN_STATUS_BADGE_VARIANT = {
-  queued: 'outline',
-  running: 'outline',
-  done: 'secondary',
-  failed: 'destructive',
-  cancelled: 'secondary',
+  queued: 'neutral',
+  running: 'info',
+  done: 'outline',
+  // Orange, not red: the system couldn't place the call; red is kept for the agent failing.
+  failed: 'serious',
+  cancelled: 'neutral',
 } as const satisfies Record<RunStatus, string>
 
 function formatSeconds(seconds: number): string {
@@ -63,10 +69,10 @@ export const OUTCOME_LABEL = {
 } as const satisfies Record<Outcome, string>
 
 export const OUTCOME_BADGE_VARIANT = {
-  pass: 'default',
+  pass: 'success',
   fail: 'destructive',
-  inconclusive: 'outline',
-  execution_failed: 'secondary',
+  inconclusive: 'warning',
+  execution_failed: 'serious',
 } as const satisfies Record<Outcome, string>
 
 export const EXECUTION_FAILURE_KIND_LABEL = {

@@ -6,7 +6,7 @@ import RunControls from '@/components/RunControls'
 import SwarmProgress from '@/components/SwarmProgress'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { isActive, startedAtFormat, TEST_STATUS_LABEL } from '@/runs'
+import { isActive, startedAtFormat, TEST_STATUS_BADGE_VARIANT, TEST_STATUS_LABEL } from '@/runs'
 import type { RunRow, SwarmDetail } from '@/types'
 
 const POLL_INTERVAL_MS = 3000
@@ -88,7 +88,7 @@ export default function SwarmPage() {
           >
             <div className="flex items-center gap-2">
               <span className="font-medium">{test.name}</span>
-              <Badge variant={test.status === 'ready' ? 'default' : 'secondary'}>
+              <Badge variant={TEST_STATUS_BADGE_VARIANT[test.status]}>
                 {TEST_STATUS_LABEL[test.status]}
               </Badge>
               {test.version > 1 && <span className="text-muted-foreground">v{test.version}</span>}
