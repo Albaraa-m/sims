@@ -104,6 +104,16 @@ export type Scenario = {
   spec: TestSpec
 }
 
+export type FoundPolicies = {
+  agent_version: string
+  policies: string[]
+}
+
+export type PolicyTestCount = {
+  policy: string
+  count: number
+}
+
 export type SwarmProposal = {
   agent_version: string
   policies: string[]

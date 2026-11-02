@@ -1,7 +1,9 @@
 import type {
   CreateTestRequest,
   EvaluationDetail,
+  FoundPolicies,
   InferredTest,
+  PolicyTestCount,
   RunDetail,
   RunRow,
   SaveSwarmRequest,
@@ -85,10 +87,17 @@ export function listRunsOfAllTests(filters: RunFilters): Promise<RunRow[]> {
   return requestJson(`/api/runs?${new URLSearchParams(definedFilters)}`)
 }
 
-export function generateSwarm(agentVersion: string, testCount: number): Promise<SwarmProposal> {
+export function findPolicies(agentVersion: string): Promise<FoundPolicies> {
+  return requestJson('/api/swarms/policies', {
+    method: 'POST',
+    body: JSON.stringify({ agent_version: agentVersion }),
+  })
+}
+
+export function generateSwarm(agentVersion: string, testCounts: PolicyTestCount[]): Promise<SwarmProposal> {
   return requestJson('/api/swarms/generate', {
     method: 'POST',
-    body: JSON.stringify({ agent_version: agentVersion, test_count: testCount }),
+    body: JSON.stringify({ agent_version: agentVersion, test_counts: testCounts }),
   })
 }
 

@@ -51,7 +51,8 @@ function ReviewSwarm({ proposal }: { proposal: SwarmProposal }) {
       const swarm = await saveSwarm({
         name: name.trim(),
         agent_version: proposal.agent_version,
-        policies: proposal.policies,
+        // A policy whose tests were all removed isn't part of the swarm.
+        policies: groups.filter(({ items }) => items.length > 0).map(({ policy }) => policy),
         scenarios: scenarios.map(({ fields }) => ({ name: fields.name.trim(), spec: specFromFields(fields) })),
       })
       navigate(`/swarms/${swarm.id}`, { replace: true })
@@ -95,7 +96,7 @@ function ReviewSwarm({ proposal }: { proposal: SwarmProposal }) {
       {proposal.warnings.map((warning) => (
         <Alert key={warning}>
           <AlertTriangleIcon />
-          <AlertTitle>Coverage</AlertTitle>
+          <AlertTitle>Generation</AlertTitle>
           <AlertDescription>{warning}</AlertDescription>
         </Alert>
       ))}
@@ -112,7 +113,9 @@ function ReviewSwarm({ proposal }: { proposal: SwarmProposal }) {
               · {items.length} {items.length === 1 ? 'test' : 'tests'}
             </span>
           </h2>
-          {items.length === 0 && <p className="text-sm text-muted-foreground">Not covered by any test.</p>}
+          {items.length === 0 && (
+            <p className="text-sm text-muted-foreground">No tests left, so this policy won't be saved.</p>
+          )}
           {items.map((scenario) => (
             <div key={scenario.key} className="space-y-3 rounded-lg border p-3 text-sm">
               <div className="flex items-start gap-3">
