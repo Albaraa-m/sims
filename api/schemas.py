@@ -93,6 +93,7 @@ class EvaluationDetail(BaseModel):
     situation_happened: bool | None
     cited_turns: list[int]
     reason: str
+    reasoning: str | None
     judge_model: str | None
     judge_prompt_version: str | None
     error: str | None

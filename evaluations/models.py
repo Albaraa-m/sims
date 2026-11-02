@@ -27,6 +27,8 @@ class Evaluation(SQLModel, table=True):
     situation_happened: bool | None = None
     cited_turns: list[int] = Field(default_factory=list, sa_column=Column(JSON))
     reason: str
+    # The judge's step-by-step working behind reason; None when no judge was asked.
+    reasoning: str | None = None
     judge_model: str | None = None
     judge_prompt_version: str | None = None
     error: str | None = None

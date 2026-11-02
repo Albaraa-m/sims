@@ -86,6 +86,8 @@ export type EvaluationDetail = {
   situation_happened: boolean | null
   cited_turns: number[]
   reason: string
+  // The judge's step-by-step working behind reason; null when no judge was asked.
+  reasoning: string | null
   judge_model: string | null
   judge_prompt_version: string | null
   error: string | null

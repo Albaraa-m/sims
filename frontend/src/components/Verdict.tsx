@@ -60,6 +60,12 @@ export default function Verdict({ run, now, onRegraded }: VerdictProps) {
       {latest && (
         <>
           <p>{latest.reason}</p>
+          {latest.reasoning && (
+            <details className="text-muted-foreground">
+              <summary className="cursor-pointer">How the judge worked it out</summary>
+              <p className="mt-2 whitespace-pre-wrap">{latest.reasoning}</p>
+            </details>
+          )}
           {latest.error && <p className="text-muted-foreground">Error: {latest.error}</p>}
           {latest.cited_turns.length > 0 && (
             <p className="flex flex-wrap items-center gap-2 text-muted-foreground">

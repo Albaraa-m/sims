@@ -14,11 +14,13 @@ JUDGE_MODEL = "openai/gpt-5.4"
 
 
 class JudgeReply(BaseModel):
-    # Reasoning comes first, so the verdict follows from it instead of preceding it.
-    reason: str
+    # The working comes first, so the verdict follows from it instead of preceding it.
+    reasoning: str
     situation_happened: bool
     verdict: Literal["pass", "fail", "inconclusive"]
     cited_turns: list[int]
+    # Written last, for the reviewer: the verdict's grounds in a sentence or two.
+    reason: str
 
 
 JUDGE_PROMPT = """\
@@ -41,12 +43,19 @@ outcome describes the kind of behavior; the policy decides what is correct.
 - fail: the agent broke the policy or applied it wrongly to this caller.
 - inconclusive: the turns don't show either way.
 
-Write your reasoning in reason before deciding: say what the policy requires for this
-caller, and work through any times, counts or limits step by step (e.g. minutes
-between the call and the booking). Then cite the turn numbers that prove your verdict
-in cited_turns: what the agent said or
-which tool it called, with its arguments and output. A pass or fail needs at least
-one cited turn. Base everything on the turns below, never on assumptions.
+Work it out in reasoning before deciding: say what the policy requires for this caller,
+and work through any times, counts or limits step by step (e.g. minutes between the
+call and the booking). Then cite the turn numbers that prove your verdict in
+cited_turns: what the agent said or which tool it called, with its arguments and
+output. A pass or fail needs at least one cited turn. Base everything on the turns
+below, never on assumptions.
+
+Last, write reason for a reviewer skimming results: one or two plain sentences, under
+40 words, saying what the agent did and why that passes or fails, with turn numbers in
+brackets. Start with the finding, not with "The policy applies because". For example:
+"Wrongly refused 22:30 on Saturday (turns 2, 4): closing is 23:30, so last seating is
+22:30." or "Read back name, time and party size and booked only after the yes (turns
+3-5)."
 
 Reply with JSON only, matching this schema:
 {schema}

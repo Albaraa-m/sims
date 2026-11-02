@@ -69,6 +69,7 @@ async def evaluate_simulation(simulation_id: str) -> Evaluation:
             situation_happened=reply.situation_happened,
             cited_turns=reply.cited_turns,
             reason=graded.reason,
+            reasoning=reply.reasoning,
             judge_model=JUDGE_MODEL,
             judge_prompt_version=JUDGE_PROMPT_VERSION,
         )

@@ -6,6 +6,7 @@ from evaluations.models import Outcome
 
 def reply(**changes) -> JudgeReply:
     fields = {
+        "reasoning": "worked through",
         "situation_happened": True,
         "verdict": "fail",
         "cited_turns": [2],
