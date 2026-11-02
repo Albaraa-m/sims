@@ -1,9 +1,7 @@
-import { AlertTriangleIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 
 import { findPolicies, generateSwarm } from '@/api'
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -14,12 +12,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { MAX_TESTS_PER_POLICY, MAX_TESTS_PER_SWARM, spreadTestsAcrossPolicies } from '@/swarms'
-
-const DEFAULT_MAXIMUM_TESTS = 12
+import type { Policy } from '@/types'
 
 type CreateSwarmDialogProps = {
   open: boolean
@@ -28,32 +23,20 @@ type CreateSwarmDialogProps = {
 
 export default function CreateSwarmDialog({ open, onOpenChange }: CreateSwarmDialogProps) {
   const [agentVersion, setAgentVersion] = useState('v2')
-  // Null until the policies are found; then the dialog shows them.
-  const [policies, setPolicies] = useState<string[] | null>(null)
-  const [untickedPolicies, setUntickedPolicies] = useState<string[]>([])
-  const [typedCounts, setTypedCounts] = useState<Record<string, number>>({})
-  const [maximumTests, setMaximumTests] = useState(DEFAULT_MAXIMUM_TESTS)
+  // Null until the policies are found; then the dialog lists them.
+  const [policies, setPolicies] = useState<Policy[] | null>(null)
+  const [untickedNames, setUntickedNames] = useState<string[]>([])
   const [isFinding, setIsFinding] = useState(false)
   const [isGenerating, setIsGenerating] = useState(false)
   const [requestError, setRequestError] = useState<string | null>(null)
   const navigate = useNavigate()
 
-  const tickedPolicies = (policies ?? []).filter((policy) => !untickedPolicies.includes(policy))
-  const tickedTypedCounts = Object.fromEntries(
-    Object.entries(typedCounts).filter(([policy]) => tickedPolicies.includes(policy)),
-  )
-  const counts = spreadTestsAcrossPolicies(maximumTests, tickedPolicies, tickedTypedCounts)
-  const totalTests = Object.values(counts).reduce((sum, count) => sum + count, 0)
-  const minimumTests = tickedPolicies.reduce((sum, policy) => sum + (tickedTypedCounts[policy] ?? 1), 0)
-  const isOverMaximum = totalTests > maximumTests
-  const canGenerate =
-    tickedPolicies.length > 0 && !isOverMaximum && maximumTests <= MAX_TESTS_PER_SWARM && !isGenerating
+  const tickedPolicies = (policies ?? []).filter((policy) => !untickedNames.includes(policy.name))
 
   function close() {
     onOpenChange(false)
     setPolicies(null)
-    setUntickedPolicies([])
-    setTypedCounts({})
+    setUntickedNames([])
     setRequestError(null)
   }
 
@@ -73,8 +56,7 @@ export default function CreateSwarmDialog({ open, onOpenChange }: CreateSwarmDia
     setIsGenerating(true)
     setRequestError(null)
     try {
-      const testCounts = tickedPolicies.map((policy) => ({ policy, count: counts[policy] }))
-      const proposal = await generateSwarm(agentVersion, testCounts)
+      const proposal = await generateSwarm(agentVersion, tickedPolicies)
       close()
       navigate('/swarms/new', { state: proposal })
     } catch (error) {
@@ -84,8 +66,8 @@ export default function CreateSwarmDialog({ open, onOpenChange }: CreateSwarmDia
     }
   }
 
-  function togglePolicy(policy: string, isTicked: boolean) {
-    setUntickedPolicies(isTicked ? untickedPolicies.filter((p) => p !== policy) : [...untickedPolicies, policy])
+  function togglePolicy(name: string, isTicked: boolean) {
+    setUntickedNames(isTicked ? untickedNames.filter((other) => other !== name) : [...untickedNames, name])
   }
 
   return (
@@ -95,8 +77,8 @@ export default function CreateSwarmDialog({ open, onOpenChange }: CreateSwarmDia
           <DialogTitle>Create swarm</DialogTitle>
           <DialogDescription>
             {policies === null
-              ? "Finds the policies in the agent's instructions; you then choose which to test and how many tests each gets."
-              : `Policies found in ${agentVersion}'s instructions. Every ticked policy gets at least one test.`}
+              ? "Finds the policies in the agent's instructions; each policy you keep gets one test."
+              : `Policies found in ${agentVersion}'s instructions. Each ticked policy gets one test.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -114,80 +96,33 @@ export default function CreateSwarmDialog({ open, onOpenChange }: CreateSwarmDia
             </Select>
           </div>
         ) : (
-          <div className="grid gap-4">
-            <div className="flex items-center gap-3">
-              <Label htmlFor="swarm-maximum-tests">Maximum tests</Label>
-              <Input
-                id="swarm-maximum-tests"
-                type="number"
-                min={1}
-                max={MAX_TESTS_PER_SWARM}
-                value={maximumTests}
-                onChange={(event) => setMaximumTests(event.target.valueAsNumber || 0)}
-                className="w-20"
-              />
-              <span className="ml-auto text-sm text-muted-foreground">
-                Tests: {totalTests} of {maximumTests}
-              </span>
-            </div>
-
-            {isOverMaximum && (
-              <Alert>
-                <AlertTriangleIcon />
-                <AlertDescription>
-                  <p>
-                    {tickedPolicies.length} ticked policies need at least {minimumTests} tests. Raise the maximum or
-                    untick policies.
-                  </p>
-                  {minimumTests <= MAX_TESTS_PER_SWARM && (
-                    <Button size="sm" variant="outline" className="mt-2" onClick={() => setMaximumTests(minimumTests)}>
-                      Raise maximum to {minimumTests}
-                    </Button>
-                  )}
-                </AlertDescription>
-              </Alert>
-            )}
-            {maximumTests > MAX_TESTS_PER_SWARM && (
-              <p className="text-sm text-destructive">A swarm can have at most {MAX_TESTS_PER_SWARM} tests.</p>
-            )}
-
-            <ul className="divide-y rounded-lg border text-sm">
-              {policies.map((policy) => {
-                const isTicked = tickedPolicies.includes(policy)
-                return (
-                  <li key={policy} className="flex items-center gap-3 px-3 py-2">
+          <ul className="divide-y rounded-lg border text-sm">
+            {policies.map((policy) => {
+              const isTicked = !untickedNames.includes(policy.name)
+              return (
+                <li key={policy.name}>
+                  <Label className="flex items-start gap-3 px-3 py-2 font-normal">
                     <Checkbox
                       checked={isTicked}
-                      onCheckedChange={(checked) => togglePolicy(policy, checked === true)}
-                      aria-label={`Test: ${policy}`}
+                      onCheckedChange={(checked) => togglePolicy(policy.name, checked === true)}
+                      className="mt-0.5"
                     />
-                    <span className={`flex-1 ${isTicked ? '' : 'text-muted-foreground line-through'}`}>{policy}</span>
-                    {isTicked && (
-                      <Input
-                        type="number"
-                        min={1}
-                        max={MAX_TESTS_PER_POLICY}
-                        value={counts[policy]}
-                        onChange={(event) => {
-                          const count = Math.min(MAX_TESTS_PER_POLICY, Math.max(1, event.target.valueAsNumber || 1))
-                          setTypedCounts({ ...typedCounts, [policy]: count })
-                        }}
-                        aria-label={`Tests for: ${policy}`}
-                        className="w-16"
-                      />
-                    )}
-                  </li>
-                )
-              })}
-            </ul>
-          </div>
+                    <span className={`space-y-0.5 ${isTicked ? '' : 'opacity-50'}`}>
+                      <span className="block font-medium">{policy.name}</span>
+                      <span className="block text-muted-foreground">{policy.rule}</span>
+                    </span>
+                  </Label>
+                </li>
+              )
+            })}
+          </ul>
         )}
 
         {(isFinding || isGenerating) && (
           <p className="text-sm text-muted-foreground">
             {isFinding
               ? `Reading ${agentVersion}'s instructions…`
-              : `Writing ${totalTests} tests for ${tickedPolicies.length} policies… this takes about half a minute.`}
+              : `Writing ${tickedPolicies.length} tests… this takes about half a minute.`}
           </p>
         )}
         {requestError && <p className="text-sm text-destructive">{requestError}</p>}
@@ -207,8 +142,8 @@ export default function CreateSwarmDialog({ open, onOpenChange }: CreateSwarmDia
               <Button variant="outline" onClick={() => setPolicies(null)} disabled={isGenerating}>
                 Back
               </Button>
-              <Button onClick={generateTests} disabled={!canGenerate}>
-                {isGenerating ? 'Generating…' : `Generate ${totalTests} tests`}
+              <Button onClick={generateTests} disabled={tickedPolicies.length === 0 || isGenerating}>
+                {isGenerating ? 'Generating…' : `Generate ${tickedPolicies.length} tests`}
               </Button>
             </>
           )}

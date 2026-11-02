@@ -104,21 +104,21 @@ export type Scenario = {
   spec: TestSpec
 }
 
-export type FoundPolicies = {
-  agent_version: string
-  policies: string[]
+// A rule found in the agent's instructions; each becomes one test, named by name.
+export type Policy = {
+  name: string
+  rule: string
 }
 
-export type PolicyTestCount = {
-  policy: string
-  count: number
+export type FoundPolicies = {
+  agent_version: string
+  policies: Policy[]
 }
 
 export type SwarmProposal = {
   agent_version: string
   policies: string[]
   scenarios: Scenario[]
-  warnings: string[]
 }
 
 export type SaveSwarmRequest = {

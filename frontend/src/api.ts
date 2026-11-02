@@ -3,7 +3,7 @@ import type {
   EvaluationDetail,
   FoundPolicies,
   InferredTest,
-  PolicyTestCount,
+  Policy,
   RunDetail,
   RunRow,
   SaveSwarmRequest,
@@ -94,10 +94,10 @@ export function findPolicies(agentVersion: string): Promise<FoundPolicies> {
   })
 }
 
-export function generateSwarm(agentVersion: string, testCounts: PolicyTestCount[]): Promise<SwarmProposal> {
+export function generateSwarm(agentVersion: string, policies: Policy[]): Promise<SwarmProposal> {
   return requestJson('/api/swarms/generate', {
     method: 'POST',
-    body: JSON.stringify({ agent_version: agentVersion, test_counts: testCounts }),
+    body: JSON.stringify({ agent_version: agentVersion, policies }),
   })
 }
 

@@ -1,14 +1,11 @@
-import { AlertTriangleIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
 import { saveSwarm } from '@/api'
 import TestFieldsEditor from '@/components/TestFieldsEditor'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { groupByPolicy } from '@/swarms'
 import { areFieldsComplete, fieldsFromSpec, specFromFields, type TestFields } from '@/testFields'
 import type { SwarmProposal } from '@/types'
 
@@ -51,8 +48,8 @@ function ReviewSwarm({ proposal }: { proposal: SwarmProposal }) {
       const swarm = await saveSwarm({
         name: name.trim(),
         agent_version: proposal.agent_version,
-        // A policy whose tests were all removed isn't part of the swarm.
-        policies: groups.filter(({ items }) => items.length > 0).map(({ policy }) => policy),
+        // A removed test's policy isn't part of the swarm.
+        policies: [...new Set(scenarios.map(({ fields }) => fields.policy_under_test.trim()))],
         scenarios: scenarios.map(({ fields }) => ({ name: fields.name.trim(), spec: specFromFields(fields) })),
       })
       navigate(`/swarms/${swarm.id}`, { replace: true })
@@ -62,7 +59,6 @@ function ReviewSwarm({ proposal }: { proposal: SwarmProposal }) {
     }
   }
 
-  const groups = groupByPolicy(proposal.policies, scenarios, (scenario) => scenario.fields.policy_under_test)
   return (
     <section className="space-y-6">
       <div className="space-y-2">
@@ -93,65 +89,52 @@ function ReviewSwarm({ proposal }: { proposal: SwarmProposal }) {
         <Input id="swarm-name" value={name} onChange={(event) => setName(event.target.value)} />
       </div>
 
-      {proposal.warnings.map((warning) => (
-        <Alert key={warning}>
-          <AlertTriangleIcon />
-          <AlertTitle>Generation</AlertTitle>
-          <AlertDescription>{warning}</AlertDescription>
-        </Alert>
-      ))}
       {incompleteCount > 0 && (
         <p className="text-sm text-destructive">Fill in every field of {incompleteCount} test(s) before saving.</p>
       )}
       {saveError && <p className="text-sm text-destructive">{saveError}</p>}
 
-      {groups.map(({ policy, items }) => (
-        <div key={policy} className="space-y-2">
-          <h2 className="text-base font-semibold">
-            {policy}{' '}
-            <span className="font-normal text-muted-foreground">
-              · {items.length} {items.length === 1 ? 'test' : 'tests'}
-            </span>
-          </h2>
-          {items.length === 0 && (
-            <p className="text-sm text-muted-foreground">No tests left, so this policy won't be saved.</p>
-          )}
-          {items.map((scenario) => (
-            <div key={scenario.key} className="space-y-3 rounded-lg border p-3 text-sm">
-              <div className="flex items-start gap-3">
-                <div className="flex-1 space-y-1">
-                  <p className="font-medium">{scenario.fields.name || 'Untitled'}</p>
-                  <p className="text-muted-foreground">{scenario.fields.behavior}</p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setEditingKey(editingKey === scenario.key ? null : scenario.key)}
-                >
-                  {editingKey === scenario.key ? 'Done' : 'Edit'}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setScenarios(scenarios.filter((other) => other.key !== scenario.key))}
-                >
-                  Remove
-                </Button>
+      <div className="space-y-2">
+        {scenarios.map((scenario) => (
+          <div key={scenario.key} className="space-y-3 rounded-lg border p-3 text-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex-1 space-y-1">
+                <p className="font-medium">{scenario.fields.name || 'Untitled'}</p>
+                <p className="text-muted-foreground">
+                  <span className="text-foreground">Policy:</span> {scenario.fields.policy_under_test}
+                </p>
+                <p className="text-muted-foreground">
+                  <span className="text-foreground">Caller:</span> {scenario.fields.behavior}
+                </p>
               </div>
-              {editingKey === scenario.key && (
-                <div className="grid gap-4 border-t pt-3">
-                  <TestFieldsEditor
-                    fields={scenario.fields}
-                    onChange={(fields) => updateScenario(scenario.key, fields)}
-                    aiFields={scenario.generated}
-                    aiLabel="Generated"
-                  />
-                </div>
-              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditingKey(editingKey === scenario.key ? null : scenario.key)}
+              >
+                {editingKey === scenario.key ? 'Done' : 'Edit'}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setScenarios(scenarios.filter((other) => other.key !== scenario.key))}
+              >
+                Remove
+              </Button>
             </div>
-          ))}
-        </div>
-      ))}
+            {editingKey === scenario.key && (
+              <div className="grid gap-4 border-t pt-3">
+                <TestFieldsEditor
+                  fields={scenario.fields}
+                  onChange={(fields) => updateScenario(scenario.key, fields)}
+                  aiFields={scenario.generated}
+                  aiLabel="Generated"
+                />
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </section>
   )
 }

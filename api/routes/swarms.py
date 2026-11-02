@@ -71,7 +71,8 @@ def read_swarm(swarm_id: str) -> SwarmDetail:
         swarm = get_swarm(swarm_id)
     except NoResultFound:
         raise HTTPException(status_code=404, detail=f"swarm {swarm_id} not found")
-    tests = list_latest_tests(swarm.id)
+    # Oldest first: the order the reviewer saw when saving.
+    tests = list_latest_tests(swarm.id)[::-1]
     return SwarmDetail(
         **build_swarm_row(swarm).model_dump(),
         policies=swarm.policies,
