@@ -6,7 +6,9 @@ from pydantic import BaseModel, Field
 from agents.booking.agent import INSTRUCTIONS_BY_VERSION, BookingAgent
 from agents.booking.store import default_store
 from core import llm
-from regression_tests.convert import CONVERSION_MODEL
+from regression_tests.convert import CALLER_LEAK_RULES, CONVERSION_MODEL
+from regression_tests.models import TestSpec
+from swarms.models import Scenario
 
 # Generation runs offline, like conversion, so it uses the same stronger model.
 GENERATION_MODEL = CONVERSION_MODEL
@@ -69,3 +71,101 @@ async def extract_policies_from_agent_instructions(
 
 def instructions_of_agent_version(agent_version: str) -> str:
     return INSTRUCTIONS_BY_VERSION[agent_version]
+
+
+class GeneratedScenario(BaseModel):
+    name: str
+    goal: str
+    facts: dict[str, str]
+    behavior: str
+    expected_outcome: str
+
+
+class GeneratedScenarios(BaseModel):
+    scenarios: list[GeneratedScenario]
+
+
+SCENARIO_GENERATION_PROMPT = """\
+You write test scenarios for a voice agent. A simulated caller acts out each one by
+voice; a judge then grades the agent against one policy.
+
+Write exactly {count} scenarios that test this policy:
+
+{policy}
+
+Each scenario is a different caller behavior that puts the policy to the test: e.g. a
+caller who gives everything at once, one who changes a detail midway, one who
+insists after a refusal, one who makes up details or asks for something that doesn't
+exist. Make them realistic for this agent, and different from each other{avoid}.
+
+{caller_leak_rules}
+Fields:
+- name: a few words naming the situation, e.g. "Says 6, then actually 11".
+- goal: what the caller wants, in one sentence.
+- facts: the concrete details the caller gives. Times as 24-hour HH:MM, party size as
+  a number, days relative ("today"). Include a caller name.
+- behavior: written to the caller as "you": speaking style, how they hand over
+  details, how they react, and when to end the call, tied to something any agent does
+  (says the table is booked, answers the question, refuses). Never reveal the policy.
+- expected_outcome: what a correct agent does, as behavior a listener would notice.
+  Shown only to the judge.
+
+Reply with JSON only, matching this schema:
+{schema}
+
+# Agent instructions
+
+{instructions}
+"""
+
+
+async def ask_model_for_scenarios(
+    policy: str, instructions: str, count: int, names_to_avoid: list[str]
+) -> list[GeneratedScenario]:
+    prompt = SCENARIO_GENERATION_PROMPT.format(
+        count=count,
+        policy=policy,
+        avoid=f", and from these: {', '.join(names_to_avoid)}"
+        if names_to_avoid
+        else "",
+        caller_leak_rules=CALLER_LEAK_RULES,
+        schema=json.dumps(GeneratedScenarios.model_json_schema()),
+        instructions=instructions,
+    )
+    try:
+        reply = await llm.generate_structured(
+            prompt, GeneratedScenarios, GENERATION_MODEL
+        )
+    except llm.InvalidReplyError as error:
+        raise GenerationError(f"model returned invalid scenarios: {error}")
+    return reply.scenarios
+
+
+def scenario_testing_policy(generated: GeneratedScenario, policy: str) -> Scenario:
+    """The policy is copied verbatim, so the swarm page can group scenarios by it."""
+    return Scenario(
+        name=generated.name,
+        spec=TestSpec(
+            goal=generated.goal,
+            facts=generated.facts,
+            behavior=generated.behavior,
+            policy_under_test=policy,
+            expected_outcome=generated.expected_outcome,
+        ),
+    )
+
+
+async def generate_scenarios_for_policy(
+    policy: str, instructions: str, count: int
+) -> list[Scenario]:
+    """Exactly count scenarios: extras are dropped, a short reply is topped up once."""
+    if count == 0:
+        return []
+    generated = (await ask_model_for_scenarios(policy, instructions, count, []))[:count]
+    if len(generated) < count:
+        missing = count - len(generated)
+        names = [scenario.name for scenario in generated]
+        generated += (
+            await ask_model_for_scenarios(policy, instructions, missing, names)
+        )[:missing]
+    return [scenario_testing_policy(scenario, policy) for scenario in generated]
