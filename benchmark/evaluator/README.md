@@ -4,13 +4,13 @@
 
 ## Criteria (set before measuring)
 
-| Metric | Measures | Target |
-|---|---|---|
-| False-pass rate | Calls graded pass that should not pass | 0 |
-| Accuracy | Verdicts that match the label | ≥ 90% |
-| Evidence hit rate | Verdicts citing at least one turn that proves them | ≥ 90% |
-| Consistency | Calls getting the same verdict in 3 gradings | ≥ 90% |
-| Fault handling | Broken calls never graded as agent behavior | 100% |
+| Metric | Measures |
+|---|---|
+| False-pass rate | Calls graded pass that should not pass |
+| Accuracy | Verdicts that match the label |
+| Evidence hit rate | Verdicts citing at least one turn that proves them |
+| Consistency | Calls getting the same verdict in 3 gradings |
+| Fault handling | Broken calls never graded as agent behavior |
 
 **Verdicts:** *pass* / *fail*: the agent followed or broke the policy. *Inconclusive*: the situation never came up, or the judge couldn't decide. *Execution failure*: the call itself broke.
 
