@@ -7,6 +7,7 @@ from evaluations.models import Evaluation, Outcome
 from regression_tests.crud import create_test_from_spec
 from simulations.crud import create_simulation, update_simulation
 from simulations.models import SimulationStatus
+from simulations.queue import RunRequest, admit_runs, claim_next_run, fail_attempt
 
 
 @pytest.fixture
@@ -97,6 +98,7 @@ def test_list_filters_by_agent_version_and_outcome(client, source_conversation, 
     test = create_test_from_spec(source_conversation, "Unconfirmed", spec)
     for agent_version, outcome in [("v1", Outcome.FAIL), ("v2", Outcome.PASS)]:
         simulation = create_simulation(agent_version, test.id)
+        update_simulation(simulation.id, status=SimulationStatus.DONE)
         save(Evaluation(simulation_id=simulation.id, outcome=outcome, reason="r"))
     create_simulation("v1")  # an ad-hoc run, outside any test
 
@@ -116,6 +118,7 @@ def test_list_carries_the_judge_and_the_execution_failure_kind(
 ):
     test = create_test_from_spec(source_conversation, "Unconfirmed", spec)
     judged = create_simulation("v1", test.id)
+    update_simulation(judged.id, status=SimulationStatus.DONE)
     save(
         Evaluation(
             simulation_id=judged.id,
@@ -135,3 +138,15 @@ def test_list_carries_the_judge_and_the_execution_failure_kind(
     assert rows[judged.id]["judge_model"] == "m"
     assert rows[judged.id]["execution_failure_kind"] is None
     assert rows[broken.id]["execution_failure_kind"] == "call_failed"
+
+
+def test_a_retried_run_shows_its_attempts_and_only_the_last_grade(client):
+    [simulation] = admit_runs([RunRequest("v1")])
+    claim_next_run("w")
+    fail_attempt(simulation.id, 1, "agent didn't join")
+    save(Evaluation(simulation_id=simulation.id, outcome=Outcome.PASS, reason="old"))
+
+    run = client.get(f"/api/runs/{simulation.id}").json()
+
+    assert (run["status"], run["attempt"]) == ("queued", 1)
+    assert [entry["status"] for entry in run["attempts"]] == ["failed"]

@@ -46,6 +46,17 @@ def mark_as_utc(time: datetime | None) -> datetime | None:
     return time and time.replace(tzinfo=UTC)
 
 
+class AttemptLogEntry(BaseModel):
+    attempt: int
+    # completed, failed or interrupted
+    status: str
+    reason: str | None
+    started_at: datetime | None
+    ended_at: datetime | None
+
+    _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
+
+
 class RunRow(BaseModel):
     id: str
     test_id: str
@@ -53,9 +64,14 @@ class RunRow(BaseModel):
     test_version: int
     agent_version: str
     status: SimulationStatus
+    # The current attempt, 0 while queued for the first time; past ones are in attempts.
+    attempt: int
+    attempts: list[AttemptLogEntry]
+    # started_at is when the run was requested; call_started_at, when its attempt began.
     started_at: datetime
+    call_started_at: datetime | None
     ended_at: datetime | None
-    # None until the run is graded.
+    # None until the latest attempt is done and graded.
     outcome: Outcome | None
     reason: str | None
     judge_model: str | None
@@ -63,7 +79,9 @@ class RunRow(BaseModel):
     # Set only for execution failures, so they can be grouped.
     execution_failure_kind: ExecutionFailureKind | None
 
-    _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
+    _mark_times_as_utc = field_validator("started_at", "call_started_at", "ended_at")(
+        mark_as_utc
+    )
 
 
 class EvaluationDetail(BaseModel):
@@ -101,7 +119,11 @@ class RunDetail(BaseModel):
     id: str
     agent_version: str
     status: SimulationStatus
+    attempt: int
+    max_attempts: int
+    attempts: list[AttemptLogEntry]
     started_at: datetime
+    call_started_at: datetime | None
     ended_at: datetime | None
     error: str | None
     # None for runs started outside a test, e.g. with `sims run`.
@@ -113,7 +135,9 @@ class RunDetail(BaseModel):
     # Newest first; the first one is the run's current outcome.
     evaluations: list[EvaluationDetail]
 
-    _mark_times_as_utc = field_validator("started_at", "ended_at")(mark_as_utc)
+    _mark_times_as_utc = field_validator("started_at", "call_started_at", "ended_at")(
+        mark_as_utc
+    )
 
 
 class FindPoliciesRequest(BaseModel):
