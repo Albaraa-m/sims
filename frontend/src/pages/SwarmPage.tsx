@@ -1,39 +1,68 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router'
+import { Link, useParams, useSearchParams } from 'react-router'
 
-import { cancelSwarmRuns, listRunsOfSwarm, readSwarm, startSwarmRuns } from '@/api'
+import { cancelSwarmRun, listRunsOfSwarmRun, listSwarmRuns, readSwarm, startSwarmRuns } from '@/api'
 import RunControls from '@/components/RunControls'
-import SwarmProgress from '@/components/SwarmProgress'
+import SwarmRunDetail from '@/components/SwarmRunDetail'
+import SwarmRunList from '@/components/SwarmRunList'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { isActive, startedAtFormat, TEST_STATUS_BADGE_VARIANT, TEST_STATUS_LABEL } from '@/runs'
-import type { RunRow, SwarmDetail } from '@/types'
+import { startedAtFormat, TEST_STATUS_BADGE_VARIANT, TEST_STATUS_LABEL } from '@/runs'
+import type { RunRow, SwarmDetail, SwarmRunSummary } from '@/types'
 
 const POLL_INTERVAL_MS = 3000
 
 export default function SwarmPage() {
   const { swarmId } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [swarm, setSwarm] = useState<SwarmDetail | null>(null)
+  const [summaries, setSummaries] = useState<SwarmRunSummary[]>([])
   const [runs, setRuns] = useState<RunRow[]>([])
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [isCancelling, setIsCancelling] = useState(false)
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+  const [loadedAt, setLoadedAt] = useState(0)
+
+  // The run shown below the list: the one in the URL, else the newest.
+  const selectedId = searchParams.get('run') ?? summaries[0]?.id ?? null
+  const selected = summaries.find((summary) => summary.id === selectedId) ?? null
 
   useEffect(() => {
     if (swarmId) readSwarm(swarmId).then(setSwarm, (error: Error) => setLoadError(error.message))
   }, [swarmId])
 
   const loadRuns = useCallback(() => {
-    if (swarmId) listRunsOfSwarm(swarmId).then(setRuns, (error: Error) => setLoadError(error.message))
-  }, [swarmId])
+    if (!swarmId) return
+    listSwarmRuns(swarmId).then(setSummaries, (error: Error) => setLoadError(error.message))
+    if (selectedId) {
+      listRunsOfSwarmRun(swarmId, selectedId).then(
+        (loadedRuns) => {
+          setRuns(loadedRuns)
+          setLoadedAt(Date.now())
+        },
+        (error: Error) => setLoadError(error.message),
+      )
+    }
+  }, [swarmId, selectedId])
 
   useEffect(loadRuns, [loadRuns])
 
-  const hasActiveRuns = runs.some(isActive)
+  const hasActiveRuns = summaries.some((summary) => summary.status === 'running' || summary.status === 'queued')
   useEffect(() => {
     if (!hasActiveRuns) return
     const interval = setInterval(loadRuns, POLL_INTERVAL_MS)
     return () => clearInterval(interval)
   }, [hasActiveRuns, loadRuns])
+
+  function selectRun(id: string) {
+    setSearchParams({ run: id }, { replace: true })
+  }
+
+  function cancelRun(id: string) {
+    if (!swarmId) return
+    setCancellingId(id)
+    cancelSwarmRun(swarmId, id)
+      .then(loadRuns, (error: Error) => setLoadError(error.message))
+      .finally(() => setCancellingId(null))
+  }
 
   if (loadError) return <p className="text-sm text-destructive">Couldn't load the swarm: {loadError}</p>
   if (!swarm) return null
@@ -52,33 +81,33 @@ export default function SwarmPage() {
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold">Runs</h2>
-          {hasActiveRuns && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="ml-auto"
-              disabled={isCancelling}
-              onClick={() => {
-                setIsCancelling(true)
-                cancelSwarmRuns(swarm.id)
-                  .then(loadRuns, (error: Error) => setLoadError(error.message))
-                  .finally(() => setIsCancelling(false))
-              }}
-            >
-              {isCancelling ? 'Cancelling…' : 'Cancel'}
-            </Button>
-          )}
+          <RunControls
+            startRuns={(agentVersions, runsPerTest) =>
+              startSwarmRuns(swarm.id, agentVersions, runsPerTest).then((queued) => {
+                if (queued.swarm_run_id) selectRun(queued.swarm_run_id)
+              })
+            }
+            onStarted={loadRuns}
+            testCount={swarm.tests.length}
+          />
         </div>
-        <RunControls
-          startRuns={(agentVersions, runsPerTest) => startSwarmRuns(swarm.id, agentVersions, runsPerTest)}
-          onStarted={loadRuns}
-          testCount={swarm.tests.length}
-        />
-        <SwarmProgress tests={swarm.tests} runs={runs} />
+        {summaries.length === 0 ? (
+          <p className="text-sm text-muted-foreground">Not run yet. Pick agent versions and run the swarm.</p>
+        ) : (
+          <SwarmRunList
+            summaries={summaries}
+            selectedId={selectedId}
+            onSelect={selectRun}
+            onCancel={cancelRun}
+            cancellingId={cancellingId}
+          />
+        )}
+        {selected && <SwarmRunDetail summary={selected} tests={swarm.tests} runs={runs} now={loadedAt} />}
       </div>
 
+      <h2 className="text-base font-semibold">Tests</h2>
       <div className="space-y-2">
         {swarm.tests.map((test) => (
           <Link

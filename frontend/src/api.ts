@@ -4,6 +4,7 @@ import type {
   FoundPolicies,
   InferredTest,
   Policy,
+  QueuedRuns,
   QueueState,
   RunDetail,
   RunRow,
@@ -11,6 +12,7 @@ import type {
   SwarmDetail,
   SwarmProposal,
   SwarmRow,
+  SwarmRunSummary,
   TestDetail,
   TestRow,
   TestSpec,
@@ -117,19 +119,23 @@ export function readSwarm(swarmId: string): Promise<SwarmDetail> {
   return requestJson(`/api/swarms/${swarmId}`)
 }
 
-export function startSwarmRuns(swarmId: string, agentVersions: string[], runsPerTest: number): Promise<{ queued: number }> {
+export function startSwarmRuns(swarmId: string, agentVersions: string[], runsPerTest: number): Promise<QueuedRuns> {
   return requestJson(`/api/swarms/${swarmId}/runs`, {
     method: 'POST',
     body: JSON.stringify({ agent_versions: agentVersions, runs_per_version: runsPerTest }),
   })
 }
 
-export function listRunsOfSwarm(swarmId: string): Promise<RunRow[]> {
-  return requestJson(`/api/swarms/${swarmId}/runs`)
+export function listSwarmRuns(swarmId: string): Promise<SwarmRunSummary[]> {
+  return requestJson(`/api/swarms/${swarmId}/swarm-runs`)
 }
 
-export function cancelSwarmRuns(swarmId: string): Promise<null> {
-  return requestJson(`/api/swarms/${swarmId}/cancel`, { method: 'POST' })
+export function listRunsOfSwarmRun(swarmId: string, swarmRunId: string): Promise<RunRow[]> {
+  return requestJson(`/api/swarms/${swarmId}/runs?swarm_run_id=${swarmRunId}`)
+}
+
+export function cancelSwarmRun(swarmId: string, swarmRunId: string): Promise<null> {
+  return requestJson(`/api/swarms/${swarmId}/swarm-runs/${swarmRunId}/cancel`, { method: 'POST' })
 }
 
 export function readQueueState(): Promise<QueueState> {

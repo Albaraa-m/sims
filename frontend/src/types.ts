@@ -191,3 +191,23 @@ export type QueueState = {
   refused_starts_last_hour: number
   workers: WorkerRow[]
 }
+
+export type SwarmRunStatus = 'queued' | 'running' | 'completed' | 'cancelled'
+
+// One press of Run swarm; id "earlier" groups calls queued before runs were numbered.
+export type SwarmRunSummary = {
+  id: string
+  number: number
+  created_at: string | null
+  agent_versions: string[]
+  status: SwarmRunStatus
+  total: number
+  status_counts: Partial<Record<RunStatus, number>>
+  outcome_counts: Partial<Record<Outcome, number>>
+}
+
+export type QueuedRuns = {
+  queued: number
+  swarm_run_id: string | null
+  swarm_run_number: number | null
+}
