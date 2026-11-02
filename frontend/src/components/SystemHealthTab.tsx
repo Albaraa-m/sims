@@ -1,5 +1,7 @@
 import { Link } from 'react-router'
 
+import LiveQueuePanel from '@/components/LiveQueuePanel'
+import LoadOverTimeChart from '@/components/LoadOverTimeChart'
 import RunHealthOverTimeChart from '@/components/RunHealthOverTimeChart'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { durationSeconds, judgeOfRun, median, resultsUrl } from '@/dashboard'
@@ -45,8 +47,24 @@ export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: nu
   const agentVersions = [...new Set(runs.map((run) => run.agent_version))].sort()
   const judges = [...new Set(runs.map(judgeOfRun).filter((judge) => judge !== null))]
 
+  const recoveredAttempts = runs.flatMap((run) =>
+    run.attempts.filter((entry) => entry.status !== 'completed').map((entry) => ({ run, entry })),
+  )
+  const interruptedCount = recoveredAttempts.filter(({ entry }) => entry.status === 'interrupted').length
   return (
     <>
+      <LiveQueuePanel />
+
+      <div className="space-y-2">
+        <h2 className="text-base font-semibold">Load</h2>
+        <LoadOverTimeChart runs={runs} now={now} />
+        <p className="text-sm text-muted-foreground">
+          {interruptedCount} {interruptedCount === 1 ? 'attempt' : 'attempts'} interrupted ·{' '}
+          {recoveredAttempts.length - interruptedCount} failed and retried ·{' '}
+          {runs.filter((run) => run.status === 'failed').length} runs gave up after every attempt
+        </p>
+      </div>
+
       <div className="space-y-2">
         <h2 className="text-base font-semibold">Runs</h2>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

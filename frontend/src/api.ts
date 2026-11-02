@@ -4,6 +4,7 @@ import type {
   FoundPolicies,
   InferredTest,
   Policy,
+  QueueState,
   RunDetail,
   RunRow,
   SaveSwarmRequest,
@@ -129,4 +130,16 @@ export function listRunsOfSwarm(swarmId: string): Promise<RunRow[]> {
 
 export function cancelSwarmRuns(swarmId: string): Promise<null> {
   return requestJson(`/api/swarms/${swarmId}/cancel`, { method: 'POST' })
+}
+
+export function readQueueState(): Promise<QueueState> {
+  return requestJson('/api/system/queue')
+}
+
+export function killWorker(workerId: string): Promise<null> {
+  return requestJson(`/api/system/workers/${workerId}/kill`, { method: 'POST' })
+}
+
+export function setFailRate(failRate: number): Promise<{ fail_rate: number }> {
+  return requestJson('/api/system/fail-rate', { method: 'PUT', body: JSON.stringify({ fail_rate: failRate }) })
 }
