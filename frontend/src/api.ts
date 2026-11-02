@@ -59,6 +59,10 @@ export function editTest(testId: string, name: string, spec: TestSpec): Promise<
   return requestJson(`/api/tests/${testId}`, { method: 'PUT', body: JSON.stringify({ name, spec }) })
 }
 
+export function promoteTest(testId: string): Promise<TestDetail> {
+  return requestJson(`/api/tests/${testId}/promote`, { method: 'POST' })
+}
+
 export function markTestReady(testId: string): Promise<TestDetail> {
   return requestJson(`/api/tests/${testId}/ready`, { method: 'POST' })
 }

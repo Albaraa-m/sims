@@ -120,6 +120,7 @@ export default function SwarmPage() {
               <Badge variant={TEST_STATUS_BADGE_VARIANT[test.status]}>
                 {TEST_STATUS_LABEL[test.status]}
               </Badge>
+              {test.promoted_from_swarm_id && <Badge variant="info">Promoted</Badge>}
               {test.version > 1 && <span className="text-muted-foreground">v{test.version}</span>}
             </div>
             <p className="text-muted-foreground">

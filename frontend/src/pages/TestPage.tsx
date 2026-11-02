@@ -1,13 +1,23 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
-import { listRuns, listTestVersions, markTestReady, readSwarm, readTest, startRuns } from '@/api'
+import { listRuns, listTestVersions, markTestReady, promoteTest, readSwarm, readTest, startRuns } from '@/api'
 import EditTestDialog from '@/components/EditTestDialog'
 import RunControls from '@/components/RunControls'
 import OutcomeSummary from '@/components/OutcomeSummary'
 import RunsTable from '@/components/RunsTable'
 import SpecField from '@/components/SpecField'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -38,6 +48,7 @@ export default function TestPage() {
   const [test, setTest] = useState<TestDetail | null>(null)
   const [versions, setVersions] = useState<TestRow[]>([])
   const [swarm, setSwarm] = useState<SwarmDetail | null>(null)
+  const [isConfirmingPromote, setIsConfirmingPromote] = useState(false)
   const [runs, setRuns] = useState<RunRow[]>([])
   const [lastStartedAt, setLastStartedAt] = useState(0)
   const [now, setNow] = useState(() => Date.now())
@@ -51,7 +62,8 @@ export default function TestPage() {
     listTestVersions(testId).then(setVersions, (error: Error) => setLoadError(error.message))
   }, [testId])
 
-  const swarmId = test?.swarm_id
+  // The swarm it belongs to, or was promoted from.
+  const swarmId = test?.swarm_id ?? test?.promoted_from_swarm_id
   useEffect(() => {
     if (swarmId) readSwarm(swarmId).then(setSwarm, (error: Error) => setLoadError(error.message))
   }, [swarmId])
@@ -80,7 +92,7 @@ export default function TestPage() {
 
   const { spec, inferred } = test
   const latestVersion = versions.at(-1)
-  const aiLabel = test.swarm_id ? 'Generated' : 'Inferred'
+  const aiLabel = test.swarm_id || test.promoted_from_swarm_id ? 'Generated' : 'Inferred'
   return (
     <section className="space-y-6">
       <div className="space-y-2">
@@ -90,9 +102,16 @@ export default function TestPage() {
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-semibold">{test.name}</h1>
           <Badge variant={TEST_STATUS_BADGE_VARIANT[test.status]}>{TEST_STATUS_LABEL[test.status]}</Badge>
-          <Button variant="outline" className="ml-auto" onClick={() => setIsEditing(true)}>
-            Edit
-          </Button>
+          <div className="ml-auto flex gap-2">
+            {test.swarm_id && latestVersion?.id === test.id && (
+              <Button variant="outline" onClick={() => setIsConfirmingPromote(true)}>
+                Promote to regression test
+              </Button>
+            )}
+            <Button variant="outline" onClick={() => setIsEditing(true)}>
+              Edit
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-3 text-sm text-muted-foreground">
           <Select value={test.id} onValueChange={(versionId) => navigate(`/tests/${versionId}`)}>
@@ -111,7 +130,7 @@ export default function TestPage() {
           <span className="font-mono">{test.id}</span>
           {swarm && (
             <span>
-              · From swarm{' '}
+              · {test.promoted_from_swarm_id ? 'Promoted from swarm' : 'From swarm'}{' '}
               <Link to={`/swarms/${swarm.id}`} className="underline">
                 {swarm.name}
               </Link>
@@ -143,6 +162,28 @@ export default function TestPage() {
           </AlertAction>
         </Alert>
       )}
+
+      <AlertDialog open={isConfirmingPromote} onOpenChange={setIsConfirmingPromote}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Promote to regression test?</AlertDialogTitle>
+            <AlertDialogDescription>
+              It moves into the regression suite: it's listed on Tests and counted with the regression tests on
+              Results and the dashboard. Its swarm runs come with it as evidence. This can't be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                promoteTest(test.id).then(setTest, (error: Error) => setLoadError(error.message))
+              }
+            >
+              Promote
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {isEditing && (
         <EditTestDialog
