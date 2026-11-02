@@ -40,7 +40,8 @@
 4. `propose_swarm` writes one test per policy, one call each, choosing the caller behavior most likely to expose a breach; the test is named after the policy and its rule is copied verbatim for the judge.
 5. The review page lists the tests: name, policy, caller behavior; Edit opens the full spec (labelled Generated / Edited); Remove drops it, and its policy with it.
 6. Save stores the swarm and its tests as Ready in one transaction and opens the saved swarm page; each row links to its test page.
-7. The Tests tab hides swarm tests unless "Show swarm tests" is on; an Origin column says where each test came from.
+7. Swarm tests live on their swarm's page. A reviewer can promote one that found a real problem into the regression suite: it then shows on Tests ("Promoted from swarm X") and its swarm runs count as regression evidence.
+8. Results and Dashboard → Agent quality show one scope at a time: the regression suite (default) or one swarm. System health always counts every call.
 
 ## Key decisions
 
@@ -54,7 +55,8 @@
 | Saving | Only on Save, as Ready | The reviewer confirms before anything is stored, as with New test |
 | Policy grouping | Verbatim policy text, no extra field | One less field; the policy list on the swarm shows untested ones |
 | Model | `openai/gpt-5.4`, as the judge | Offline, and the mini model dropped constraints on abstract rules (turned "answer only from the knowledge base" into a booking) |
-| Tests tab | Swarm tests hidden by default | Keeps the curated regression suite readable |
+| Regression vs swarm | Separate scopes, never mixed: Tests lists the regression suite; Results and Agent quality pick a scope; System health counts everything | Regression tests guard known failures, swarm tests explore; mixing them dilutes the trusted numbers |
+| Promotion | One-way, every version, origin kept (`promoted_from_swarm_id`); its swarm runs become evidence | The path from a swarm finding to a permanent regression test |
 
 ## Risks
 
