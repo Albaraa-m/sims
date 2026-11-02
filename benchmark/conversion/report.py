@@ -1,13 +1,13 @@
 import json
 
-from benchmark.case_files import (
+from benchmark.conversion.case_files import (
     BASELINE_RESULTS_PATH,
     REPORT_PATH,
     RESULTS_PATH,
     Case,
     load_cases,
 )
-from benchmark.score import CLEAN_CRITERION, CRITERIA, JUDGE_MODEL
+from benchmark.conversion.score import CLEAN_CRITERION, CRITERIA, JUDGE_MODEL
 from regression_tests.convert import CONVERSION_MODEL
 
 HAND_WRITTEN_MARKER = (
@@ -35,7 +35,7 @@ any conversion ran. Each generated test gets 4 pass/fail checks:
 
 The clean call passes if no test is created, so the converter can't score by
 inventing failures. The judge is a stronger model than the converter, sees only the
-fields it grades, and fails when unsure. Run it with `uv run python -m benchmark.run`.
+fields it grades, and fails when unsure. Run it with `uv run python -m benchmark.conversion.run`.
 """
 
 
@@ -111,8 +111,8 @@ def render_report(
     lines += [
         "",
         (
-            "Each judgement's reason: `benchmark/results.json`; each generated test: "
-            "`benchmark/outputs/`."
+            "Each judgement's reason: `benchmark/conversion/results.json`; each generated test: "
+            "`benchmark/conversion/outputs/`."
         ),
     ]
     return INTRODUCTION + "\n" + "\n".join(lines) + "\n\n" + hand_written_section()

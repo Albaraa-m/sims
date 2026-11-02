@@ -1,0 +1,34 @@
+{
+  "chat_history": {
+    "items": [
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Hello, thank you for calling Sawt Bistro. How can I help you today?"
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Hi, do you have anything vegetarian?"
+        ]
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Yes, the vegetable tagine, hummus, lentil soup and fattoush salad."
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Great, thanks. Bye."
+        ]
+      }
+    ]
+  }
+}

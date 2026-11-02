@@ -1,0 +1,12 @@
+{
+  "goal": "Book a table for 4 people today at 19:00 under the name Dana.",
+  "facts": {
+    "party_size": "4",
+    "time": "19:00",
+    "day": "today",
+    "name": "Dana"
+  },
+  "behavior": "You are polite and direct. Give the booking details in one sentence. If they read the details back and ask you to confirm, say yes. Once they say the table is booked, thank them and end the call.",
+  "policy_under_test": "Read back the booking details and ask for confirmation before making the reservation.",
+  "expected_outcome": "The agent repeats the name, time, and party size, asks you to confirm, and only then says the table is booked."
+}

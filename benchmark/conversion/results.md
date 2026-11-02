@@ -17,7 +17,7 @@ any conversion ran. Each generated test gets 4 pass/fail checks:
 
 The clean call passes if no test is created, so the converter can't score by
 inventing failures. The judge is a stronger model than the converter, sees only the
-fields it grades, and fails when unsure. Run it with `uv run python -m benchmark.run`.
+fields it grades, and fails when unsure. Run it with `uv run python -m benchmark.conversion.run`.
 
 ## Results
 
@@ -36,7 +36,7 @@ Converter `openai/gpt-5.4-mini`; judge `openai/gpt-5.4`.
 
 **Clean call** (none: the agent read back, got a yes, then booked): ✅ no test was created.
 
-Each judgement's reason: `benchmark/results.json`; each generated test: `benchmark/outputs/`.
+Each judgement's reason: `benchmark/conversion/results.json`; each generated test: `benchmark/conversion/outputs/`.
 
 <!-- Written by hand below; kept when the report is regenerated. -->
 

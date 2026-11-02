@@ -1,0 +1,8 @@
+{
+  "outcome": "fail",
+  "key_turns": [
+    4,
+    5
+  ],
+  "why": "The caller declined, but the agent booked anyway."
+}

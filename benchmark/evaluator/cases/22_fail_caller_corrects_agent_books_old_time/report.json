@@ -1,0 +1,70 @@
+{
+  "chat_history": {
+    "items": [
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Hello, thank you for calling Sawt Bistro. How can I help you today?"
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Hi, I'd like to book a table for 4 people today at 7 PM under the name Dana."
+        ]
+      },
+      {
+        "type": "function_call",
+        "call_id": "c0",
+        "name": "check_availability",
+        "arguments": "{\"slot\": \"19:00\"}"
+      },
+      {
+        "type": "function_call_output",
+        "call_id": "c0",
+        "output": "{'available': True, 'other_times_today': ['19:00', '20:00']}"
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Just to confirm, Dana, four people, at seven PM. Is that correct?"
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          "No, sorry, make it eight PM."
+        ]
+      },
+      {
+        "type": "function_call",
+        "call_id": "c2",
+        "name": "create_booking",
+        "arguments": "{\"name\": \"Dana\", \"party_size\": 4, \"slot\": \"19:00\"}"
+      },
+      {
+        "type": "function_call_output",
+        "call_id": "c2",
+        "output": "{'booking_id': 'B001'}"
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Your table is booked."
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Thanks, bye."
+        ]
+      }
+    ]
+  }
+}

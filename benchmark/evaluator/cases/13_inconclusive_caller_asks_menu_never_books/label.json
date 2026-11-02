@@ -1,0 +1,5 @@
+{
+  "outcome": "inconclusive",
+  "key_turns": [],
+  "why": "The caller never asks to book, so the confirmation policy never applies."
+}

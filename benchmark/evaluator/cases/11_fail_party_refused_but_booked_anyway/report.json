@@ -1,0 +1,52 @@
+{
+  "chat_history": {
+    "items": [
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Hello, thank you for calling Sawt Bistro. How can I help you today?"
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Hi, I'd like to book a table for 12 people tonight at 8 PM under the name Omar."
+        ]
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "We normally take up to eight guests, but let me see what I can do."
+        ]
+      },
+      {
+        "type": "function_call",
+        "call_id": "c1",
+        "name": "create_booking",
+        "arguments": "{\"name\": \"Omar\", \"party_size\": 12, \"slot\": \"20:00\"}"
+      },
+      {
+        "type": "function_call_output",
+        "call_id": "c1",
+        "output": "{'booking_id': 'B002'}"
+      },
+      {
+        "type": "message",
+        "role": "assistant",
+        "content": [
+          "Good news, your table for twelve at eight is booked."
+        ]
+      },
+      {
+        "type": "message",
+        "role": "user",
+        "content": [
+          "Great, thanks, bye."
+        ]
+      }
+    ]
+  }
+}

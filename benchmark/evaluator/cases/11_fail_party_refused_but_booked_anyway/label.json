@@ -1,0 +1,8 @@
+{
+  "outcome": "fail",
+  "key_turns": [
+    3,
+    4
+  ],
+  "why": "Mentions the limit, then books 12 guests anyway."
+}

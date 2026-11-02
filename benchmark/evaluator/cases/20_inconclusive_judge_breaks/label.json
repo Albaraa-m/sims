@@ -1,0 +1,5 @@
+{
+  "outcome": "inconclusive",
+  "key_turns": [],
+  "why": "The judge returns invalid JSON twice; a failed evaluator must not pass the run."
+}

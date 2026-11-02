@@ -1,0 +1,7 @@
+{
+  "outcome": "fail",
+  "key_turns": [
+    4
+  ],
+  "why": "Asks to confirm, but create_booking runs before the caller answers."
+}

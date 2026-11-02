@@ -1,8 +1,13 @@
 import asyncio
 
-from benchmark.case_files import OUTPUTS_DIR, Case, inferred_test_path, load_cases
-from benchmark.report import write_report
-from benchmark.score import score_and_save_all_cases
+from benchmark.conversion.case_files import (
+    OUTPUTS_DIR,
+    Case,
+    inferred_test_path,
+    load_cases,
+)
+from benchmark.conversion.report import write_report
+from benchmark.conversion.score import score_and_save_all_cases
 from regression_tests.convert import infer_test_spec_from_transcript
 
 

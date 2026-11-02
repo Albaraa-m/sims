@@ -1,0 +1,5 @@
+{
+  "outcome": "execution_failed",
+  "key_turns": [],
+  "why": "Only the agent spoke; the caller never joined or never talked."
+}
