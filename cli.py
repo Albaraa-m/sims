@@ -1,9 +1,8 @@
 import argparse
 import asyncio
 import json
-import os
+import secrets
 import signal
-import socket
 from contextlib import nullcontext, suppress
 from itertools import cycle, groupby, islice
 from pathlib import Path
@@ -87,8 +86,9 @@ def print_test(test: Test) -> None:
         print(f"{version}: {len(runs)} simulations ({statuses})")
 
 
-def worker_id_of_this_process() -> str:
-    return f"{socket.gethostname()}-{os.getpid()}"
+def generate_random_worker_id() -> str:
+    # Random, not the hostname: the website shows it, and hostnames can name people.
+    return f"worker-{secrets.token_hex(3)}"
 
 
 def is_settled(simulation: Simulation) -> bool:
@@ -109,7 +109,7 @@ async def wait_for_runs_to_settle(
     """Prints each run's progress; with_worker also runs a worker in this process."""
     stop = asyncio.Event()
     worker = (
-        asyncio.create_task(run_worker(worker_id_of_this_process(), stop=stop))
+        asyncio.create_task(run_worker(generate_random_worker_id(), stop=stop))
         if with_worker
         else None
     )
@@ -262,14 +262,15 @@ def main() -> None:
             # Treat a terminate like Ctrl-C, so the worker stops its calls either way.
             signal.signal(signal.SIGTERM, signal.default_int_handler)
             with running_agent_servers() if args.start_agents else nullcontext():
+                worker_id = generate_random_worker_id()
                 print(
-                    f"worker {worker_id_of_this_process()} placing up to "
+                    f"worker {worker_id} placing up to "
                     f"{args.max_calls} calls; Ctrl-C to stop"
                 )
                 with suppress(KeyboardInterrupt):
                     asyncio.run(
                         run_worker(
-                            worker_id_of_this_process(),
+                            worker_id,
                             args.max_calls,
                             args.fail_rate,
                         )

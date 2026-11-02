@@ -7,7 +7,6 @@ the same run, and each worker's reaper recovers runs whose worker died.
 import asyncio
 import os
 import random
-import socket
 import time
 
 from evaluations.evaluate import evaluate_simulation
@@ -108,7 +107,7 @@ async def run_worker(
     stop = stop or asyncio.Event()
     attempts: set[asyncio.Task] = set()
     next_reap = 0.0
-    register_worker(worker_id, socket.gethostname(), os.getpid(), max_calls)
+    register_worker(worker_id, os.getpid(), max_calls)
     try:
         while not stop.is_set():
             try:

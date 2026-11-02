@@ -12,7 +12,7 @@ from simulations.worker_registry import (
 
 
 def test_a_registered_worker_is_listed_with_its_calls():
-    register_worker("w1", "laptop", 123, max_calls=4)
+    register_worker("w1", 123, max_calls=4)
     record_worker_heartbeat("w1", calls_running=3)
 
     [worker] = list_live_workers()
@@ -21,7 +21,7 @@ def test_a_registered_worker_is_listed_with_its_calls():
 
 
 def test_a_worker_without_recent_heartbeats_is_dropped():
-    register_worker("w1", "laptop", 123, max_calls=4)
+    register_worker("w1", 123, max_calls=4)
     worker = get_row(WorkerProcess, "w1")
     worker.heartbeat_at = now() - timedelta(minutes=1)
     save(worker)
@@ -30,7 +30,7 @@ def test_a_worker_without_recent_heartbeats_is_dropped():
 
 
 def test_a_stopped_worker_is_removed():
-    register_worker("w1", "laptop", 123, max_calls=4)
+    register_worker("w1", 123, max_calls=4)
 
     unregister_worker("w1")
 

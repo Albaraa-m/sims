@@ -13,8 +13,8 @@ from simulations.models import WorkerProcess
 HEARTBEAT_TIMEOUT_SECONDS = 10
 
 
-def register_worker(worker_id: str, host: str, pid: int, max_calls: int) -> None:
-    save(WorkerProcess(id=worker_id, host=host, pid=pid, max_calls=max_calls))
+def register_worker(worker_id: str, pid: int, max_calls: int) -> None:
+    save(WorkerProcess(id=worker_id, pid=pid, max_calls=max_calls))
 
 
 def record_worker_heartbeat(worker_id: str, calls_running: int) -> None:

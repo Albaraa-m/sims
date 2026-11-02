@@ -61,7 +61,6 @@ class WorkerProcess(SQLModel, table=True):
     """A running worker, so the website can list workers and stop one to test recovery."""
 
     id: str = Field(primary_key=True)
-    host: str
     pid: int
     max_calls: int
     calls_running: int = 0

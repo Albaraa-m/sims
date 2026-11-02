@@ -22,7 +22,7 @@ def client() -> TestClient:
 
 def test_queue_state_counts_runs_and_lists_live_workers(client):
     admit_runs([RunRequest("v2")] * 2)
-    register_worker("w1", "laptop", 123, max_calls=4)
+    register_worker("w1", 123, max_calls=4)
 
     state = client.get("/api/system/queue").json()
 
@@ -40,7 +40,7 @@ def test_queue_state_reports_how_long_the_oldest_simulation_waits(client):
 
 def test_a_dead_worker_holding_simulations_is_listed_as_recovering(client):
     admit_runs([RunRequest("v2")] * 2)
-    register_worker("alive", "laptop", 1, max_calls=4)
+    register_worker("alive", 1, max_calls=4)
     claim_next_run("dead")
     claim_next_run("dead")
 

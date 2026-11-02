@@ -34,7 +34,6 @@ def require_fault_injection() -> None:
 
 class WorkerRow(BaseModel):
     id: str
-    host: str
     pid: int
     max_calls: int
     calls_running: int
@@ -141,7 +140,6 @@ def read_queue_state() -> QueueState:
         workers=[
             WorkerRow(
                 id=worker.id,
-                host=worker.host,
                 pid=worker.pid,
                 max_calls=worker.max_calls,
                 calls_running=worker.calls_running,

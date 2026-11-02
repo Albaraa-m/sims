@@ -173,7 +173,6 @@ export type SwarmDetail = SwarmRow & {
 
 export type WorkerRow = {
   id: string
-  host: string
   pid: number
   max_calls: number
   calls_running: number
