@@ -1,7 +1,12 @@
 import asyncio
 
-from benchmark.case_files import Case
-from benchmark.score import CLEAN_CRITERION, CRITERIA, check_facts_kept, score_case
+from benchmark.conversion.case_files import Case
+from benchmark.conversion.score import (
+    CLEAN_CRITERION,
+    CRITERIA,
+    check_facts_kept,
+    score_case,
+)
 from regression_tests.convert import InferredTest
 
 

@@ -3,7 +3,12 @@ import json
 
 from pydantic import BaseModel
 
-from benchmark.case_files import RESULTS_PATH, Case, load_cases, load_inferred_test
+from benchmark.conversion.case_files import (
+    RESULTS_PATH,
+    Case,
+    load_cases,
+    load_inferred_test,
+)
 from core import llm
 from regression_tests.convert import InferredTest
 from regression_tests.models import TestSpec
