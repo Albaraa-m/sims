@@ -41,6 +41,10 @@ class StartRunsRequest(BaseModel):
     runs_per_version: int = Field(default=1, ge=1, le=5)
 
 
+class QueuedRuns(BaseModel):
+    queued: int
+
+
 def mark_as_utc(time: datetime | None) -> datetime | None:
     # SQLite drops the timezone; every stored time is UTC.
     return time and time.replace(tzinfo=UTC)

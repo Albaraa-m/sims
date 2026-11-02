@@ -1,16 +1,22 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import NoResultFound
 
+from api.routes.runs import build_run_row
 from api.schemas import (
     FindPoliciesRequest,
     FoundPolicies,
     GenerateSwarmRequest,
+    QueuedRuns,
+    RunRow,
     SaveSwarmRequest,
+    StartRunsRequest,
     SwarmDetail,
     SwarmRow,
     SwarmTest,
 )
-from regression_tests.crud import list_latest_tests
+from regression_tests.crud import list_latest_tests, list_test_runs
+from simulations.queue import QueueFullError, RunRequest, admit_runs, cancel_runs
+from simulations.runner import delete_room
 from swarms.crud import get_swarm, list_swarms, save_swarm_with_tests
 from swarms.generate import GenerationError
 from swarms.models import Swarm
@@ -78,3 +84,44 @@ def read_swarm(swarm_id: str) -> SwarmDetail:
         policies=swarm.policies,
         tests=[SwarmTest.model_validate(test, from_attributes=True) for test in tests],
     )
+
+
+def get_swarm_or_404(swarm_id: str) -> Swarm:
+    try:
+        return get_swarm(swarm_id)
+    except NoResultFound:
+        raise HTTPException(status_code=404, detail=f"swarm {swarm_id} not found")
+
+
+@router.post("/{swarm_id}/runs", status_code=202)
+def queue_runs_of_swarm(swarm_id: str, request: StartRunsRequest) -> QueuedRuns:
+    """Queues every test against each version; a start that doesn't fit is refused whole."""
+    swarm = get_swarm_or_404(swarm_id)
+    requests = [
+        RunRequest(agent_version, test.id)
+        for test in list_latest_tests(swarm.id)
+        for agent_version in request.agent_versions
+        for _ in range(request.runs_per_version)
+    ]
+    try:
+        admit_runs(requests, swarm.id)
+    except QueueFullError as error:
+        raise HTTPException(status_code=409, detail=str(error))
+    return QueuedRuns(queued=len(requests))
+
+
+@router.get("/{swarm_id}/runs")
+def list_runs_of_swarm(swarm_id: str) -> list[RunRow]:
+    get_swarm_or_404(swarm_id)
+    return [
+        build_run_row(simulation, test)
+        for simulation, test in list_test_runs(swarm_id=swarm_id)
+    ]
+
+
+@router.post("/{swarm_id}/cancel")
+async def cancel_runs_of_swarm(swarm_id: str) -> None:
+    """Stops the swarm's waiting runs and ends its calls in progress."""
+    get_swarm_or_404(swarm_id)
+    for room in cancel_runs(swarm_id):
+        await delete_room(room)
