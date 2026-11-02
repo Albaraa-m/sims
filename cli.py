@@ -8,6 +8,8 @@ from pathlib import Path
 
 import uvicorn
 
+# Registers the swarm table, so create_tables makes it before the website loads.
+import swarms.models  # noqa: F401
 from agents.servers import running_agent_servers
 from core.config import LOGS_DIR
 from core.db import create_tables
