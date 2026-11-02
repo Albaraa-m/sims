@@ -180,16 +180,26 @@ export type WorkerRow = {
   heartbeat_seconds_ago: number
 }
 
+// A worker that stopped heartbeating while its simulations were still running.
+export type StoppedWorkerRow = {
+  id: string
+  simulations_recovering: number
+  seconds_until_requeued: number
+}
+
 export type QueueState = {
   queued: number
   running: number
   max_running: number
   max_queued: number
+  longest_wait_seconds: number | null
   fail_rate: number
   // Kill and failure injection are offered only when the website was started for a demo.
   fault_injection_enabled: boolean
   refused_starts_last_hour: number
+  refused_simulations: number
   workers: WorkerRow[]
+  stopped_workers: StoppedWorkerRow[]
 }
 
 export type SwarmRunStatus = 'queued' | 'running' | 'completed' | 'cancelled'

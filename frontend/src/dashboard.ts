@@ -1,8 +1,5 @@
+import { isActive, isAwaitingGrade } from '@/runs'
 import type { RunRow } from '@/types'
-
-export function judgeOfRun(run: RunRow): string | null {
-  return run.judge_model && `${run.judge_model} · prompt ${run.judge_prompt_version ?? '?'}`
-}
 
 // Only passes and fails say anything about the agent; the rest are system or evaluator problems.
 // One judge is assumed: comparing grades from different judges is out of scope.
@@ -111,16 +108,16 @@ export function buildSuiteRows(runs: RunRow[], agentVersions: string[]): SuiteRo
   )
 }
 
-export function durationSeconds(run: RunRow): number | null {
-  if (!run.ended_at) return null
-  return (Date.parse(run.ended_at) - Date.parse(run.call_started_at ?? run.started_at)) / 1000
-}
+// Where each simulation stands; every one is in exactly one bucket, so they add up.
+export type LedgerBucket = 'finished' | 'in_flight' | 'execution_failure' | 'not_graded' | 'cancelled'
 
-export function median(values: number[]): number | null {
-  if (values.length === 0) return null
-  const sorted = [...values].sort((a, b) => a - b)
-  const middle = Math.floor(sorted.length / 2)
-  return sorted.length % 2 ? sorted[middle] : (sorted[middle - 1] + sorted[middle]) / 2
+export function ledgerBucketOf(run: RunRow, now: number): LedgerBucket {
+  if (run.status === 'cancelled') return 'cancelled'
+  if (isActive(run)) return 'in_flight'
+  if (run.outcome === 'execution_failed' || run.status === 'failed') return 'execution_failure'
+  if (isAwaitingGrade(run, now)) return 'in_flight'
+  if (run.outcome === null) return 'not_graded'
+  return 'finished'
 }
 
 export function resultsUrl(filters: Record<string, string | number>): string {
