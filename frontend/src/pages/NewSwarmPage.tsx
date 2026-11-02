@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 
 import { saveSwarm } from '@/api'
 import TestFieldsEditor from '@/components/TestFieldsEditor'
+import TestSpecSummary from '@/components/TestSpecSummary'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -100,12 +101,7 @@ function ReviewSwarm({ proposal }: { proposal: SwarmProposal }) {
             <div className="flex items-start gap-3">
               <div className="flex-1 space-y-1">
                 <p className="font-medium">{scenario.fields.name || 'Untitled'}</p>
-                <p className="text-muted-foreground">
-                  <span className="text-foreground">Policy:</span> {scenario.fields.policy_under_test}
-                </p>
-                <p className="text-muted-foreground">
-                  <span className="text-foreground">Caller:</span> {scenario.fields.behavior}
-                </p>
+                <TestSpecSummary spec={specFromFields(scenario.fields)} />
               </div>
               <Button
                 variant="outline"
