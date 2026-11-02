@@ -90,6 +90,9 @@ async def wait_for_room_to_close(
 async def delete_room(room: str) -> None:
     """Ends a call by closing its room; a room that is already gone is fine."""
     async with api.LiveKitAPI() as lkapi:
-        rooms = await lkapi.room.list_rooms(api.ListRoomsRequest(names=[room]))
-        if rooms.rooms:
+        try:
             await lkapi.room.delete_room(api.DeleteRoomRequest(room=room))
+        # The call may close it first, e.g. when a worker ends a cancelled call.
+        except api.ServerError as error:
+            if error.code != api.ServerErrorCode.NOT_FOUND:
+                raise
