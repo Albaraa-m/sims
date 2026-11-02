@@ -6,13 +6,14 @@ from pydantic import BaseModel, Field
 from agents.booking.agent import INSTRUCTIONS_BY_VERSION, KNOWLEDGE_BASE, BookingAgent
 from agents.booking.store import default_store
 from core import llm
-from regression_tests.convert import CONVERSION_MODEL
 from regression_tests.models import TestSpec
 from regression_tests.spec_rules import CALLER_LEAK_RULES, SPEC_FIELD_RULES
 from swarms.models import Policy, Scenario
 
-# Generation runs offline, like conversion, so it uses the same stronger model.
-GENERATION_MODEL = CONVERSION_MODEL
+# Generation runs offline and has many constraints to follow; the mini model dropped
+# them on abstract rules (e.g. turned "answer only from the knowledge base" into a
+# booking), so it uses the stronger model, as the judge does.
+GENERATION_MODEL = "openai/gpt-5.4"
 
 
 class GenerationError(Exception):
