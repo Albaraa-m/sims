@@ -69,7 +69,7 @@ export default function LoadOverTimeChart({ runs, now }: { runs: RunRow[]; now: 
         {interruptions.map((mark, index) => (
           <div
             key={index}
-            className={`absolute top-0 h-full w-px ${mark.kind === 'interrupted' ? 'bg-[#d03b3b]' : 'bg-amber-500'}`}
+            className={`absolute top-0 h-full w-0.5 ${mark.kind === 'interrupted' ? 'bg-[#d03b3b]' : 'bg-amber-500'}`}
             style={{ left: `${((mark.time - start) / (now - start || 1)) * 100}%` }}
             title={`${timeFormat.format(mark.time)}: attempt ${mark.kind === 'interrupted' ? 'interrupted' : 'failed, retried'}`}
           />

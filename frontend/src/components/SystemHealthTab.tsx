@@ -61,7 +61,7 @@ export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: nu
         <p className="text-sm text-muted-foreground">
           {interruptedCount} {interruptedCount === 1 ? 'attempt' : 'attempts'} interrupted ·{' '}
           {recoveredAttempts.length - interruptedCount} failed and retried ·{' '}
-          {runs.filter((run) => run.status === 'failed').length} runs gave up after every attempt
+          {runs.filter((run) => run.status === 'failed').length} runs couldn't run
         </p>
       </div>
 
