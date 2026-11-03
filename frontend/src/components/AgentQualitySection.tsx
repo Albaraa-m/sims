@@ -6,7 +6,7 @@ import { buildSuiteRows, MIN_RUNS_TO_RELY_ON, resultsUrl } from '@/dashboard'
 import type { RunRow } from '@/types'
 
 // The agent read as a test suite: each test counts once per version, by its runs' status.
-export default function AgentQualityTab({ runs, scope }: { runs: RunRow[]; scope: string }) {
+export default function AgentQualitySection({ runs, scope }: { runs: RunRow[]; scope: string }) {
   const agentVersions = [...new Set(runs.map((run) => run.agent_version))].sort()
   const rows = buildSuiteRows(runs, agentVersions)
   const hasChange = agentVersions.length >= 2

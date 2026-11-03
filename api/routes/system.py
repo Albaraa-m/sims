@@ -19,19 +19,6 @@ from simulations.worker_registry import list_live_workers, unregister_worker
 router = APIRouter(prefix="/api/system")
 
 
-def fault_injection_enabled() -> bool:
-    # Off unless the website is started for a demo; killing processes is not for daily use.
-    return os.getenv("SIMS_FAULT_INJECTION") == "1"
-
-
-def require_fault_injection() -> None:
-    if not fault_injection_enabled():
-        raise HTTPException(
-            status_code=403,
-            detail="fault injection is off; start the website with SIMS_FAULT_INJECTION=1",
-        )
-
-
 class WorkerRow(BaseModel):
     id: str
     pid: int
@@ -57,7 +44,6 @@ class QueueState(BaseModel):
     # How long the simulation waiting longest has been waiting since it was requested.
     longest_wait_seconds: float | None
     fail_rate: float
-    fault_injection_enabled: bool
     refused_starts_last_hour: int
     # Every simulation ever refused by admission, so the ledger of requests adds up.
     refused_simulations: int
@@ -129,7 +115,6 @@ def read_queue_state() -> QueueState:
         max_queued=queue.MAX_QUEUED_RUNS,
         longest_wait_seconds=read_longest_wait_seconds(moment),
         fail_rate=queue.get_fail_rate(),
-        fault_injection_enabled=fault_injection_enabled(),
         refused_starts_last_hour=len(
             queue.list_refused_starts(moment - timedelta(hours=1))
         ),
@@ -167,7 +152,6 @@ def is_sims_worker_process(pid: int) -> bool:
 @router.post("/workers/{worker_id}/kill")
 def kill_worker(worker_id: str) -> None:
     """Kills the worker's process outright, as a crash would; its calls are recovered."""
-    require_fault_injection()
     worker = next((w for w in list_live_workers() if w.id == worker_id), None)
     if worker is None:
         raise HTTPException(
@@ -184,6 +168,5 @@ def kill_worker(worker_id: str) -> None:
 
 @router.put("/fail-rate")
 def set_fail_rate(request: FailRate) -> FailRate:
-    require_fault_injection()
     queue.set_fail_rate(request.fail_rate)
     return request

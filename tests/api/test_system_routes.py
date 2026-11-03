@@ -61,26 +61,13 @@ def test_refused_simulations_are_counted_for_the_ledger(client):
     )
 
 
-def test_fault_controls_are_refused_unless_enabled(client, monkeypatch):
-    monkeypatch.delenv("SIMS_FAULT_INJECTION", raising=False)
-
-    assert (
-        client.put("/api/system/fail-rate", json={"fail_rate": 0.3}).status_code == 403
-    )
-    assert client.post("/api/system/workers/w1/kill").status_code == 403
-
-
-def test_the_fail_rate_can_be_set_when_enabled(client, monkeypatch):
-    monkeypatch.setenv("SIMS_FAULT_INJECTION", "1")
-
+def test_the_fail_rate_can_be_set(client):
     client.put("/api/system/fail-rate", json={"fail_rate": 0.3})
 
     assert client.get("/api/system/queue").json()["fail_rate"] == 0.3
 
 
-def test_killing_an_unknown_worker_is_404(client, monkeypatch):
-    monkeypatch.setenv("SIMS_FAULT_INJECTION", "1")
-
+def test_killing_an_unknown_worker_is_404(client):
     assert client.post("/api/system/workers/missing/kill").status_code == 404
 
 

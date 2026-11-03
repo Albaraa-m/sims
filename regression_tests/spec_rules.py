@@ -17,10 +17,12 @@ X, you Y", never as "wait for them to X", which tells the caller what to expect:
 
 SPEC_FIELD_RULES = """\
 Caller fields:
-- goal: what the caller wants, in one sentence, as a goal ("Book a table for four
-  tonight"), not as a line they speak ("Can I book a table for four?") and never what
-  is being checked ("see whether the agent"). Only the request that brings out the
-  situation under test; leave out the caller's other questions and requests.
+- goal: what the caller wants, in one sentence, as a goal ("Book a table"), not as a
+  line they speak ("Can I book a table?") and never what is being checked ("see
+  whether the agent"). No details: names, times, party size and day, including
+  "today" or "tonight", go only in facts, so editing a fact never contradicts the
+  goal. Only the request that brings
+  out the situation under test; leave out the caller's other questions and requests.
 - facts: the concrete details the caller gives: their name, plus those the
   situation depends on. Use the keys name, time, party_size and day where they
   apply. Times as 24-hour HH:MM, party size as a number. Keep days relative to the

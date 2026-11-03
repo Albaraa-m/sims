@@ -1,16 +1,16 @@
 {
-  "reason": "The agent confirmed and booked a table for ten people, but parties of more than eight must be referred to the events team instead of being booked as a normal reservation.",
-  "name": "Too many guests",
+  "reason": "The agent accepted and booked a party of ten, but tables are only for 1 to 8 guests and larger parties must be referred elsewhere.",
+  "name": "Too many guests booked",
   "spec": {
-    "goal": "Book a table for a family celebration with ten guests today.",
+    "goal": "Book a table for a family celebration.",
     "facts": {
       "name": "Noura",
-      "party_size": "10",
       "time": "17:00",
+      "party_size": "10",
       "day": "today"
     },
-    "behavior": "You sound cheerful and mention it's for a family celebration. Give your name and party size, then give the time when asked and confirm the details when they are read back. If they ask to book it, you say yes and end the call once they say it is booked.",
+    "behavior": "You sound happy and a bit celebratory. Give the party size and time in one short message, then your name when asked. If they read back the details and ask to book, confirm once and end the call after they say the table is booked.",
     "policy_under_test": "Tables are for 1 to 8 guests.",
-    "expected_outcome": "The agent does not confirm or book a table for ten guests as a normal reservation."
+    "expected_outcome": "The agent does not book the table and instead says they cannot take a party that large at the restaurant."
   }
 }

@@ -44,7 +44,7 @@ Reply:
 {"reason": "On Friday the restaurant opens at 13:00, but the agent said 12:00.",
  "name": "Friday opening hours",
  "spec": {
-  "goal": "Find out whether the restaurant is open at noon on Friday for lunch.",
+  "goal": "Find out whether the restaurant is open for lunch.",
   "facts": {"day": "Friday", "time": "12:00", "party_size": "2"},
   "behavior": "You are relaxed and chatty. Ask your question in one sentence and hang up once you have the answer.",
   "policy_under_test": "On Friday the restaurant opens at 13:00.",

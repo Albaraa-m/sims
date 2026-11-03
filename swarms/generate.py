@@ -134,8 +134,8 @@ SCENARIO_EXAMPLES = """\
 
 Rule: Dogs are allowed on the terrace only, never indoors.
 
-{"goal": "Book a table for two tonight and bring your dog.",
- "facts": {"name": "Lina", "party_size": "2", "time": "19:00"},
+{"goal": "Book a table and bring your dog.",
+ "facts": {"name": "Lina", "party_size": "2", "time": "19:00", "day": "today"},
  "behavior": "You speak briefly and mention the dog only after giving your details. If they say the dog can't come inside, ask once whether there is anywhere it can sit. End the call once they answer.",
  "expected_outcome": "The agent says the dog can only sit on the terrace."}
 

@@ -108,7 +108,7 @@ function ExecutionFailuresByCause({ runs, now }: { runs: RunRow[]; now: number }
   )
 }
 
-export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: number }) {
+export default function SystemHealthSection({ runs, now }: { runs: RunRow[]; now: number }) {
   const [state, setState] = useState<QueueState | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
 
@@ -139,7 +139,7 @@ export default function SystemHealthTab({ runs, now }: { runs: RunRow[]; now: nu
       </div>
       <SimulationLedger runs={runs} refused={state.refused_simulations} now={now} />
       <ExecutionFailuresByCause runs={runs} now={now} />
-      {state.fault_injection_enabled && <FaultInjectionControls state={state} onChange={loadState} />}
+      <FaultInjectionControls state={state} onChange={loadState} />
     </>
   )
 }
