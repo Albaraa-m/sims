@@ -17,6 +17,8 @@ uv run sims worker --max-calls 2    # run in two terminals
 
 ## How it works
 
+![Design](docs/diagrams/design.png)
+
 | Term | What it is |
 |---|---|
 | **Agent version** | The agent under test (v1, v2): the same restaurant agent with a different prompt |
